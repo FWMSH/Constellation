@@ -10,11 +10,16 @@ class ExhibitComponent:
 
     # Holds basic data about a component in the exhibit
 
-    def __init__(self, id):
+    def __init__(self, id, type):
 
         self.id = id
+        self.type = type
+
         self.lastContactDateTime = datetime.now()
         self.lastInteractionDateTime = datetime(2020, 1, 1)
+
+        self.config = {}
+        self.updateConfiguration()
 
     def secondsSinceLastContact(self):
 
@@ -57,62 +62,30 @@ class ExhibitComponent:
 
         return(status)
 
+    def updateConfiguration(self):
+
+        # Retreive the latest configuration data from the configParser object
+
+        try:
+            self.config = dict(currentExhibitConfiguration.items(self.id))
+        except configparser.NoSectionError:
+            print(f"Error: there is no configuration available for component with id={self.id}")
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
-    componentList = []
-    currentExhibitConfiguration = {}
 
-    def __init__(self, *args, **kwargs):
-
-        super().__init__(*args, **kwargs)
-
-        self.loadCurrentExhibitConfiguration()
-
-
-    def loadCurrentExhibitConfiguration(self):
-
-        # Read the current exhibit configuration from file and initialize it
-        # in self.currentExhibitConfiguration
-
-        config = configparser.ConfigParser()
-        config.read('currentExhibitConfiguration.ini')
-
-    def getExhibitComponent(self, id):
-
-        # Return a component with the given id, or None if no such
-        # component exists
-
-        component = next((x for x in self.componentList if x.id == id), None)
-
-        return(component)
-
-    def addExhibitComponent(self, id):
-
-        component = ExhibitComponent(id)
-        self.componentList.append(component)
-
-        return(component)
-
-    def updateExhibitComponentStatus(self, data):
-
-        id = data["id"]
-
-        component = self.getExhibitComponent(id)
-        if component is None: # This is a new id, so make the component
-            component = self.addExhibitComponent(id)
-
-        component.updateLastContactDateTime()
-        if "currentInteraction" in data:
-            if data["currentInteraction"].lower() == "true":
-                component.updateLastInteractionDateTime()
-
-    def sendCurrentConfiguration(self):
+    def sendCurrentConfiguration(self, id):
 
         # Function to respond to a POST with a string defining the current
         # exhibit configuration
 
-        self.wfile.write(b"POST received")
+        config = getExhibitComponent(id).config
+
+        config_str = ""
+        for key in config:
+            config_str += key + "=" + config[key] + "__"
+
+        self.wfile.write(bytes(config_str, encoding="UTF-8"))
 
     def log_request(code='-', size='-'):
 
@@ -149,12 +122,66 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         try:
             id = data["id"]
+            type = data["type"]
         except:
-            return() # No id, so bail out
+            print("Error: ping received without id or type field")
+            return() # No id or type, so bail out
 
-        self.updateExhibitComponentStatus(data)
-        self.sendCurrentConfiguration()
+        updateExhibitComponentStatus(data)
+        self.sendCurrentConfiguration(id)
 
+def loadCurrentExhibitConfiguration():
+
+    # Read the current exhibit configuration from file and initialize it
+    # in self.currentExhibitConfiguration
+
+    global currentExhibitConfiguration
+
+    # First, retrieve the config filename that defines the desired exhibit
+    config = configparser.ConfigParser()
+    config.read('currentExhibitConfiguration.ini')
+    current = config["CURRENT"]
+    currentExhibit = current["currentConfigFile"]
+    # Then, load the configuration for that exhibit
+    currentExhibitConfiguration = configparser.ConfigParser()
+    currentExhibitConfiguration.read(currentExhibit)
+
+def getExhibitComponent(id):
+
+    # Return a component with the given id, or None if no such
+    # component exists
+
+    component = next((x for x in componentList if x.id == id), None)
+
+    return(component)
+
+def addExhibitComponent(id, type):
+
+    component = ExhibitComponent(id, type)
+    componentList.append(component)
+
+    return(component)
+
+def updateExhibitComponentStatus(data):
+
+    id = data["id"]
+    type = data["type"]
+
+    component = getExhibitComponent(id)
+    if component is None: # This is a new id, so make the component
+        component = addExhibitComponent(id, type)
+
+    component.updateLastContactDateTime()
+    if "currentInteraction" in data:
+        if data["currentInteraction"].lower() == "true":
+            component.updateLastInteractionDateTime()
+
+
+componentList = []
+currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
+currentExhibitConfiguration = None # the configParser object holding the current config
+
+loadCurrentExhibitConfiguration()
 
 httpd = HTTPServer((ADDR, PORT), RequestHandler)
 httpd.serve_forever()

@@ -1,0 +1,13 @@
+# 1 - 4 are left to right when entering the gallery
+
+[WINDOW1]
+content = testfile1.mp4
+
+[WINDOW2]
+content = testfile2.mp4
+
+[WINDOW3]
+content = testfile3.mp4
+
+[WINDOW4]
+content = testfile4.mp4
