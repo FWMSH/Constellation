@@ -20,6 +20,12 @@
         </div>
       </div>
 
+      <div class="row mt-2">
+        <div class="col">
+          <button type="button" class="btn btn-primary" id="reloadConfigurationButton" onclick="reloadConfiguration()">Reload Config</button>
+        </div>
+      </div>
+
       <div class="row" id="componentGroupsRow">
       </div>
 
@@ -200,12 +206,39 @@
         document.title = name;
       }
 
-      function askForUpdate() {
+      function reloadConfiguration() {
 
-        requestString = "class=webpage&action=fetchUpdate"
+        // This function will send a message to the server asking it to reload
+        // the current exhibit configuration file and update all the components
+
+        requestString = "class=webpage&action=reloadConfiguration";
 
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://localhost:8082", true);
+        xhr.open("POST", serverIP, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+          if (this.readyState != 4) return;
+
+          if (this.status == 200) {
+            var response = JSON.parse(this.responseText);
+
+            if ("result" in response) {
+              if (response["result"] == "success") {
+                $("#reloadConfigurationButton").html("Success!");
+                setTimeout(function() { $("#reloadConfigurationButton").html("Reload Config"); }, 2000);
+              }
+            }
+          }
+      };
+        xhr.send(requestString);
+      }
+
+      function askForUpdate() {
+
+        requestString = "class=webpage&action=fetchUpdate";
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", serverIP, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onreadystatechange = function () {
           if (this.readyState != 4) return;
@@ -229,11 +262,13 @@
         xhr.send(requestString);
       }
 
+      var serverIP = "http://localhost:8082"
       var currentExhibit = "";
       var exhibitComponents = [];
       var componentGroups = [];
 
-      setInterval(askForUpdate, 5000)
+      askForUpdate();
+      setInterval(askForUpdate, 5000);
 
     </script>
 

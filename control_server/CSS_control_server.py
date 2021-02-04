@@ -174,9 +174,16 @@ class RequestHandler(SimpleHTTPRequestHandler):
             except:
                 print("Error: webpage ping received without action field")
                 return() # No id or type, so bail out
-
             if action == "fetchUpdate":
                 self.sendWebpageUpdate()
+            elif action == "reloadConfiguration":
+                loadCurrentExhibitConfiguration()
+                for component in componentList:
+                    component.updateConfiguration()
+
+                json_string = json.dumps({"result": "success"})
+                self.wfile.write(bytes(json_string, encoding="UTF-8"))
+
         elif pingClass == "exhibitComponent":
             try:
                 id = data["id"]
