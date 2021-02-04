@@ -100,6 +100,22 @@
 
         addComponent(component) {
           this.components.push(component);
+          this.sortComponentList();
+        }
+
+        sortComponentList() {
+
+          // Sort the component list by ID and then rebuild the HTML
+          // representation in order
+
+          // This line does the sorting
+          this.components.sort((a,b) => (a.id > b.id) ? 1 : ((b.id > a.id) ? -1 : 0))
+
+          document.getElementById(this.type + "ComponentList").innerHTML = ""
+          for (var i=0; i<this.components.length; i++) {
+            this.components[i].buildHTML();
+          }
+
         }
 
         buildHTML() {
@@ -181,6 +197,7 @@
       function setCurrentExhibitName(name) {
         currentExhibit = name;
         document.getElementById("exhibitNameField").innerHTML = name;
+        document.title = name;
       }
 
       function askForUpdate() {

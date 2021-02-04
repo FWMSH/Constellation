@@ -1,7 +1,8 @@
 # 1 - 4 are left to right when entering the gallery
 
 [WINDOW1]
-content = testfile1.mp4
+content = /Users/adlab/OneDrive - Fort Worth Museum of Science and History/Current Science Design/Current Science Studio/window_small.m4v
+#content = /Users/adlab/Downloads/Lightning Bolt At Night.mp4
 
 [WINDOW2]
 content = testfile2.mp4

@@ -80,12 +80,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
         # exhibit configuration
 
         config = getExhibitComponent(id).config
+        json_string = json.dumps(config)
 
-        config_str = ""
-        for key in config:
-            config_str += key + "=" + config[key] + "__"
-
-        self.wfile.write(bytes(config_str, encoding="UTF-8"))
+        self.wfile.write(bytes(json_string, encoding="UTF-8"))
 
     def sendWebpageUpdate(self):
 
@@ -134,6 +131,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
         except IOError:
             self.send_error(404, "File Not Found: %s" % self.path)
 
+    def do_OPTIONS(self):
+
+        self.send_response(200, "OK")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        self.send_header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        self.send_header('Access-Control-Allow-Credentials', 'true')
+        self.end_headers()
+
     def do_POST(self):
 
         # Receives pings from client devices and respond with any updated
@@ -141,6 +147,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        self.send_header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        self.send_header('Access-Control-Allow-Credentials', 'true')
         self.end_headers()
 
         # Get the data from the request
