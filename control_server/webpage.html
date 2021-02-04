@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Morgan Rehnberg">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <title>Control server</title>
+  </head>
+
+  <body>
+
+    <main role="main" class="container">
+
+      <div class="row mt-2">
+        <div class="col">
+          <H1><div id="exhibitNameField"></div></H1>
+        </div>
+      </div>
+
+      <div class="row" id="componentGroupsRow">
+      </div>
+
+    </main>
+
+    <script>
+
+      class ExhibitComponent {
+
+        constructor(id, type) {
+          this.id = id;
+          this.type = type;
+          this.status = "OFFLINE";
+          this.buildHTML();
+        }
+
+        setStatus(status) {
+          this.status = status;
+
+          $("#" + this.id + "StatusField").html(status);
+
+          var btnClass = this.getButtonColorClass();
+          // Strip all existing classes
+          $("#" + this.id + "MainButton").removeClass("btn-primary btn-warning btn-danger btn-success").addClass(btnClass);
+            $("#" + this.id + "DropdownButton").removeClass("btn-primary btn-warning btn-danger btn-success").addClass(btnClass);
+        }
+
+        getButtonColorClass() {
+
+          // Get the Bootstrap class based on the current status
+          var btnClass = 'btn-danger';
+          if (this.status == 'ACTIVE') {
+            btnClass = 'btn-primary';
+          } else if (this.status == "ONLINE") {
+            btnClass = 'btn-success';
+          } else if (this.status == "WAITING") {
+            btnClass = 'btn-warning';
+          }
+          return btnClass;
+        }
+
+        buildHTML() {
+
+          // Function to build the HTML representation of this component
+          // and add it to the row of the parent group
+
+
+
+          var html = `
+            <div class='col-md-12 col-lg-6 mt-1'>
+              <div class="btn-group btn-block">
+                <button type="button" class="btn btn-danger btn-block" id="${this.id}MainButton"><H5>${this.id}</H5><div id="${this.id}StatusField">OFFLINE</div></button>
+                <button type="button" id="${this.id}DropdownButton" class="btn btn-danger dropdown-toggle dropdown-toggle-split"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" href="#">Action</a>
+                  <a class="dropdown-item" href="#">Another action</a>
+                  <a class="dropdown-item" href="#">Something else here</a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="#">Separated link</a>
+                </div>
+              </div>
+            </div>
+          `;
+
+          $('#'+this.type+'ComponentList').append(html);
+        }
+      }
+
+      class ExhibitComponentGroup {
+
+        constructor(type) {
+          this.type = type;
+          this.components = [];
+          this.buildHTML();
+        }
+
+        addComponent(component) {
+          this.components.push(component);
+        }
+
+        buildHTML() {
+
+          // Function to build the HTML representation of this group
+          // and add it to the componentGroupsRow
+
+          var html = `
+            <div class='col-md-6 col-lg-5 col-xl-4 mt-4'>
+              <div class="btn-group btn-block">
+                <button type="button" class="btn btn-secondary btn-block btn-lg">${this.type}</button>
+                <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" href="#">Action</a>
+                  <a class="dropdown-item" href="#">Another action</a>
+                  <a class="dropdown-item" href="#">Something else here</a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="#">Separated link</a>
+                </div>
+              </div>
+              <div class="row" id='${this.type}ComponentList'>
+              </div>
+            </div>
+          `;
+
+          $('#componentGroupsRow').append(html);
+        }
+      }
+
+      function getExhibitComponent(id) {
+
+        // Function to search the exhibitComponents list for a given id
+
+        var result = exhibitComponents.find(obj => {
+          return obj.id === id
+        });
+
+        return result;
+      }
+
+      function getExhibitComponentGroup(type) {
+
+        // Function to search the exhibitComponents list for a given id
+
+        var result = componentGroups.find(obj => {
+          return obj.type === type
+        });
+
+        return result;
+      }
+
+      function updateComponentFromServer(component) {
+
+        obj = getExhibitComponent(component["id"])
+        if (obj != null) {
+          // Update the object with the latest info from the server
+          obj.setStatus(component["status"]);
+        } else {
+
+          // First, make sure the group matching this type exists
+          var group = getExhibitComponentGroup(component["type"]);
+          if (group == null) {
+            var group = new ExhibitComponentGroup(component["type"]);
+            componentGroups.push(group);
+          }
+
+          // Then create a new component
+          var newComponent = new ExhibitComponent(component["id"], component["type"]);
+          newComponent.setStatus(component["status"]);
+          exhibitComponents.push(newComponent);
+
+          // Add the component to the right group
+          group.addComponent(newComponent);
+        }
+      }
+
+      function setCurrentExhibitName(name) {
+        currentExhibit = name;
+        document.getElementById("exhibitNameField").innerHTML = name;
+      }
+
+      function askForUpdate() {
+
+        requestString = "class=webpage&action=fetchUpdate"
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://localhost:8082", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+          if (this.readyState != 4) return;
+
+          if (this.status == 200) {
+              var update = JSON.parse(this.responseText);
+
+              for (var i=0; i<update["length"]; i++) {
+                var component = update[String(i)];
+                if ("class" in component) {
+                  if (component["class"] == "exhibitComponent") {
+                    updateComponentFromServer(component);
+                  } else if (component["class"] == "gallery") {
+                    setCurrentExhibitName(component["currentExhibit"]);
+                  }
+                }
+
+              }
+          }
+      };
+        xhr.send(requestString);
+      }
+
+      var currentExhibit = "";
+      var exhibitComponents = [];
+      var componentGroups = [];
+
+      setInterval(askForUpdate, 5000)
+
+    </script>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+  </body>
+</html>

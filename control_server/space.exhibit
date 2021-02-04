@@ -11,3 +11,6 @@ content = testfile3.mp4
 
 [WINDOW4]
 content = testfile4.mp4
+
+[HEADER]
+content = CSS_header_space.mp4

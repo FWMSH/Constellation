@@ -2,9 +2,10 @@ from http.server import BaseHTTPRequestHandler, HTTPServer, SimpleHTTPRequestHan
 import time
 from datetime import datetime
 import configparser
+import json
 
 ADDR = "" # Accept connections from all interfaces
-PORT = 8082
+# PORT = 8082
 
 class ExhibitComponent:
 
@@ -69,10 +70,9 @@ class ExhibitComponent:
         try:
             self.config = dict(currentExhibitConfiguration.items(self.id))
         except configparser.NoSectionError:
-            print(f"Error: there is no configuration available for component with id={self.id}")
+            print(f"Warning: there is no configuration available for component with id={self.id}")
 
 class RequestHandler(SimpleHTTPRequestHandler):
-
 
     def sendCurrentConfiguration(self, id):
 
@@ -87,6 +87,30 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         self.wfile.write(bytes(config_str, encoding="UTF-8"))
 
+    def sendWebpageUpdate(self):
+
+        # Function to collect the current exhibit status, format it, and send it
+        # back to the web client to update the page
+
+        componentDictList = []
+        for item in componentList:
+            dict = {}
+            dict["id"] = item.id
+            dict["type"] = item.type
+            dict["class"] = "exhibitComponent"
+            dict["status"] = item.currentStatus()
+            componentDictList.append(dict)
+
+        # Also include an object with the status of the overall gallery
+        dict = {}
+        dict["class"] = "gallery"
+        dict["currentExhibit"] = currentExhibit
+        componentDictList.append(dict)
+
+        json_string = json.dumps(componentDictList)
+
+        self.wfile.write(bytes(json_string, encoding="UTF-8"))
+
     def log_request(code='-', size='-'):
 
         # Override to suppress the automatic logging
@@ -97,14 +121,24 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         # Receive a GET request and respond with a console webpage
 
-        print('GET received... ')
+        try:
+            f = open("webpage.html","rb")
+
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(f.read())
+
+            f.close()
+            return
+        except IOError:
+            self.send_error(404, "File Not Found: %s" % self.path)
 
     def do_POST(self):
 
         # Receives pings from client devices and respond with any updated
         # information
 
-        print('POST received... ')
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
@@ -121,14 +155,33 @@ class RequestHandler(SimpleHTTPRequestHandler):
             data[split2[0]] = split2[1]
 
         try:
-            id = data["id"]
-            type = data["type"]
+            pingClass = data["class"]
         except:
-            print("Error: ping received without id or type field")
+            print("Error: ping received without class field")
             return() # No id or type, so bail out
+        if pingClass == "webpage":
+            try:
+                action = data["action"]
+            except:
+                print("Error: webpage ping received without action field")
+                return() # No id or type, so bail out
 
-        updateExhibitComponentStatus(data)
-        self.sendCurrentConfiguration(id)
+            if action == "fetchUpdate":
+                self.sendWebpageUpdate()
+        elif pingClass == "exhibitComponent":
+            try:
+                id = data["id"]
+                type = data["type"]
+            except:
+                print("Error: exhibitComponent ping received without id or type field")
+                return() # No id or type, so bail out
+
+            updateExhibitComponentStatus(data)
+            self.sendCurrentConfiguration(id)
+        else:
+            print(f"Error: ping with unknown class '{pingClass}' received")
+            return() # Bail out
+
 
 def loadCurrentExhibitConfiguration():
 
@@ -136,12 +189,16 @@ def loadCurrentExhibitConfiguration():
     # in self.currentExhibitConfiguration
 
     global currentExhibitConfiguration
+    global currentExhibit
+    global serverPort
 
     # First, retrieve the config filename that defines the desired exhibit
     config = configparser.ConfigParser()
     config.read('currentExhibitConfiguration.ini')
     current = config["CURRENT"]
     currentExhibit = current["currentConfigFile"]
+    serverPort = current.getint("serverPort", 8080)
+
     # Then, load the configuration for that exhibit
     currentExhibitConfiguration = configparser.ConfigParser()
     currentExhibitConfiguration.read(currentExhibit)
@@ -176,12 +233,12 @@ def updateExhibitComponentStatus(data):
         if data["currentInteraction"].lower() == "true":
             component.updateLastInteractionDateTime()
 
-
+serverPort = 8080 # Default; should be set in exhibit INI file
 componentList = []
 currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
 currentExhibitConfiguration = None # the configParser object holding the current config
 
 loadCurrentExhibitConfiguration()
 
-httpd = HTTPServer((ADDR, PORT), RequestHandler)
+httpd = HTTPServer((ADDR, serverPort), RequestHandler)
 httpd.serve_forever()
