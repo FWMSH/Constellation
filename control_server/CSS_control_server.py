@@ -1,4 +1,4 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer, SimpleHTTPRequestHandler
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 import time
 from datetime import datetime
 import configparser
@@ -15,6 +15,7 @@ class ExhibitComponent:
 
         self.id = id
         self.type = type
+        self.ip = "" # IP address of client
 
         self.lastContactDateTime = datetime.now()
         self.lastInteractionDateTime = datetime(2020, 1, 1)
@@ -192,7 +193,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 print("Error: exhibitComponent ping received without id or type field")
                 return() # No id or type, so bail out
 
-            updateExhibitComponentStatus(data)
+            updateExhibitComponentStatus(data, self.address_string())
             self.sendCurrentConfiguration(id)
         else:
             print(f"Error: ping with unknown class '{pingClass}' received")
@@ -235,7 +236,7 @@ def addExhibitComponent(id, type):
 
     return(component)
 
-def updateExhibitComponentStatus(data):
+def updateExhibitComponentStatus(data, ip):
 
     id = data["id"]
     type = data["type"]
@@ -244,6 +245,7 @@ def updateExhibitComponentStatus(data):
     if component is None: # This is a new id, so make the component
         component = addExhibitComponent(id, type)
 
+    component.ip = ip
     component.updateLastContactDateTime()
     if "currentInteraction" in data:
         if data["currentInteraction"].lower() == "true":

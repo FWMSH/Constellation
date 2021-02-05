@@ -34,9 +34,28 @@
 
   <script>
 
+    function sleepDisplays() {
+
+      // Send a message to the local helper process and ask it to sleep the
+      // displays
+
+      requestString = `action=sleepDisplays`;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperIP, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+        }
+    };
+      xhr.send(requestString);
+    }
+
     function sendPing() {
 
-      requestString = `class=exhibitComponent&id=${id}&type=${type}`
+      requestString = `class=exhibitComponent&id=${id}&type=${type}`;
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", serverIP, true);
@@ -66,8 +85,10 @@
     var id = 'WINDOW1';
     var type = 'WINDOW';
     var serverIP = "http://localhost:8082";
-    source = "";
+    var helperIP = "http://localhost:8000"; // This is the address of the local helper process that can interact with the OS
+    var source = "";
 
+    sendPing();
     setInterval(sendPing, 5000);
 
   </script>
