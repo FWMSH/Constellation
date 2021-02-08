@@ -82,6 +82,25 @@
       xhr.send(requestString);
     }
 
+    function wakeDisplays() {
+
+      // Send a message to the local helper process and ask it to sleep the
+      // displays
+
+      requestString = `action=wakeDisplays`;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperIP, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+        }
+    };
+      xhr.send(requestString);
+    }
+
     function commandProjector(cmd) {
 
       // Send a message to the local helper process to control the projector
@@ -191,22 +210,24 @@
 
       // Contact the control server and ask for any updates
 
-      requestString = `class=exhibitComponent&id=${id}&type=${type}`;
+      if (serverAddress != "") {
+        requestString = `class=exhibitComponent&id=${id}&type=${type}`;
 
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", serverAddress, true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.onerror = function() {
-      }
-      xhr.onreadystatechange = function () {
-
-        if (this.readyState != 4) return;
-
-        if (this.status == 200) {
-          readUpdate(this.responseText);
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", serverAddress, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onerror = function() {
         }
-    };
-      xhr.send(requestString);
+        xhr.onreadystatechange = function () {
+
+          if (this.readyState != 4) return;
+
+          if (this.status == 200) {
+            readUpdate(this.responseText);
+          }
+      };
+        xhr.send(requestString);
+      }      
     }
 
     function sendConfigUpdate(update) {
@@ -237,7 +258,7 @@
     // These will be replaced by the values specified in defaults.ini
     var id = 'UNKNOWN';
     var type = 'UNKNOWN';
-    var serverAddress = "http://localhost:8082"; // The address of the main control server
+    var serverAddress = ""; // The address of the main control server
     var helperIP = "http://localhost:8000"; // This is the address of the local helper process that can interact with the OS
     var source = "";
 

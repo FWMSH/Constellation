@@ -62,6 +62,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
         if "action" in data:
             if data["action"] == "sleepDisplays":
                 sleepDisplays()
+            elif data["action"] == "wakeDisplays":
+                wakeDisplays()
             elif data["action"] == "commandProjector":
                 if "command" in data:
                     commandProjector(data["command"])
@@ -88,17 +90,17 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
 def sleepDisplays():
 
-    if config["displayType"] == "screen":
+    if config["display_type"] == "screen":
         if sys.platform == "darwin": # MacOS
             os.system("pmset displaysleepnow")
-    elif config["displayType"] == "projector":
+    elif config["display_type"] == "projector":
         commandProjector("off")
 
 def wakeDisplays():
-    if config["displayType"] == "screen":
+    if config["display_type"] == "screen":
         if sys.platform == "darwin": # MacOS
             os.system("caffeinate -u -t 2")
-    elif config["displayType"] == "projector":
+    elif config["display_type"] == "projector":
         commandProjector("on")
 
 def commandProjector(cmd):

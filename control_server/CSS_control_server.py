@@ -198,7 +198,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 json_string = json.dumps({"result": "success"})
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif action == "queueCommand":
-                print(data["action"], data["command"], data["id"])
                 getExhibitComponent(data["id"]).queueCommand(data["command"])
 
         elif pingClass == "exhibitComponent":
