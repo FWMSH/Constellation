@@ -205,6 +205,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
             try:
                 id = data["id"]
                 type = data["type"]
+                if id == "UNKNOWN":
+                    #print(f"Warning: exhibitComponent ping with id=UNKNOWN coming from {self.address_string()}")
+                    return()
             except:
                 print("Error: exhibitComponent ping received without id or type field")
                 return() # No id or type, so bail out

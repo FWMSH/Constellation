@@ -39,7 +39,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         # information
 
         global configFile
-        global content
+        global config
 
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -66,33 +66,39 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 if "command" in data:
                     commandProjector(data["command"])
             elif data["action"] == "getDefaults":
-                config = {'content': content}
-                json_string = json.dumps(config)
+                configToSend = {
+                    'id': config["id"],
+                    'type': config["type"],
+                    "server_ip_address": config["server_ip_address"],
+                    "server_port": config["server_port"],
+                    'content': config["content"],
+                }
+                json_string = json.dumps(configToSend)
 
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif data["action"] == "updateDefaults":
                 if "content" in data:
                     content = data["content"]
                     configFile.set("DEFAULT", "content", data["content"])
+                    config["content"] = content
 
                     # Update file
                     with open('defaults.ini', 'w') as f:
                         configFile.write(f)
 
-
 def sleepDisplays():
 
-    if displayType == "screen":
+    if config["displayType"] == "screen":
         if sys.platform == "darwin": # MacOS
             os.system("pmset displaysleepnow")
-    elif displayType == "projector":
+    elif config["displayType"] == "projector":
         commandProjector("off")
 
 def wakeDisplays():
-    if displayType == "screen":
+    if config["displayType"] == "screen":
         if sys.platform == "darwin": # MacOS
             os.system("caffeinate -u -t 2")
-    elif displayType == "projector":
+    elif config["displayType"] == "projector":
         commandProjector("on")
 
 def commandProjector(cmd):
@@ -118,31 +124,14 @@ def commandProjector(cmd):
 
 def readDefaultConfiguration():
 
-    global helper_port
-    global server_port
-    global server_ip_address
-    global content
-    global displayType
+    config_object = configparser.ConfigParser()
+    config_object.read('defaults.ini')
+    default = config_object["DEFAULT"]
+    config_dict = dict(default.items())
 
-    config = configparser.ConfigParser()
-    config.read('defaults.ini')
-    default = config["DEFAULT"]
-    content = default.get("content")
-    helper_port = default.getint("helper_port", 8000)
-    server_port = default.getint("server_port", 8000)
-    server_ip_address = default.get("server_ip_address", "localhost")
-    displayType = default.get("display_type", "screen")
+    return(config_object, config_dict)
 
-    return(config)
+configFile, config = readDefaultConfiguration()
 
-helper_port = 8000 # Will be replaced by value in defaults.ini
-server_port = 8082 # Will be replaced by value in defaults.ini
-server_ip_address = "localhost" # Will be replaced by value in defaults.ini
-address = "" # Accept packets from all interfaces
-content = ""
-displayType = "screen"
-
-configFile = readDefaultConfiguration()
-
-httpd = HTTPServer((address, helper_port), RequestHandler)
+httpd = HTTPServer(("", int(config["helper_port"])), RequestHandler)
 httpd.serve_forever()
