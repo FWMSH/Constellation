@@ -8,6 +8,12 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
     <title>Control server</title>
+
+    <style>
+      .handCursor {
+        cursor: pointer;
+      }
+    </style>
   </head>
 
   <body>
@@ -72,8 +78,6 @@
           // Function to build the HTML representation of this component
           // and add it to the row of the parent group
 
-
-
           var html = `
             <div class='col-md-12 col-lg-6 mt-1'>
               <div class="btn-group btn-block">
@@ -82,9 +86,8 @@
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <div class="dropdown-menu">
-                  <a class="dropdown-item" href="#">Action</a>
-                  <a class="dropdown-item" href="#">Another action</a>
-                  <a class="dropdown-item" href="#">Something else here</a>
+                  <a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'wakeDisplay')">Wake display</a>
+                  <a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'sleepDisplay')">Sleep display</a>
                   <div class="dropdown-divider"></div>
                   <a class="dropdown-item" href="#">Separated link</a>
                 </div>
@@ -137,9 +140,8 @@
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <div class="dropdown-menu">
-                  <a class="dropdown-item" href="#">Action</a>
-                  <a class="dropdown-item" href="#">Another action</a>
-                  <a class="dropdown-item" href="#">Something else here</a>
+                  <a class="dropdown-item handCursor" onclick="sendGroupCommand('${this.type}', 'wakeDisplay')">Wake all displays</a>
+                  <a class="dropdown-item handCursor" onclick="sendGroupCommand('${this.type}', 'sleepDisplay')">Sleep all displays</a>
                   <div class="dropdown-divider"></div>
                   <a class="dropdown-item" href="#">Separated link</a>
                 </div>
@@ -233,6 +235,37 @@
         xhr.send(requestString);
       }
 
+      function queueCommand(id, cmd) {
+
+        // Function to send a command to the control server that will then
+        // be sent to the component the next time it pings the server
+
+        requestString = `class=webpage&action=queueCommand&id=${id}&command=${cmd}`;
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", serverIP, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+          if (this.readyState != 4) return;
+
+          if (this.status == 200) {
+          }
+      };
+        xhr.send(requestString);
+      }
+
+      function sendGroupCommand(group, cmd) {
+
+        // Iterate through the components in the given group and queue the command
+        // for each
+
+        var group = getExhibitComponentGroup(group);
+
+        for (var i=0; i<group.components.length; i++) {
+          queueCommand(group.components[i].id, cmd);
+        }
+      }
+
       function askForUpdate() {
 
         requestString = "class=webpage&action=fetchUpdate";
@@ -262,7 +295,8 @@
         xhr.send(requestString);
       }
 
-      var serverIP = "http://localhost:8082"
+      //var serverIP = "http://localhost:8082"
+      var serverIP = INSERT_SERVERIP_HERE // This will be automatically inserted by the server before being sent to the client
       var currentExhibit = "";
       var exhibitComponents = [];
       var componentGroups = [];

@@ -3,6 +3,7 @@
 [WINDOW1]
 content = /Users/adlab/OneDrive - Fort Worth Museum of Science and History/Current Science Design/Current Science Studio/window_small.m4v
 #content = /Users/adlab/Downloads/Lightning Bolt At Night.mp4
+#content = /Users/adlab/Downloads/Amy Bean Lecture-1622.jpg
 
 [WINDOW2]
 content = testfile2.mp4
@@ -14,4 +15,4 @@ content = testfile3.mp4
 content = testfile4.mp4
 
 [HEADER]
-content = CSS_header_space.mp4
+content = /home/pi/Downloads/header_video.mp4

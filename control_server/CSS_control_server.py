@@ -21,6 +21,7 @@ class ExhibitComponent:
         self.lastInteractionDateTime = datetime(2020, 1, 1)
 
         self.config = {}
+        self.config["commands"] = []
         self.updateConfiguration()
 
     def secondsSinceLastContact(self):
@@ -69,9 +70,15 @@ class ExhibitComponent:
         # Retreive the latest configuration data from the configParser object
 
         try:
-            self.config = dict(currentExhibitConfiguration.items(self.id))
+            fileConfig = dict(currentExhibitConfiguration.items(self.id))
+            for key in fileConfig:
+                self.config[key] = fileConfig[key]
         except configparser.NoSectionError:
             print(f"Warning: there is no configuration available for component with id={self.id}")
+
+    def queueCommand(self, command):
+
+        self.config["commands"].append(command)
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
@@ -80,8 +87,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
         # Function to respond to a POST with a string defining the current
         # exhibit configuration
 
-        config = getExhibitComponent(id).config
-        json_string = json.dumps(config)
+        json_string = json.dumps(getExhibitComponent(id).config)
+        getExhibitComponent(id).config["commands"] = [] # Clear the command list now that we have sent them
 
         self.wfile.write(bytes(json_string, encoding="UTF-8"))
 
@@ -120,12 +127,18 @@ class RequestHandler(SimpleHTTPRequestHandler):
         # Receive a GET request and respond with a console webpage
 
         try:
-            f = open("webpage.html","rb")
+            f = open("webpage.html","r")
+            page = str(f.read())
+
+            # Build the address that the webpage should contact to reach this server
+            address_to_insert = "'http://"+str(ip_address)+":"+str(serverPort)+"'"
+            # Then, insert that into the document
+            page = page.replace("INSERT_SERVERIP_HERE", address_to_insert)
 
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
-            self.wfile.write(f.read())
+            self.wfile.write(bytes(page, encoding="UTF-8"))
 
             f.close()
             return
@@ -184,6 +197,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                 json_string = json.dumps({"result": "success"})
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
+            elif action == "queueCommand":
+                print(data["action"], data["command"], data["id"])
+                getExhibitComponent(data["id"]).queueCommand(data["command"])
 
         elif pingClass == "exhibitComponent":
             try:
@@ -208,13 +224,15 @@ def loadCurrentExhibitConfiguration():
     global currentExhibitConfiguration
     global currentExhibit
     global serverPort
+    global ip_address
 
     # First, retrieve the config filename that defines the desired exhibit
     config = configparser.ConfigParser()
     config.read('currentExhibitConfiguration.ini')
     current = config["CURRENT"]
     currentExhibit = current["currentConfigFile"]
-    serverPort = current.getint("serverPort", 8080)
+    serverPort = current.getint("server_port", 8080)
+    ip_address = current.get("server_ip_address", "localhost")
 
     # Then, load the configuration for that exhibit
     currentExhibitConfiguration = configparser.ConfigParser()
@@ -252,6 +270,7 @@ def updateExhibitComponentStatus(data, ip):
             component.updateLastInteractionDateTime()
 
 serverPort = 8080 # Default; should be set in exhibit INI file
+ip_address = "localhost" # Default; should be set in exhibit INI file
 componentList = []
 currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
 currentExhibitConfiguration = None # the configParser object holding the current config
