@@ -93,6 +93,8 @@ def sleepDisplays():
     if config["display_type"] == "screen":
         if sys.platform == "darwin": # MacOS
             os.system("pmset displaysleepnow")
+        elif sys.platform == "linux":
+            os.system("xset dpms force off")
     elif config["display_type"] == "projector":
         commandProjector("off")
 
@@ -100,6 +102,8 @@ def wakeDisplays():
     if config["display_type"] == "screen":
         if sys.platform == "darwin": # MacOS
             os.system("caffeinate -u -t 2")
+        elif sys.platform == "linux":
+            os.system("xset dpms force on")
     elif config["display_type"] == "projector":
         commandProjector("on")
 
