@@ -20,19 +20,88 @@
 
     <main role="main" class="container">
 
-      <div class="row mt-2">
+      <div class="row mt-2 mb-2">
         <div class="col">
           <H1><div id="exhibitNameField"></div></H1>
         </div>
       </div>
 
-      <div class="row mt-2">
-        <div class="col">
-          <button type="button" class="btn btn-primary" id="reloadConfigurationButton" onclick="reloadConfiguration()">Reload Config</button>
+      <nav>
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+          <a class="nav-item nav-link active" id="nav-components-tab" data-toggle="tab" href="#nav-components" role="tab" aria-controls="nav-components" aria-selected="true">Components</a>
+          <a class="nav-item nav-link" id="nav-schedule-tab" data-toggle="tab" href="#nav-schedule" role="tab" aria-controls="nav-schedule" aria-selected="false">Schedule</a>
+          <a class="nav-item nav-link" id="nav-settings-tab" data-toggle="tab" href="#nav-settings" role="tab" aria-controls="nav-settings" aria-selected="false">Settings</a>
         </div>
-      </div>
-
-      <div class="row" id="componentGroupsRow">
+      </nav>
+      <div class="tab-content" id="nav-tabContent">
+        <div class="tab-pane fade show active" id="nav-components" role="tabpanel" aria-labelledby="nav-components-tab">
+          <div class="row" id="componentGroupsRow">
+          </div>
+        </div>
+        <div class="tab-pane fade" id="nav-schedule" role="tabpanel" aria-labelledby="nav-schedule-tab">
+          <div class="row mt-2">
+            <div class='col'>
+              <h4>Next scheduled event: <div id="Schedule_next_event"></div></h4>
+            </div>
+          </div>
+          <div class='row mt-2'>
+            <div class="col-sm-10 col-md-7 col-lg-5 col-xl-4">
+              <table class="table table-striped">
+                <thead class="thead-dark">
+                  <tr>
+                    <th scope="col">Day</th>
+                    <th scope="col">Turn on time</th>
+                    <th scope="col">Turn off time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Monday</th>
+                    <td><div id="Schedule_monday_on">9:30 AM</div></td>
+                    <td><div id="Schedule_monday_off">5:30 PM</div></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Tuesday</th>
+                    <td><div id="Schedule_tuesday_on"></div></td>
+                    <td><div id="Schedule_tuesday_off"></div></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Wednesday</th>
+                    <td><div id="Schedule_wednesday_on"></div></td>
+                    <td><div id="Schedule_wednesday_off"></div></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Thursday</th>
+                    <td><div id="Schedule_thursday_on"></div></td>
+                    <td><div id="Schedule_thursday_off"></div></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Friday</th>
+                    <td><div id="Schedule_friday_on"></div></td>
+                    <td><div id="Schedule_friday_off"></div></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Saturday</th>
+                    <td><div id="Schedule_saturday_on"></div></td>
+                    <td><div id="Schedule_saturday_off"></div></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Sunday</th>
+                    <td><div id="Schedule_sunday_on"></div></td>
+                    <td><div id="Schedule_sunday_off"></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane fade" id="nav-settings" role="tabpanel" aria-labelledby="nav-settings-tab">
+          <div class="row mt-2">
+            <div class="col">
+              <button type="button" class="btn btn-primary" id="reloadConfigurationButton" onclick="reloadConfiguration()">Reload Config</button>
+            </div>
+          </div>
+        </div>
       </div>
 
     </main>
@@ -266,6 +335,23 @@
         }
       }
 
+      function populateSchedule(schedule) {
+        var keys = Object.keys(schedule);
+        for (var i=0; i<keys.length; i++) {
+          var key = keys[i]
+          var item = schedule[key];
+          if (key == "class") {
+            // Do nothing
+          } else if (key == "Next time") {
+
+          } else if (key == "Next action") {
+
+          } else {
+            document.getElementById("Schedule_"+key).innerHTML = item;
+          }
+        }
+      }
+
       function askForUpdate() {
 
         requestString = "class=webpage&action=fetchUpdate";
@@ -286,6 +372,8 @@
                     updateComponentFromServer(component);
                   } else if (component["class"] == "gallery") {
                     setCurrentExhibitName(component["currentExhibit"]);
+                  } else if (component["class"] == "schedule") {
+                    populateSchedule(component);
                   }
                 }
 
