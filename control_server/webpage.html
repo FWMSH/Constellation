@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
+    <meta name="description" content="A system for controling exhibit components">
     <meta name="author" content="Morgan Rehnberg">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
@@ -39,13 +39,13 @@
           </div>
         </div>
         <div class="tab-pane fade" id="nav-schedule" role="tabpanel" aria-labelledby="nav-schedule-tab">
-          <div class="row mt-2">
+          <div class="row mt-4">
             <div class='col'>
-              <h4>Next scheduled event: <div id="Schedule_next_event"></div></h4>
+              <h4><b>Next scheduled action: </b><span id="Schedule_next_event"></span></h4>
             </div>
           </div>
           <div class='row mt-2'>
-            <div class="col-sm-10 col-md-7 col-lg-5 col-xl-4">
+            <div class="col-sm-10 col-md-7 col-lg-5 col-xl-5">
               <table class="table table-striped">
                 <thead class="thead-dark">
                   <tr>
@@ -57,8 +57,8 @@
                 <tbody>
                   <tr>
                     <th scope="row">Monday</th>
-                    <td><div id="Schedule_monday_on">9:30 AM</div></td>
-                    <td><div id="Schedule_monday_off">5:30 PM</div></td>
+                    <td><div id="Schedule_monday_on"></div></td>
+                    <td><div id="Schedule_monday_off"></div></td>
                   </tr>
                   <tr>
                     <th scope="row">Tuesday</th>
@@ -96,14 +96,13 @@
           </div>
         </div>
         <div class="tab-pane fade" id="nav-settings" role="tabpanel" aria-labelledby="nav-settings-tab">
-          <div class="row mt-2">
+          <div class="row mt-4">
             <div class="col">
               <button type="button" class="btn btn-primary" id="reloadConfigurationButton" onclick="reloadConfiguration()">Reload Config</button>
             </div>
           </div>
         </div>
       </div>
-
     </main>
 
     <script>
@@ -157,8 +156,6 @@
                 <div class="dropdown-menu">
                   <a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'wakeDisplay')">Wake display</a>
                   <a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'sleepDisplay')">Sleep display</a>
-                  <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" href="#">Separated link</a>
                 </div>
               </div>
             </div>
@@ -211,8 +208,6 @@
                 <div class="dropdown-menu">
                   <a class="dropdown-item handCursor" onclick="sendGroupCommand('${this.type}', 'wakeDisplay')">Wake all displays</a>
                   <a class="dropdown-item handCursor" onclick="sendGroupCommand('${this.type}', 'sleepDisplay')">Sleep all displays</a>
-                  <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" href="#">Separated link</a>
                 </div>
               </div>
               <div class="row" id='${this.type}ComponentList'>
@@ -336,20 +331,24 @@
       }
 
       function populateSchedule(schedule) {
-        var keys = Object.keys(schedule);
+
+        var keys = ['monday_on', 'monday_off', 'tuesday_on', 'tuesday_off', 'wednesday_on', 'wednesday_off', 'thursday_on', 'thursday_off', 'friday_on', 'friday_off', 'saturday_on', 'saturday_off', 'sunday_on', 'sunday_off', ];
         for (var i=0; i<keys.length; i++) {
           var key = keys[i]
-          var item = schedule[key];
-          if (key == "class") {
-            // Do nothing
-          } else if (key == "Next time") {
-
-          } else if (key == "Next action") {
-
-          } else {
-            document.getElementById("Schedule_"+key).innerHTML = item;
-          }
+          if (key in schedule) {
+            var item = schedule[key];
+          } else item = ""
+          document.getElementById("Schedule_"+key).innerHTML = item;
         }
+
+          var action = "";
+          if (schedule["Next action"] == "sleepDisplay") {
+            action = "Turn exhibit off";
+          } else if (schedule["Next action"] == "wakeDisplay") {
+            action = "Turn exhibit on";
+          }
+          var value = `${action}—${schedule["Next time"]}`;
+          document.getElementById("Schedule_next_event").innerHTML = value;
       }
 
       function askForUpdate() {

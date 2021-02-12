@@ -219,6 +219,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 self.sendWebpageUpdate()
             elif action == "reloadConfiguration":
                 loadCurrentExhibitConfiguration()
+                queueNextOnOffEvent()
                 for component in componentList:
                     component.updateConfiguration()
 
@@ -252,6 +253,8 @@ def readSchedule(schedule):
 
     global schedule_dict
 
+    schedule_dict = {}
+
     for key in schedule:
         # Convert the time, e.g. "9 AM" into a datetime time
         schedule_dict[key] = dateutil.parser.parse(schedule[key]).time()
@@ -275,11 +278,11 @@ def queueNextOnOffEvent():
             if now < on_time: # We are before today's on time
                 nextEventDateTime = on_time
                 nextAction = "wakeDisplay"
-            elif day_str+"_off" in schedule_dict:
-                off_time = datetime.datetime.combine(eventDate, schedule_dict[day_str+"_off"])
-                if now < off_time: # We are before today's off time
-                    nextEventDateTime = off_time
-                    nextAction = "sleepDisplay"
+        elif day_str+"_off" in schedule_dict:
+            off_time = datetime.datetime.combine(eventDate, schedule_dict[day_str+"_off"])
+            if now < off_time: # We are before today's off time
+                nextEventDateTime = off_time
+                nextAction = "sleepDisplay"
 
         # If we are neither before the on time or the off time, go to tomorrow and loop again
         eventDate += datetime.timedelta(days=1)

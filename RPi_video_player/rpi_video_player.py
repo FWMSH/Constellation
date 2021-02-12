@@ -9,6 +9,7 @@ import sys
 import os
 import serial
 import subprocess
+import signal
 
 def startVideo():
 
@@ -22,9 +23,20 @@ def startVideo():
         omxProcess.stdin.flush()
 
     #print(f"starting video with content {config['content']}")
-    omxProcess = subprocess.Popen(["omxplayer", "--loop", config["content"]],stdin=subprocess.PIPE)
+    omxProcess = subprocess.Popen(["omxplayer", "--loop", config["content"]],stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     #print(omxProcess)
 
+def handle_ctrl_c(sig, frame):
+
+    # Called when ctrl-c is pressed to kill the OMXPlayer cleanly
+
+    global omxProcess
+
+    print("Shtting down OMXPlayer")
+    omxProcess.stdin.write(b'q')
+    omxProcess.stdin.flush()
+
+    sys.exit(0)
 
 def updateContent(content):
 
@@ -56,7 +68,11 @@ def sendPing():
 
     server_full_address = "http://" + str(config["server_ip_address"]) + ":" + str(config["server_port"])
 
-    response = requests.post(server_full_address, data = bytes(requestString, encoding="UTF-8"))
+    try:
+        response = requests.post(server_full_address, data = bytes(requestString, encoding="UTF-8"), timeout=1)
+    except requests.exceptions.Timeout:
+        print("Error: POST timed out")
+        return()
 
     updates = response.json()
     if "content" in updates:
@@ -116,6 +132,7 @@ configFile, config = readDefaultConfiguration()
 
 omxProcess = None
 startVideo()
+signal.signal(signal.SIGINT, handle_ctrl_c)  # Catch CTRL-C and handle it gracefully
 
 while True:
     sendPing()
