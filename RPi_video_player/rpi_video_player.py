@@ -70,8 +70,9 @@ def sendPing():
 
     try:
         response = requests.post(server_full_address, data = bytes(requestString, encoding="UTF-8"), timeout=1)
-    except requests.exceptions.Timeout:
-        print("Error: POST timed out")
+    except:
+        type, value, traceback = sys.exc_info()
+        print("Error sending request", type, value)
         return()
 
     updates = response.json()
