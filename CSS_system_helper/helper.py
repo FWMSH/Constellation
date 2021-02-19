@@ -10,6 +10,7 @@ import sys
 import os
 import serial
 from sockio.sio import TCP
+import signal
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
@@ -82,11 +83,71 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     # Update file
                     with open('defaults.ini', 'w') as f:
                         configFile.write(f)
-            elif data["action"] == "getCurrentSOSDatasetName":
+            elif data["action"] == "SOS_getCurrentClipName":
                 currentClip = sendSOSCommand("get_clip_number")
                 dataset = sendSOSCommand("get_clip_info " + currentClip)
 
                 self.wfile.write(bytes(dataset, encoding="UTF-8"))
+            elif data["action"] == "SOS_getClipList":
+                # First, get a list of clips
+                reply = sendSOSCommand("get_clip_info *", multiline=True)
+                split = reply.split('\r\n')
+                clipList = []
+                for segment in split:
+                    split2 = segment.split(" ")
+                    clipList.append(" ".join(split2[1:]))
+
+                # Then, get other improtant info
+                clipDictList = []
+                counter = 1
+                for clip in clipList:
+                    if clip != '':
+                        temp = {'name': clip}
+                        path = sendSOSCommand(f"get_clip_info {counter} clip_filename")
+                        split = path.split('/')
+                        temp['icon'] = '/'.join(split[:-1]) + '/media/thumbnail_big.jpg'
+                        print(temp['icon'])
+
+                    clipDictList.append(temp)
+                    counter += 1
+                json_string = json.dumps(clipDictList)
+                self.wfile.write(bytes(json_string, encoding="UTF-8"))
+            elif data["action"] == "SOS_getPlaylistName":
+                reply = sendSOSCommand("get_playlist_name")
+                playlist = reply.split("/")[-1]
+
+                self.wfile.write(bytes(playlist, encoding="UTF-8"))
+            elif data["action"] == "SOS_getState":
+                reply = sendSOSCommand("get_state 0")
+
+                # Parse the response (with nested braces) and build a dictionary
+                state_dict = {}
+                segment_list = []
+
+                for char in reply:
+                    if char == '{':
+                        segment_list.append([])
+                    elif char == '}':
+                        if len(segment_list) == 1:
+                            # Key-value are separated by a space
+                            segment = ''.join(segment_list.pop())
+                            split = segment.split(" ")
+                            state_dict[split[0]] = split[1]
+                        elif len(segment_list) == 2:
+                            # Key-value are separated into two lists
+                            key = ''.join(segment_list[0])
+                            value = ''.join(segment_list[1])
+                            state_dict[key] = value
+                            segment_list = []
+                        elif len(segment_list) > 2:
+                            print("Error parsing state: too many nested braces")
+                    else:
+                        if len(segment_list) > 0:
+                            segment_list[-1].append(char)
+
+                json_string = json.dumps(state_dict)
+                self.wfile.write(bytes(json_string, encoding="UTF-8"))
+
 
 def sleepDisplays():
 
@@ -128,14 +189,18 @@ def commandProjector(cmd):
         else:
             print(f"commandProjector: Error: Unknown command: {cmd}")
 
-def sendSOSCommand(cmd):
+def sendSOSCommand(cmd, multiline=False):
 
     # Function to send a command to Science on a Sphere adn read its response
 
     global sosSocket
 
     if sosSocket is not None:
-        return(sosSocket.write_readline(bytes(cmd + '\n', encoding='UTF-8')).decode('UTF-8').strip())
+        if not multiline:
+            return(sosSocket.write_readline(bytes(cmd + '\n', encoding='UTF-8')).decode('UTF-8').strip())
+        else:
+            sosSocket.write(bytes(cmd + '\n', encoding='UTF-8'))
+            return(sosSocket.read(10000).decode("UTF-8"))
     else:
         return(None)
 
@@ -148,6 +213,13 @@ def readDefaultConfiguration():
 
     return(config_object, config_dict)
 
+def quit_handler(sig, frame):
+    print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
+    if sosSocket != None:
+        sosSocket.write(b'exit\n')
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, quit_handler)
 
 configFile, config = readDefaultConfiguration()
 
