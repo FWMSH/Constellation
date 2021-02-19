@@ -9,6 +9,7 @@ import json
 import sys
 import os
 import serial
+from sockio.sio import TCP
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
@@ -68,14 +69,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 if "command" in data:
                     commandProjector(data["command"])
             elif data["action"] == "getDefaults":
-                configToSend = ict(config.items())
-                # configToSend = {
-                #     'id': config["id"],
-                #     'type': config["type"],
-                #     "server_ip_address": config["server_ip_address"],
-                #     "server_port": config["server_port"],
-                #     'content': config["content"],
-                # }
+                configToSend = dict(config.items())
                 json_string = json.dumps(configToSend)
 
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
@@ -88,6 +82,11 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     # Update file
                     with open('defaults.ini', 'w') as f:
                         configFile.write(f)
+            elif data["action"] == "getCurrentSOSDatasetName":
+                currentClip = sendSOSCommand("get_clip_number")
+                dataset = sendSOSCommand("get_clip_info " + currentClip)
+
+                self.wfile.write(bytes(dataset, encoding="UTF-8"))
 
 def sleepDisplays():
 
@@ -129,6 +128,17 @@ def commandProjector(cmd):
         else:
             print(f"commandProjector: Error: Unknown command: {cmd}")
 
+def sendSOSCommand(cmd):
+
+    # Function to send a command to Science on a Sphere adn read its response
+
+    global sosSocket
+
+    if sosSocket is not None:
+        return(sosSocket.write_readline(bytes(cmd + '\n', encoding='UTF-8')).decode('UTF-8').strip())
+    else:
+        return(None)
+
 def readDefaultConfiguration():
 
     config_object = configparser.ConfigParser()
@@ -138,7 +148,17 @@ def readDefaultConfiguration():
 
     return(config_object, config_dict)
 
+
 configFile, config = readDefaultConfiguration()
+
+try:
+    sosSocket = TCP(config["sos_ip_address"], 2468)
+    # Send Science on a Sphere command to begin communication
+    sosSocket.write_readline(b'enable\n')
+except:
+    print("Error: Connection with Science on a Sphere failed to initialize. Make sure you have specificed sos_ip_address in defaults.ini, both computers are on the same network, and port 2468 is accessible.")
+    sosSocket = None
+
 
 httpd = HTTPServer(("", int(config["helper_port"])), RequestHandler)
 httpd.serve_forever()

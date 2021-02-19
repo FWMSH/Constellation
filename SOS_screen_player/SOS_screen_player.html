@@ -126,7 +126,7 @@
       // on the contents
 
       var update = JSON.parse(responseText);
-      sendConfigUpdate(update); // Send to server to update the default config
+      //sendConfigUpdate(update); // Send to server to update the default config
 
       if ("content" in update) {
         if (source != update["content"]) {
@@ -230,30 +230,39 @@
       }
     }
 
-    function sendConfigUpdate(update) {
+    function pollSOS() {
 
-      // Send a message to the helper with the latest configuration to set as
-      // the default
+      // Function to ask SOS for the current dataset and switch the displayed
+      // media based on the response.
 
-      var requestString = "action=updateDefaults"
+      
 
-      if ("content" in update) {
-        requestString += "&content=" + update["content"];
-      }
-
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", helperIP, true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-    //   xhr.onreadystatechange = function () {
-    //
-    //     if (this.readyState != 4) return;
-    //
-    //     if (this.status == 200) {
-    //       readUpdate(this.responseText);
-    //     }
-    // };
-      xhr.send(requestString);
     }
+
+    // function sendConfigUpdate(update) {
+    //
+    //   // Send a message to the helper with the latest configuration to set as
+    //   // the default
+    //
+    //   var requestString = "action=updateDefaults"
+    //
+    //   if ("content" in update) {
+    //     requestString += "&content=" + update["content"];
+    //   }
+    //
+    //   var xhr = new XMLHttpRequest();
+    //   xhr.open("POST", helperIP, true);
+    //   xhr.setRequestHeader('Content-Type', 'application/json');
+    // //   xhr.onreadystatechange = function () {
+    // //
+    // //     if (this.readyState != 4) return;
+    // //
+    // //     if (this.status == 200) {
+    // //       readUpdate(this.responseText);
+    // //     }
+    // // };
+    //   xhr.send(requestString);
+    // }
 
     // These will be replaced by the values specified in defaults.ini
     var id = 'UNKNOWN';
