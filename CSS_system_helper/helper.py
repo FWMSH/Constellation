@@ -1,4 +1,4 @@
-# This application sets up a small server to communicate with the window player
+# This application sets up a small server to communicate with the screen players
 # and handle interacting with the system (since the browser cannot)
 
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -68,13 +68,14 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 if "command" in data:
                     commandProjector(data["command"])
             elif data["action"] == "getDefaults":
-                configToSend = {
-                    'id': config["id"],
-                    'type': config["type"],
-                    "server_ip_address": config["server_ip_address"],
-                    "server_port": config["server_port"],
-                    'content': config["content"],
-                }
+                configToSend = ict(config.items())
+                # configToSend = {
+                #     'id': config["id"],
+                #     'type': config["type"],
+                #     "server_ip_address": config["server_ip_address"],
+                #     "server_port": config["server_port"],
+                #     'content': config["content"],
+                # }
                 json_string = json.dumps(configToSend)
 
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))

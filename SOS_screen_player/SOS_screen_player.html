@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Morgan Rehnberg">
+
+    <title>SOS Screen Player</title>
+
+    <style>
+      body,html {
+        margin: 0;
+        padding: 0;
+        background-color: black;
+      }
+      #imageOverlay {
+        width: 100vw;
+        height: 100vh;
+        position: absolute;
+        /* line-height: 100vh; */
+        top: 0px;
+        left: 0px;
+        opacity: 0;
+        margin: 0;
+        padding: 0;
+      }
+      #fullscreenImage {
+        max-width: 100vw;
+        max-height: 100vh;
+        vertical-align: middle;
+        margin: 0;
+        padding: 0;
+      }
+      #videoOverlay {
+        width: 100vw;
+        height: 100vh;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        opacity: 0;
+      }
+      #fullscreenVideo {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+
+  <body>
+
+  <div id="videoOverlay">
+    <video id="fullscreenVideo" autoplay muted loop>
+    </video>
+  </div>
+
+  <div id="imageOverlay">
+    <center>
+      <img id="fullscreenImage">
+    </center>
+  </img>
+  </div>
+
+  <script>
+
+    function sleepDisplays() {
+
+      // Send a message to the local helper process and ask it to sleep the
+      // displays
+
+      requestString = `action=sleepDisplays`;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperIP, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+        }
+    };
+      xhr.send(requestString);
+    }
+
+    function wakeDisplays() {
+
+      // Send a message to the local helper process and ask it to sleep the
+      // displays
+
+      requestString = `action=wakeDisplays`;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperIP, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+        }
+    };
+      xhr.send(requestString);
+    }
+
+    function commandProjector(cmd) {
+
+      // Send a message to the local helper process to control the projector
+
+      requestString = `action=commandProjector&command=${cmd}`;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperIP, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+        }
+    };
+      xhr.send(requestString);
+
+    }
+
+    function readUpdate(responseText) {
+
+      // Function to read a message from the server and take action based
+      // on the contents
+
+      var update = JSON.parse(responseText);
+      sendConfigUpdate(update); // Send to server to update the default config
+
+      if ("content" in update) {
+        if (source != update["content"]) {
+          source = update["content"];
+          changeMedia(source);
+        }
+      }
+      if ('commands' in update) {
+        for (var i=0; i<update["commands"].length; i++) {
+          var cmd = (update["commands"])[i];
+
+          if (cmd == "sleepDisplay") {
+            sleepDisplays();
+          } else if (cmd == "wakeDisplay") {
+            wakeDisplays();
+          } else {
+            console.log(`Command not recognized: ${cmd}`);
+          }
+        }
+      }
+      if ("id" in update) {
+        id = update["id"];
+      }
+      if ("type" in update) {
+        type = update["type"]
+      }
+      if (("server_ip_address" in update) && ("server_port" in update)) {
+        serverAddress = "http://" + update["server_ip_address"] + ":" + update["server_port"];
+      }
+    }
+
+    function changeMedia(source) {
+
+      var video = document.getElementById("fullscreenVideo");
+      var videoContainer = document.getElementById("videoOverlay");
+      var image = document.getElementById("fullscreenImage");
+      var imageContainer = document.getElementById("imageOverlay");
+
+      // Split off the extension
+      var split = source.split(".");
+      var ext = split[split.length-1];
+
+      if (["mp4", "mpeg", "m4v", "webm", "mov", "ogg"].includes(ext.toLowerCase())) {
+        video.pause();
+        video.src = source;
+        video.load();
+        video.play();
+        videoContainer.style.opacity = 1;
+        imageContainer.style.opacity = 0;
+      } else if (["png", "jpg", "jpeg", "tiff", "bmp", "heic", "webp"].includes(ext.toLowerCase())) {
+        video.pause();
+        videoContainer.style.opacity = 0;
+        image.src = source;
+        imageContainer.style.opacity = 1;
+      }
+
+    }
+
+    function askForDefaults() {
+
+      // Send a message to the local helper and ask for the latest configuration
+      // defaults, then use them.
+
+      requestString = `action=getDefaults`;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperIP, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+          readUpdate(this.responseText);
+        }
+    };
+      xhr.send(requestString);
+    }
+
+    function sendPing() {
+
+      // Contact the control server and ask for any updates
+
+      if (serverAddress != "") {
+        requestString = `class=exhibitComponent&id=${id}&type=${type}`;
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", serverAddress, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onerror = function() {
+        }
+        xhr.onreadystatechange = function () {
+
+          if (this.readyState != 4) return;
+
+          if (this.status == 200) {
+            readUpdate(this.responseText);
+          }
+      };
+        xhr.send(requestString);
+      }
+    }
+
+    function sendConfigUpdate(update) {
+
+      // Send a message to the helper with the latest configuration to set as
+      // the default
+
+      var requestString = "action=updateDefaults"
+
+      if ("content" in update) {
+        requestString += "&content=" + update["content"];
+      }
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperIP, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+    //   xhr.onreadystatechange = function () {
+    //
+    //     if (this.readyState != 4) return;
+    //
+    //     if (this.status == 200) {
+    //       readUpdate(this.responseText);
+    //     }
+    // };
+      xhr.send(requestString);
+    }
+
+    // These will be replaced by the values specified in defaults.ini
+    var id = 'UNKNOWN';
+    var type = 'UNKNOWN';
+    var serverAddress = ""; // The address of the main control server
+    var helperIP = "http://localhost:8000"; // This is the address of the local helper process that can interact with the OS
+    var source = "";
+
+    askForDefaults();
+    sendPing();
+    setInterval(sendPing, 5000);
+
+  </script>
+
+  </body>
+
+</html>
