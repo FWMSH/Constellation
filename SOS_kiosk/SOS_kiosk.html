@@ -6,13 +6,22 @@
     <meta name="description" content="">
     <meta name="author" content="Morgan Rehnberg">
 
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+
     <title>SOS Kiosk</title>
 
   </head>
 
   <body>
 
+    <div class="container-fluid">
+      <div id="cardRow" class="row">
+      </div>
+    </div>
 
+  <script type="text/javascript" src="js/jquery-3.5.1.slim.min.js"></script>
+  <script type="text/javascript" src="js/popper.min.js"></script>
+  <script type="text/javascript" src="js/bootstrap.min.js"></script>
   <script>
 
     function askForDefaults() {
@@ -76,6 +85,21 @@
       };
         xhr.send(requestString);
       }
+    }
+
+    function createCard(name) {
+      var html = `
+        <div class='col'>
+          <div class="card" style="width: 18rem;">
+              <div class="card-body">
+              <h5 class="card-title">${name}</h5>
+              <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+              <a href="#" class="btn btn-primary">Go somewhere</a>
+            </div>
+          </div>
+        </div>
+      `
+      $("#cardRow").append(html)
     }
 
     function rebuildInterface() {

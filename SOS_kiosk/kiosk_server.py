@@ -22,9 +22,42 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
 
-        # Receive a GET
+        # Receive a GET request and respond appropriately
 
-        pass
+        # print("GET received: ", self.path)
+
+        if self.path=="/":
+            self.path="/SOS_kiosk.html"
+
+        sendReply = False
+        #try:
+        if self.path.endswith(".html"):
+            mimetype = 'text/html'
+            sendReply = True
+        elif self.path.endswith(".jpg"):
+            mimetype = 'image/jpg'
+            sendReply = True
+        elif self.path.endswith(".gif"):
+            mimetype = 'image/gif'
+            sendReply = True
+        elif self.path.endswith(".js"):
+            mimetype = 'application/javascript'
+            sendReply = True
+        elif self.path.endswith(".css"):
+            mimetype = 'text/css'
+            sendReply = True
+
+        if sendReply == True:
+            # Open the static file requested and send it
+            f = open('.' + self.path, 'rb')
+            self.send_response(200)
+            self.send_header('Content-type', mimetype)
+            self.end_headers()
+            self.wfile.write(f.read())
+            f.close()
+            return
+        # except IOError:
+        #     self.send_error(404,'File Not Found: %s' % self.path)
 
     def do_OPTIONS(self):
 
@@ -239,5 +272,5 @@ except:
     sosSocket = None
 
 
-httpd = HTTPServer(("", int(config["helper_port"])), RequestHandler)
+httpd = HTTPServer(("", int(config["server_port"])), RequestHandler)
 httpd.serve_forever()
