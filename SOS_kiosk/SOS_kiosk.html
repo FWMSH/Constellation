@@ -2,27 +2,95 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
     <meta name="description" content="">
     <meta name="author" content="Morgan Rehnberg">
 
     <link rel="stylesheet" href="css/bootstrap.min.css">
+
+    <style>
+
+    html {
+      touch-action: manipulation;
+    }
+    .container-fluid {
+      touch-action: manipulation;
+    }
+    #header {
+    }
+
+    #scrollPad {
+      width: 100%;
+    }
+    </style>
 
     <title>SOS Kiosk</title>
 
   </head>
 
   <body>
-
     <div class="container-fluid">
-      <div id="cardRow" class="row">
+      <div id='header' class="row sticky-top">
+        <div class="col bg-primary pt-1">
+          <center>
+            <H1>Explore With Science on a Sphere</H1>
+            <H4>Choose an option below to view that dataset on the sphere in front of you!</H4>
+          </center>
+        </div>
       </div>
+      <div class="row">
+
+        <div class='col-4 mt-2' style="position: fixed;">
+          <H3><center>Drag your finger over the globe to rotate the sphere:</center></H3>
+          <img src="sphere.svg" id="scrollPad" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event)"></img>
+        </div>
+        <div class='col-8 offset-4'>
+          <div id="cardRow" class="row">
+          </div>
+        </div>
+      </div>
+
     </div>
 
   <script type="text/javascript" src="js/jquery-3.5.1.slim.min.js"></script>
   <script type="text/javascript" src="js/popper.min.js"></script>
   <script type="text/javascript" src="js/bootstrap.min.js"></script>
   <script>
+
+    function handleTouchEnd(event) {
+
+      config["lastTouchX"] = null;
+      config["lastTouchY"] = null;
+    }
+
+    function handleTouchMove(event) {
+
+      // Called when the user slides their finger over the sphere control panel
+
+      // Keep the page from scrolling when we're using the touchpad
+      event.preventDefault();
+
+      var touchX = event.changedTouches[0].pageX;
+      var touchY = event.changedTouches[0].pageY;
+
+      if (config["lastTouchX"] != null) {
+        var dX = touchX - config["lastTouchX"];
+        var dY = touchY - config["lastTouchY"];
+
+        // Send the movement to the server to pass on to SOS
+        requestString = `action=SOS_moveSphere&dLon=${dX}&dLat=${dY}`;
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", helperIP, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(requestString);
+      }
+      config["lastTouchX"] = touchX;
+      config["lastTouchY"] = touchY;
+    }
 
     function askForDefaults() {
 
@@ -87,14 +155,45 @@
       }
     }
 
-    function createCard(name) {
+    function gotoClip(clipNumber) {
+
+      // Send a command to the helper to tell SOS to go to the specified clip.
+
+      if (config["block"] == false) {
+        config["clip_number"] = clipNumber;
+        $(".card").removeClass("bg-primary");
+        $("#card"+clipNumber).addClass("bg-primary");
+
+        requestString = `action=SOS_gotoClip&clipNumber=${clipNumber}`;
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", helperIP, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+
+          if (this.readyState != 4) return;
+
+          if (this.status == 200) {
+
+          }
+      };
+        xhr.send(requestString);
+        config["block"] = true;
+        setTimeout(function() {config["block"] = false;}, 2000);
+      } else console.log("Touch blocked");
+
+    }
+
+    function createCard(name, number, icon) {
+
+      // Create a card that holds one dataset
+
       var html = `
-        <div class='col'>
-          <div class="card" style="width: 18rem;">
+        <div class='col-12 col-md-6 col-lg-4 col-xl-3 mt-3'>
+          <div id="card${number}" class="card w-100 h-100" onclick="gotoClip(${number})">
+              <img class='card-img-top' src="thumbnails/${icon}"></img>
               <div class="card-body">
-              <h5 class="card-title">${name}</h5>
-              <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-              <a href="#" class="btn btn-primary">Go somewhere</a>
+                <center><h3 class="card-title">${name}</h3></center>
             </div>
           </div>
         </div>
@@ -120,8 +219,14 @@
         if (this.readyState != 4) return;
 
         if (this.status == 200) {
+          $("#cardRow").empty();
           var clipList = JSON.parse(this.responseText);
-          console.log(clipList)
+          for (var i=0; i<clipList.length; i++) {
+            clip = clipList[i];
+
+            createCard(clip["name"], clip["clipNumber"], clip["icon"]);
+          }
+          $("#card"+config["clip_number"]).addClass("bg-primary");
         }
     };
       xhr.send(requestString);
@@ -151,11 +256,15 @@
               if (key == 'playlist_name') {
                 if (config[key] != state_dict[key]) {
                   console.log("New playlist detected")
+                  config[key] = state_dict[key]
                   rebuildInterface();
                 }
               } else if (key == 'clip_number') {
                 if (config[key] != state_dict[key]) {
-                  console.log("Clip has changed")
+                  console.log("New active clip detected")
+                  config[key] = state_dict[key]
+                  $(".card").removeClass("bg-primary");
+                  $("#card"+config[key]).addClass("bg-primary");
                 }
               }
             } else {
@@ -171,14 +280,20 @@
     var id = 'SOS-KIOSK';
     var type = 'KIOSK';
     var serverAddress = ""; // The address of the main control server
-    var helperIP = "http://localhost:8000"; // This is the address of the local helper process that can interact with the OS
+    var helperIP = "http://10.1.1.31:8000"; // This is the address of the local helper process that can interact with the OS
     var source = "";
 
     config = {'playlist_name': null,
-              'clip_number': null};
+              'clip_number': null,
+              'block': false,
+              'lastTouchX': null,
+              'lastTouchY': null};
 
     // sendPing();
     // setInterval(sendPing, 5000);
+
+    rebuildInterface();
+    setInterval(getSOSState, 5000);
 
   </script>
 

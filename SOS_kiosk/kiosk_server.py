@@ -34,11 +34,17 @@ class RequestHandler(SimpleHTTPRequestHandler):
         if self.path.endswith(".html"):
             mimetype = 'text/html'
             sendReply = True
+        elif self.path.endswith(".json"):
+            mimetype = 'application/json'
+            sendReply = True
         elif self.path.endswith(".jpg"):
             mimetype = 'image/jpg'
             sendReply = True
         elif self.path.endswith(".gif"):
             mimetype = 'image/gif'
+            sendReply = True
+        elif self.path.endswith(".svg"):
+            mimetype = 'image/svg+xml'
             sendReply = True
         elif self.path.endswith(".js"):
             mimetype = 'application/javascript'
@@ -46,6 +52,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
         elif self.path.endswith(".css"):
             mimetype = 'text/css'
             sendReply = True
+        else:
+            print(f"Error: filetype not recognized: {self.path}")
 
         if sendReply == True:
             # Open the static file requested and send it
@@ -144,7 +152,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         # Cache the icon locally for use by the app.
                         os.system(f'cp "{icon_path}" ./thumbnails/{filename}')
 
-
                         clipDictList.append(temp)
                     counter += 1
                 json_string = json.dumps(clipDictList)
@@ -187,6 +194,17 @@ class RequestHandler(SimpleHTTPRequestHandler):
             elif data["action"] == "SOS_gotoClip":
                 if "clipNumber" in data:
                     sendSOSCommand("play " + data["clipNumber"])
+            elif data["action"] == "SOS_moveSphere":
+                if ("dLat" in data) and ("dLon" in data):
+                    tilt = sendSOSCommand("get_tilt")
+                    split = tilt.split(' ')
+                    tiltX = float(split[0])
+                    tiltY = float(split[1])
+                    tiltZ = float(split[2])
+                    dLat = float(data["dLat"])
+                    dLon = float(data["dLon"])
+
+                    sendSOSCommand(f"set_tilt {tiltX} {tiltY + dLat/2} {tiltZ + dLon/2}")
 
 
 def sleepDisplays():
@@ -235,14 +253,15 @@ def sendSOSCommand(cmd, multiline=False):
 
     global sosSocket
 
-    if sosSocket is not None:
+    try:
         if not multiline:
             return(sosSocket.write_readline(bytes(cmd + '\n', encoding='UTF-8')).decode('UTF-8').strip())
         else:
             sosSocket.write(bytes(cmd + '\n', encoding='UTF-8'))
             return(sosSocket.read(10000).decode("UTF-8"))
-    else:
-        return(None)
+    except Exception as e:
+        print(e)
+        sosSocket = connectToSOS()
 
 def readDefaultConfiguration():
 
@@ -259,18 +278,30 @@ def quit_handler(sig, frame):
         sosSocket.write(b'exit\n')
     sys.exit(0)
 
+def connectToSOS():
+
+    global config
+
+    while True:
+        # Sleep for 5 seconds so that we don't spam the connection
+        print("Connecting in 5 seconds...")
+        time.sleep(5)
+
+        try:
+            sosSocket = TCP(config["sos_ip_address"], 2468)
+            # Send Science on a Sphere command to begin communication
+            sosSocket.write_readline(b'enable\n')
+            print("Connected!")
+            return(sosSocket)
+        except:
+            print("Error: Connection with Science on a Sphere failed to initialize. Make sure you have specificed sos_ip_address in defaults.ini, both computers are on the same network, and port 2468 is accessible.")
+            sosSocket = None
+
 signal.signal(signal.SIGINT, quit_handler)
 
 configFile, config = readDefaultConfiguration()
 
-try:
-    sosSocket = TCP(config["sos_ip_address"], 2468)
-    # Send Science on a Sphere command to begin communication
-    sosSocket.write_readline(b'enable\n')
-except:
-    print("Error: Connection with Science on a Sphere failed to initialize. Make sure you have specificed sos_ip_address in defaults.ini, both computers are on the same network, and port 2468 is accessible.")
-    sosSocket = None
-
+sosSocket = connectToSOS()
 
 httpd = HTTPServer(("", int(config["server_port"])), RequestHandler)
 httpd.serve_forever()
