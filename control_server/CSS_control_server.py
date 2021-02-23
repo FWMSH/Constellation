@@ -122,8 +122,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 dict[key] = schedule_dict[key].strftime("%I:%M %p")
             else:
                 nextTime, nextAction = schedule_dict[key]
-                dict["Next time"] = nextTime.strftime("%A, %I:%M %p")
-                dict["Next action"] = nextAction
+                if nextTime is not None:
+                    dict["Next time"] = nextTime.strftime("%A, %I:%M %p")
+                    dict["Next action"] = nextAction
+                else:
+                    dict["Next time"] = "None"
+                    dict["Next action"] = "None"
         componentDictList.append(dict)
 
 
@@ -139,9 +143,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         nextEventDateTime, nextAction = schedule_dict["Next event"]
 
-        if datetime.datetime.now() > nextEventDateTime:
-            commandAllExhibitComponents(nextAction)
-            queueNextOnOffEvent()
+        if nextEventDateTime is not None:
+            if datetime.datetime.now() > nextEventDateTime:
+                commandAllExhibitComponents(nextAction)
+                queueNextOnOffEvent()
 
     def log_request(code='-', size='-'):
 
@@ -269,8 +274,14 @@ def queueNextOnOffEvent():
     now = datetime.datetime.now() # Right now
     eventDate = datetime.datetime.now().date() # When the event is (start now and we will advance it)
     nextEventDateTime = None
+    nextAction = None
+    counter = 0
 
     while nextEventDateTime is None:
+
+        if counter > 7: # There are going to be no matching dates
+            break
+
         day_str = eventDate.strftime('%A').lower() # e.g., "monday"
 
         if day_str+"_on" in schedule_dict:
@@ -286,9 +297,13 @@ def queueNextOnOffEvent():
 
         # If we are neither before the on time or the off time, go to tomorrow and loop again
         eventDate += datetime.timedelta(days=1)
+        counter += 1
 
     schedule_dict["Next event"] = (nextEventDateTime, nextAction)
-    print(f"New event queued: {nextAction}, {nextEventDateTime}")
+    if nextEventDateTime is not None:
+        print(f"New event queued: {nextAction}, {nextEventDateTime}")
+    else:
+        print("No events to queue right now")
 
 def loadCurrentExhibitConfiguration():
 

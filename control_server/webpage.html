@@ -347,7 +347,13 @@
           } else if (schedule["Next action"] == "wakeDisplay") {
             action = "Turn exhibit on";
           }
-          var value = `${action}—${schedule["Next time"]}`;
+          var value = ""
+          if (schedule["Next time"] != "None") {
+            value = `${action}—${schedule["Next time"]}`;
+          } else {
+            value = `No actions scheduled`;
+          }
+
           document.getElementById("Schedule_next_event").innerHTML = value;
       }
 
