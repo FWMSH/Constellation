@@ -105,6 +105,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
             dict = {}
             dict["id"] = item.id
             dict["type"] = item.type
+            if "content" in item.config:
+                dict["content"] = item.config["content"]
             dict["class"] = "exhibitComponent"
             dict["status"] = item.currentStatus()
             componentDictList.append(dict)
