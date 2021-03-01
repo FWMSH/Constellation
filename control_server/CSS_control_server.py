@@ -226,9 +226,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 self.sendWebpageUpdate()
             elif action == "reloadConfiguration":
                 loadDefaultConfiguration()
-                queueNextOnOffEvent()
-                for component in componentList:
-                    component.updateConfiguration()
 
                 json_string = json.dumps({"result": "success"})
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
@@ -383,6 +380,12 @@ def loadDefaultConfiguration():
     # Then, load the configuration for that exhibit
     readExhibitConfiguration(current["current_exhibit"])
 
+    # Queue the next on/off event
+    queueNextOnOffEvent()
+
+    # Update the components that the configuration has changed
+    for component in componentList:
+        component.updateConfiguration()
 
 def readExhibitConfiguration(name, updateDefault=False):
 
@@ -449,7 +452,6 @@ schedule_dict = {} # Will hold a list of on/off times for every day of the week
 
 checkAvailableExhibits()
 loadDefaultConfiguration()
-queueNextOnOffEvent()
 
 httpd = HTTPServer((ADDR, serverPort), RequestHandler)
 httpd.serve_forever()
