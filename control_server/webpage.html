@@ -39,6 +39,56 @@
           </div>
         </div>
         <div class="tab-pane fade" id="nav-schedule" role="tabpanel" aria-labelledby="nav-schedule-tab">
+
+          <div class="modal" tabindex="-1" role="dialog" id="scheduleEditModal">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Edit schedule</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form id="scheduleEditForm">
+                    <div class="form-group">
+                      <label for="daySelect">Select day(s)</label>
+                      <select multiple class="form-control" id="daySelect">
+                        <option>Monday</option>
+                        <option>Tuesday</option>
+                        <option>Wednesday</option>
+                        <option>Thursday</option>
+                        <option>Friday</option>
+                        <option>Saturday</option>
+                        <option>Sunday</option>
+                      </select>
+
+                    </div>
+                    <div class="form-group">
+                      <div class="row">
+                        <div class="col-6">
+                          <label for="onTimeEntry">Turn on time</label>
+                          <input type="text" class="form-control" id="onTimeEntry" placeholder="e.g., 9:30 AM">
+                        </div>
+                        <div class="col-6">
+                          <label for="offTimeEntry">Turn off time</label>
+                          <input type="text" class="form-control" id="offTimeEntry" placeholder="e.g., 5:30 PM">
+                        </div>
+                        <div class='col mt-2'>
+                          <p>To remove a scheduled action, leave the field blank.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-primary" onclick="sendScheduleUpdate()" id="scheduleEditSubmitButton">Save changes</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="row mt-4">
             <div class='col'>
               <h4><b>Next scheduled action: </b><span id="Schedule_next_event"></span></h4>
@@ -92,6 +142,7 @@
                   </tr>
                 </tbody>
               </table>
+              <button class='btn btn-info' data-toggle="modal" data-target="#scheduleEditModal">Edit schedule  </button>
             </div>
           </div>
         </div>
@@ -304,7 +355,7 @@
         // Function to send a command to the control server that will then
         // be sent to the component the next time it pings the server
 
-        requestString = `class=webpage&action=queueCommand&id=${id}&command=${cmd}`;
+        var requestString = `class=webpage&action=queueCommand&id=${id}&command=${cmd}`;
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", serverIP, true);
@@ -357,6 +408,37 @@
           document.getElementById("Schedule_next_event").innerHTML = value;
       }
 
+      function sendScheduleUpdate() {
+        var days = $('#daySelect').val();
+        var onTime = $('#onTimeEntry').val();
+        var offTime = $('#offTimeEntry').val();
+
+        if (days.length > 0) {
+
+          var requestString;
+          for (var i=0; i<days.length; i++) {
+              day = days[i];
+              requestString = `class=webpage&action=updateSchedule&day=${day}&onTime=${onTime}&offTime=${offTime}`;
+
+              var xhr = new XMLHttpRequest();
+              xhr.open("POST", serverIP, true);
+              xhr.setRequestHeader('Content-Type', 'application/json');
+              xhr.send(requestString);
+          }
+          document.getElementById("scheduleEditForm").reset();
+          $('#scheduleEditModal').modal('hide')
+          askForUpdate();
+        } else {
+          // We are missing the day field, so pop up a warning to help
+          $("#scheduleEditSubmitButton").popover({
+                placement: 'right',
+                trigger: 'focus',
+                content: "You must select at least one day to modify!"
+                });
+          $("#scheduleEditSubmitButton").popover('show');
+        }
+      }
+
       function askForUpdate() {
 
         requestString = "class=webpage&action=fetchUpdate";
@@ -381,7 +463,6 @@
                     populateSchedule(component);
                   }
                 }
-
               }
           }
       };

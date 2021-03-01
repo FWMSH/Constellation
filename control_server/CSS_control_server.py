@@ -232,6 +232,13 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif action == "queueCommand":
                 getExhibitComponent(data["id"]).queueCommand(data["command"])
+            elif action == "updateSchedule":
+                print("schedule update received:", data["day"], data["onTime"], data["offTime"])
+                schedule = {}
+                schedule[data["day"].lower()+'_on'] = data["onTime"]
+                schedule[data["day"].lower()+'_off'] = data["offTime"]
+
+                updateSchedule(schedule)
 
         elif pingClass == "exhibitComponent":
             try:
@@ -251,18 +258,46 @@ class RequestHandler(SimpleHTTPRequestHandler):
             print(f"Error: ping with unknown class '{pingClass}' received")
             return() # Bail out
 
+def updateSchedule(schedule):
+
+    # Take a dictionary of schedule changes, update the schedule_dict, and
+    # write the changes to file in currentExhibitConfiguration.ini
+
+    readSchedule(schedule)
+    queueNextOnOffEvent()
+
+    config = configparser.ConfigParser()
+    config.read('currentExhibitConfiguration.ini')
+    config.remove_section("SCHEDULE")
+    config.add_section("SCHEDULE")
+    for key in schedule_dict:
+        if key != "Next event":
+            config.set("SCHEDULE", key, schedule_dict[key].strftime("%I:%M %p"))
+
+    # Write ini file back to disk
+    with open('currentExhibitConfiguration.ini', "w") as f:
+        config.write(f)
+
 def readSchedule(schedule):
 
-    # Take the schedule as a configparser section and parse it to build
+    # Take the schedule as a configparser section or dictionary and parse it to build
     # the dictionary used to turn the components on/off
 
     global schedule_dict
 
-    schedule_dict = {}
-
     for key in schedule:
         # Convert the time, e.g. "9 AM" into a datetime time
-        schedule_dict[key] = dateutil.parser.parse(schedule[key]).time()
+        try:
+            schedule_dict[key] = dateutil.parser.parse(schedule[key]).time()
+        except ValueError:
+            if schedule[key] == "":
+                try:
+                    del schedule_dict[key]
+                except:
+                    pass
+            else:
+                print("readSchedule: error: unable to parse time:", schedule[key])
+
 
 def queueNextOnOffEvent():
 
@@ -323,8 +358,11 @@ def loadCurrentExhibitConfiguration():
     serverPort = current.getint("server_port", 8080)
     ip_address = current.get("server_ip_address", "localhost")
 
-    schedule = config["SCHEDULE"]
-    readSchedule(schedule)
+    try:
+        schedule = config["SCHEDULE"]
+        readSchedule(schedule)
+    except KeyError:
+        print("No on/off schedule to read")
 
     # Then, load the configuration for that exhibit
     currentExhibitConfiguration = configparser.ConfigParser()
