@@ -4,6 +4,7 @@ import datetime
 import dateutil.parser
 import configparser
 import json
+import os
 
 ADDR = "" # Accept connections from all interfaces
 # PORT = 8082
@@ -112,6 +113,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         dict = {}
         dict["class"] = "gallery"
         dict["currentExhibit"] = currentExhibit
+        dict["availableExhibits"] = exhibitList
         componentDictList.append(dict)
 
         # Also include an object containing the current schedule
@@ -119,11 +121,11 @@ class RequestHandler(SimpleHTTPRequestHandler):
         dict["class"] = "schedule"
         for key in schedule_dict:
             if key != "Next event":
-                dict[key] = schedule_dict[key].strftime("%I:%M %p")
+                dict[key] = schedule_dict[key].strftime("%I:%M %p").lstrip("0")
             else:
                 nextTime, nextAction = schedule_dict[key]
                 if nextTime is not None:
-                    dict["Next time"] = nextTime.strftime("%A, %I:%M %p")
+                    dict["Next time"] = nextTime.strftime("%A, %I:%M %p").replace(" 0", " ")
                     dict["Next action"] = nextAction
                 else:
                     dict["Next time"] = "None"
@@ -223,7 +225,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
             if action == "fetchUpdate":
                 self.sendWebpageUpdate()
             elif action == "reloadConfiguration":
-                loadCurrentExhibitConfiguration()
+                loadDefaultConfiguration()
                 queueNextOnOffEvent()
                 for component in componentList:
                     component.updateConfiguration()
@@ -233,12 +235,17 @@ class RequestHandler(SimpleHTTPRequestHandler):
             elif action == "queueCommand":
                 getExhibitComponent(data["id"]).queueCommand(data["command"])
             elif action == "updateSchedule":
-                print("schedule update received:", data["day"], data["onTime"], data["offTime"])
+                print("Schedule update received:", data["day"], data["onTime"], data["offTime"])
+
                 schedule = {}
                 schedule[data["day"].lower()+'_on'] = data["onTime"]
                 schedule[data["day"].lower()+'_off'] = data["offTime"]
 
                 updateSchedule(schedule)
+            elif action == "setExhibit":
+                print("Changing exhibit to:", data["name"])
+
+                readExhibitConfiguration(data["name"], updateDefault=True)
 
         elif pingClass == "exhibitComponent":
             try:
@@ -272,7 +279,7 @@ def updateSchedule(schedule):
     config.add_section("SCHEDULE")
     for key in schedule_dict:
         if key != "Next event":
-            config.set("SCHEDULE", key, schedule_dict[key].strftime("%I:%M %p"))
+            config.set("SCHEDULE", key, schedule_dict[key].strftime("%I:%M %p").lstrip("0"))
 
     # Write ini file back to disk
     with open('currentExhibitConfiguration.ini', "w") as f:
@@ -324,11 +331,13 @@ def queueNextOnOffEvent():
             if now < on_time: # We are before today's on time
                 nextEventDateTime = on_time
                 nextAction = "wakeDisplay"
+                break
         if day_str+"_off" in schedule_dict:
             off_time = datetime.datetime.combine(eventDate, schedule_dict[day_str+"_off"])
             if now < off_time: # We are before today's off time
                 nextEventDateTime = off_time
                 nextAction = "sleepDisplay"
+                break
 
         # If we are neither before the on time or the off time, go to tomorrow and loop again
         eventDate += datetime.timedelta(days=1)
@@ -340,13 +349,21 @@ def queueNextOnOffEvent():
     else:
         print("No events to queue right now")
 
-def loadCurrentExhibitConfiguration():
+def checkAvailableExhibits():
+
+    # Get a list of available "*.exhibit" configuration files
+
+    global exhibitList
+
+    for file in os.listdir("."):
+        if file.endswith(".exhibit"):
+            exhibitList.append(file)
+
+def loadDefaultConfiguration():
 
     # Read the current exhibit configuration from file and initialize it
     # in self.currentExhibitConfiguration
 
-    global currentExhibitConfiguration
-    global currentExhibit
     global serverPort
     global ip_address
 
@@ -354,7 +371,6 @@ def loadCurrentExhibitConfiguration():
     config = configparser.ConfigParser()
     config.read('currentExhibitConfiguration.ini')
     current = config["CURRENT"]
-    currentExhibit = current["currentConfigFile"]
     serverPort = current.getint("server_port", 8080)
     ip_address = current.get("server_ip_address", "localhost")
 
@@ -365,8 +381,25 @@ def loadCurrentExhibitConfiguration():
         print("No on/off schedule to read")
 
     # Then, load the configuration for that exhibit
+    readExhibitConfiguration(current["current_exhibit"])
+
+
+def readExhibitConfiguration(name, updateDefault=False):
+
+    global currentExhibitConfiguration
+    global currentExhibit
+
+    currentExhibit = name
     currentExhibitConfiguration = configparser.ConfigParser()
-    currentExhibitConfiguration.read(currentExhibit)
+    currentExhibitConfiguration.read(name)
+
+    if updateDefault:
+        config = configparser.ConfigParser()
+        config.read('currentExhibitConfiguration.ini')
+        config.set("CURRENT", "current_exhibit", name)
+
+        with open('currentExhibitConfiguration.ini', "w") as f:
+            config.write(f)
 
 def getExhibitComponent(id):
 
@@ -410,10 +443,12 @@ serverPort = 8080 # Default; should be set in exhibit INI file
 ip_address = "localhost" # Default; should be set in exhibit INI file
 componentList = []
 currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
+exhibitList = []
 currentExhibitConfiguration = None # the configParser object holding the current config
 schedule_dict = {} # Will hold a list of on/off times for every day of the week
 
-loadCurrentExhibitConfiguration()
+checkAvailableExhibits()
+loadDefaultConfiguration()
 queueNextOnOffEvent()
 
 httpd = HTTPServer((ADDR, serverPort), RequestHandler)

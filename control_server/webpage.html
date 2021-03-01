@@ -147,9 +147,33 @@
           </div>
         </div>
         <div class="tab-pane fade" id="nav-settings" role="tabpanel" aria-labelledby="nav-settings-tab">
+
+          <div class="modal" tabindex="-1" role="dialog" id="changeExhibitModal">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Are you sure?</h5>
+                </div>
+                <div class="modal-body">
+                  Changing the exhibit will be immediately visible to guests and the changing process may be unsightly for up to a minute.
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" onclick="changeExhibit(true)" id="exhibitChangeConfirmationButton">Change exhibit</button>
+                  <button type="button" class="btn btn-success" data-dismiss="modal">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="row mt-4">
-            <div class="col">
+            <div class="col-4 col-md-3 col lg-2">
               <button type="button" class="btn btn-primary" id="reloadConfigurationButton" onclick="reloadConfiguration()">Reload Config</button>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+              <div class="form-group">
+                <label for="exhibitSelect">Set current exhibit</label>
+                <select class="form-control" id="exhibitSelect" onchange="changeExhibit(false)"></select>
+              </div>
             </div>
           </div>
         </div>
@@ -321,6 +345,40 @@
         currentExhibit = name;
         document.getElementById("exhibitNameField").innerHTML = name;
         document.title = name;
+        updateAvailableExhibits([name]);
+      }
+
+      function updateAvailableExhibits(exhibitList) {
+
+        for (var i=0; i<exhibitList.length; i++) {
+          // Check if exhibit already exists as an option. If not, add it
+          if ($(`#exhibitSelect option[value='${exhibitList[i]}']`).length == 0) {
+            $("#exhibitSelect").append(new Option(exhibitList[i], exhibitList[i]));
+          }
+        }
+
+      }
+
+      function changeExhibit(warningShown) {
+
+        // Send a command to the control server to change the current exhibit
+
+        if (warningShown == false) {
+          $("#changeExhibitModal").modal("show");
+        }
+        else {
+          $("#changeExhibitModal").modal("hide");
+          var name = $("#exhibitSelect").val();
+
+          requestString = `class=webpage&action=setExhibit&name=${name}`;
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", serverIP, true);
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.send(requestString);
+
+          askForUpdate();
+        }
+
       }
 
       function reloadConfiguration() {
@@ -385,9 +443,10 @@
 
         var keys = ['monday_on', 'monday_off', 'tuesday_on', 'tuesday_off', 'wednesday_on', 'wednesday_off', 'thursday_on', 'thursday_off', 'friday_on', 'friday_off', 'saturday_on', 'saturday_off', 'sunday_on', 'sunday_off', ];
         for (var i=0; i<keys.length; i++) {
-          var key = keys[i]
+          var key = keys[i];
+          var item;
           if (key in schedule) {
-            var item = schedule[key];
+            item = schedule[key];
           } else item = ""
           document.getElementById("Schedule_"+key).innerHTML = item;
         }
@@ -459,6 +518,7 @@
                     updateComponentFromServer(component);
                   } else if (component["class"] == "gallery") {
                     setCurrentExhibitName(component["currentExhibit"]);
+                    updateAvailableExhibits(component["availableExhibits"]);
                   } else if (component["class"] == "schedule") {
                     populateSchedule(component);
                   }
@@ -469,7 +529,6 @@
         xhr.send(requestString);
       }
 
-      //var serverIP = "http://localhost:8082"
       var serverIP = INSERT_SERVERIP_HERE // This will be automatically inserted by the server before being sent to the client
       var currentExhibit = "";
       var exhibitComponents = [];
