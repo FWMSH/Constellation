@@ -324,7 +324,7 @@ def queueNextOnOffEvent():
             if now < on_time: # We are before today's on time
                 nextEventDateTime = on_time
                 nextAction = "wakeDisplay"
-        elif day_str+"_off" in schedule_dict:
+        if day_str+"_off" in schedule_dict:
             off_time = datetime.datetime.combine(eventDate, schedule_dict[day_str+"_off"])
             if now < off_time: # We are before today's off time
                 nextEventDateTime = off_time
