@@ -15,6 +15,10 @@ def startPowerPoint():
 
     global ppProcess
 
+    if ppProcess != None:
+        print("Killing process...")
+        ppProcess.kill()
+
     if "powerpoint_path" in config:
         ppPath = config["powerpoint_path"]
     else:
