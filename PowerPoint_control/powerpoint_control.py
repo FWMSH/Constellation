@@ -1,5 +1,5 @@
-# Application to manage the use of OMXPlayer for playing HD videos
-# on Raspberry Pi 4
+# Application to change PowerPoint presentations in response
+# to commands from the control server
 
 import requests
 import time
@@ -11,30 +11,14 @@ import serial
 import subprocess
 import signal
 
-def startVideo():
-
-    global config
-    global omxProcess
-
-    if omxProcess != None:
-        print("Killing process...")
-        #omxProcess.kill()
-        omxProcess.stdin.write(b'q')
-        omxProcess.stdin.flush()
-
-    print(f"starting video with content {config['content']}")
-    omxProcess = subprocess.Popen(["omxplayer", "--loop", config["content"]],stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    #print(omxProcess)
+def startPowerPoint():
+    pass
 
 def handle_ctrl_c(sig, frame):
 
     # Called when ctrl-c is pressed to kill the OMXPlayer cleanly
 
-    global omxProcess
-
-    print("Shtting down OMXPlayer")
-    omxProcess.stdin.write(b'q')
-    omxProcess.stdin.flush()
+    print("Shtting down")
 
     sys.exit(0)
 
@@ -49,7 +33,7 @@ def updateContent(content):
     with open('defaults.ini', 'w') as f:
         configFile.write(f)
 
-    startVideo()
+    startPowerPoint()
 
 def readDefaultConfiguration():
 
@@ -104,6 +88,8 @@ def wakeDisplays():
             os.system("caffeinate -u -t 2")
         elif sys.platform == "linux":
             os.system("xset dpms force on")
+        elif sys.platform == "win32":
+            pass
     elif config["display_type"] == "projector":
         commandProjector("on")
 
@@ -116,7 +102,7 @@ def commandProjector(cmd):
         interface = "/dev/ttyUSB0"
     elif sys.platform == "linux":
         interface = "/dev/ttyUSB0"
-    elif sys.platform = "win32": # Windows
+    elif sys.platform == "win32": # Windows
         interface = "COM1"
 
     if make == "Optoma":
@@ -139,8 +125,7 @@ def commandProjector(cmd):
 
 configFile, config = readDefaultConfiguration()
 
-omxProcess = None
-startVideo()
+startPowerPoint()
 signal.signal(signal.SIGINT, handle_ctrl_c)  # Catch CTRL-C and handle it gracefully
 
 while True:
