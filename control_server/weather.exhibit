@@ -1,9 +1,5 @@
-# 1 - 4 are left to right when entering the gallery
-
 [WINDOW1]
-content = /Users/adlab/OneDrive - Fort Worth Museum of Science and History/Current Science Design/Current Science Studio/window_small.m4v
-#content = /Users/adlab/Downloads/Lightning Bolt At Night.mp4
-#content = /Users/adlab/Downloads/Amy Bean Lecture-1622.jpg
+content = /Users/adlab/OneDrive - Fort Worth Museum of Science and History/Current Science Design/Current Science Studio/space/windows/Window_2_GRB.m4v
 
 [WINDOW2]
 content = testfile2.mp4
@@ -16,3 +12,4 @@ content = testfile4.mp4
 
 [HEADER]
 content = /home/pi/Downloads/header_video.mp4
+

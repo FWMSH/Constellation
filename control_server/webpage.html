@@ -30,15 +30,38 @@
         <div class="nav nav-tabs" id="nav-tab" role="tablist">
           <a class="nav-item nav-link active" id="nav-components-tab" data-toggle="tab" href="#nav-components" role="tab" aria-controls="nav-components" aria-selected="true">Components</a>
           <a class="nav-item nav-link" id="nav-schedule-tab" data-toggle="tab" href="#nav-schedule" role="tab" aria-controls="nav-schedule" aria-selected="false">Schedule</a>
-          <a class="nav-item nav-link" id="nav-content-tab" data-toggle="tab" href="#nav-content" role="tab" aria-controls="nav-content" aria-selected="false">Content</a>
           <a class="nav-item nav-link" id="nav-settings-tab" data-toggle="tab" href="#nav-settings" role="tab" aria-controls="nav-settings" aria-selected="false">Settings</a>
         </div>
       </nav>
+
       <div class="tab-content" id="nav-tabContent">
+
         <div class="tab-pane fade show active" id="nav-components" role="tabpanel" aria-labelledby="nav-components-tab">
+
+          <div class="modal" tabindex="-1" role="dialog" id="componentInfoModal">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="componentInfoModalTitle"></h5>
+                </div>
+                <div class="modal-body">
+                  <div class="form-group">
+                    <label for="componentContentInputField">Current content:</label>
+                    <textarea type="text" id="componentContentInputField" class="form-control" oninput="$('#componentSaveConfirmationButton').show()"></textarea>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" onclick="submitComponentContentChange()" id="componentSaveConfirmationButton">Save changes</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="row" id="componentGroupsRow">
           </div>
         </div>
+
         <div class="tab-pane fade" id="nav-schedule" role="tabpanel" aria-labelledby="nav-schedule-tab">
 
           <div class="modal" tabindex="-1" role="dialog" id="scheduleEditModal">
@@ -148,14 +171,6 @@
           </div>
         </div>
 
-        <div class="tab-pane fade" id="nav-content" role="tabpanel" aria-labelledby="nav-content-tab">
-          <div class="row mt-4">
-            <div class="col">
-              This is where a description of the content will go.
-            </div>
-          </div>
-        </div>
-
         <div class="tab-pane fade" id="nav-settings" role="tabpanel" aria-labelledby="nav-settings-tab">
 
           <div class="modal" tabindex="-1" role="dialog" id="changeExhibitModal">
@@ -235,7 +250,7 @@
           var html = `
             <div class='col-md-12 col-lg-6 mt-1'>
               <div class="btn-group btn-block">
-                <button type="button" class="btn btn-danger btn-block" id="${this.id}MainButton"><H5>${this.id}</H5><div id="${this.id}StatusField">OFFLINE</div></button>
+                <button type="button" class="btn btn-danger btn-block" id="${this.id}MainButton" onclick="showExhibitComponentInfo('${this.id}')"><H5>${this.id}</H5><div id="${this.id}StatusField">OFFLINE</div></button>
                 <button type="button" id="${this.id}DropdownButton" class="btn btn-danger dropdown-toggle dropdown-toggle-split"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
@@ -303,6 +318,41 @@
 
           $('#componentGroupsRow').append(html);
         }
+      }
+
+      function showExhibitComponentInfo(id) {
+
+        // This sets up the componentInfoModal with the info from the selected
+        // component and shows it on the screen.
+
+        var obj = getExhibitComponent(id);
+
+        $("#componentInfoModalTitle").html(id);
+        $("#componentContentInputField").val(obj.content)
+        $("#componentSaveConfirmationButton").hide();
+
+        // Make the modal visible
+        $("#componentInfoModal").modal("show");
+      }
+
+      function submitComponentContentChange() {
+
+        // Collect the new information from the componentInfoModal and pass it
+        // back to the server to be changed.
+
+        var id = $("#componentInfoModalTitle").html().trim();
+        var content = $("#componentContentInputField").val().trim();
+
+        requestString = `class=webpage&action=setComponentContent&id=${id}&content=${content}`;
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", serverIP, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(requestString);
+
+        askForUpdate();
+
+        // Hide the modal
+        $("#componentInfoModal").modal("hide");
       }
 
       function getExhibitComponent(id) {

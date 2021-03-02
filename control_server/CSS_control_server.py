@@ -245,6 +245,11 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 print("Changing exhibit to:", data["name"])
 
                 readExhibitConfiguration(data["name"], updateDefault=True)
+                loadDefaultConfiguration()
+            elif action == "setComponentContent":
+                if ("id" in data) and ("content" in data):
+                    print(f"Changing content file for {data['id']}:", data['content'])
+                    setComponentContent(data['id'], data['content'])
 
         elif pingClass == "exhibitComponent":
             try:
@@ -263,6 +268,20 @@ class RequestHandler(SimpleHTTPRequestHandler):
         else:
             print(f"Error: ping with unknown class '{pingClass}' received")
             return() # Bail out
+
+def setComponentContent(id, content):
+
+    global currentExhibitConfiguration
+    global currentExhibit
+
+    currentExhibitConfiguration.set(id, "content", content)
+
+    # Update the component
+    getExhibitComponent(id).updateConfiguration()
+
+    # Write new configuration to file
+    with open(currentExhibit, 'w') as f:
+        currentExhibitConfiguration.write(f)
 
 def updateSchedule(schedule):
 
