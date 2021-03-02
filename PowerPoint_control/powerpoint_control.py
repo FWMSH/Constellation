@@ -12,14 +12,35 @@ import subprocess
 import signal
 
 def startPowerPoint():
-    pass
+
+    global ppProcess
+
+    if "powerpoint_path" in config:
+        ppPath = config["powerpoint_path"]
+    else:
+        print("PowerPoint_control: Error: you must specify the path to the PowerPoint executable with powerpoint_path in defaults.ini")
+        return()
+
+    if "content" in config:
+        content = config["content"]
+    else:
+        print("PowerPoint_control: Error: you must specify a filepath to the content in defaults.ini")
+        return(config.get("DEFAULT", "content"))
+
+    cmd = ppPath + ' /S ' + content
+
+    print(cmd)
+    ppProcess = subprocess.Popen(cmd.split(" "))
 
 def handle_ctrl_c(sig, frame):
 
-    # Called when ctrl-c is pressed to kill the OMXPlayer cleanly
+    # Called when ctrl-c is pressed to kill PowerPoint cleanly
 
-    print("Shtting down")
+    global ppProcess
 
+    print("Shtting down PowerPoint")
+
+    ppProcess.kill()
     sys.exit(0)
 
 def updateContent(content):
@@ -125,6 +146,7 @@ def commandProjector(cmd):
 
 configFile, config = readDefaultConfiguration()
 
+ppProcess = None
 startPowerPoint()
 signal.signal(signal.SIGINT, handle_ctrl_c)  # Catch CTRL-C and handle it gracefully
 
