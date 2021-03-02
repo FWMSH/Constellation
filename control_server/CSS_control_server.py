@@ -274,7 +274,11 @@ def setComponentContent(id, content):
     global currentExhibitConfiguration
     global currentExhibit
 
-    currentExhibitConfiguration.set(id, "content", content)
+    try:
+        currentExhibitConfiguration.set(id, "content", content)
+    except configparser.NoSectionError: # This exhibit does not have content for this component
+        currentExhibitConfiguration.add_section(id)
+        currentExhibitConfiguration.set(id, "content", content)
 
     # Update the component
     getExhibitComponent(id).updateConfiguration()

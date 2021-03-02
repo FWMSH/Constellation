@@ -22,7 +22,7 @@ def startVideo():
         omxProcess.stdin.write(b'q')
         omxProcess.stdin.flush()
 
-    #print(f"starting video with content {config['content']}")
+    print(f"starting video with content {config['content']}")
     omxProcess = subprocess.Popen(["omxplayer", "--loop", config["content"]],stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     #print(omxProcess)
 
