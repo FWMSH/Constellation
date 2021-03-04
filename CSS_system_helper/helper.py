@@ -71,8 +71,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     commandProjector(data["command"])
             elif data["action"] == "getDefaults":
                 configToSend = dict(config.items())
+                if dictionary is not None:
+                    configToSend["dictionary"] = dict(dictionary.items("DEFAULT"))
                 json_string = json.dumps(configToSend)
-
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif data["action"] == "updateDefaults":
                 if "content" in data:
@@ -226,9 +227,23 @@ def quit_handler(sig, frame):
         sosSocket.write(b'exit\n')
     sys.exit(0)
 
+def loadDictionary():
+
+    # look for a file called dictionary.ini and load it if it exists
+
+    if "dictionary.ini" in os.listdir():
+        parser = configparser.ConfigParser()
+        parser.read("dictionary.ini")
+        return(parser)
+    else:
+        return(None)
+
 signal.signal(signal.SIGINT, quit_handler)
 
 configFile, config = readDefaultConfiguration()
+
+# If it exists, load the dictionary that maps one value into another
+dictionary = loadDictionary()
 
 try:
     sosSocket = TCP(config["sos_ip_address"], 2468)

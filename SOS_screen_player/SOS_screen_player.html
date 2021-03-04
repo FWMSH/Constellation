@@ -50,7 +50,7 @@
   <body>
 
   <div id="videoOverlay">
-    <video id="fullscreenVideo" autoplay muted loop>
+    <video id="fullscreenVideo" onerror="showDefaultImage()" autoplay muted loop>
     </video>
   </div>
 
@@ -117,7 +117,6 @@
         }
     };
       xhr.send(requestString);
-
     }
 
     function readUpdate(responseText) {
@@ -155,6 +154,12 @@
       }
       if (("server_ip_address" in update) && ("server_port" in update)) {
         serverAddress = "http://" + update["server_ip_address"] + ":" + update["server_port"];
+      }
+      if ("sos_address" in update) {
+        sosAddress = "http://" + update["sos_address"]
+      }
+      if ("dictionary" in update) {
+        dictionary = update["dictionary"];
       }
     }
 
@@ -230,50 +235,64 @@
       }
     }
 
+    function showDefaultImage() {
+
+      var img = document.getElementById("fullscreenImage");
+
+      // Make sure we don't go into an infinite loop
+      if (img.src != 'playlists/default/default.jpeg') {
+        changeMedia('playlists/default/default.jpeg');
+      }
+    }
+
     function pollSOS() {
 
       // Function to ask SOS for the current dataset and switch the displayed
       // media based on the response.
 
+      requestString = `action=SOS_getCurrentClipName`;
 
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", sosAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
 
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+          if (this.response != currentObject) {
+            var filename = "";
+            if (this.response.toLowerCase() in dictionary) {
+              filename = dictionary[this.response.toLowerCase()];
+            } else {
+              console.log(this.response)
+              filename = dictionary["default"];
+            }
+
+            changeMedia("playlists/default/"+filename);
+            currentObject = this.response;
+          }
+
+        }
+      };
+      xhr.send(requestString);
     }
-
-    // function sendConfigUpdate(update) {
-    //
-    //   // Send a message to the helper with the latest configuration to set as
-    //   // the default
-    //
-    //   var requestString = "action=updateDefaults"
-    //
-    //   if ("content" in update) {
-    //     requestString += "&content=" + update["content"];
-    //   }
-    //
-    //   var xhr = new XMLHttpRequest();
-    //   xhr.open("POST", helperIP, true);
-    //   xhr.setRequestHeader('Content-Type', 'application/json');
-    // //   xhr.onreadystatechange = function () {
-    // //
-    // //     if (this.readyState != 4) return;
-    // //
-    // //     if (this.status == 200) {
-    // //       readUpdate(this.responseText);
-    // //     }
-    // // };
-    //   xhr.send(requestString);
-    // }
 
     // These will be replaced by the values specified in defaults.ini
     var id = 'UNKNOWN';
     var type = 'UNKNOWN';
     var serverAddress = ""; // The address of the main control server
+    var sosAddress = ""; // Address of the helper server on the SOS control computer
     var helperIP = "http://localhost:8000"; // This is the address of the local helper process that can interact with the OS
     var source = "";
+    var dictionary = null; // will hold the dictionary used to translate between SOS dataset names and filenames
+
+    var currentObject = "";
 
     askForDefaults();
-    sendPing();
-    setInterval(sendPing, 5000);
+    //sendPing();
+    //setInterval(sendPing, 5000);
+    setInterval(pollSOS, 500);
 
   </script>
 
