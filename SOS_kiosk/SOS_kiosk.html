@@ -13,18 +13,38 @@
 
     <style>
 
-    html {
-      touch-action: manipulation;
-    }
-    .container-fluid {
-      touch-action: manipulation;
-    }
-    #header {
-    }
+      @font-face {
+        font-family: Good-Times;
+        src: url(good-times-rg.ttf);
+      }
 
-    #scrollPad {
-      width: 100%;
-    }
+      html {
+        touch-action: manipulation;
+      }
+      .container-fluid {
+        touch-action: manipulation;
+      }
+      #attractorOverlay {
+        position: fixed;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,0,0,0.9);
+        z-index: 2;
+        cursor: pointer;
+        justify-content: center;
+        align-items: center;
+      }
+      #header {
+      }
+
+      #scrollPad {
+        width: 100%;
+      }
     </style>
 
     <title>SOS Kiosk</title>
@@ -32,8 +52,18 @@
   </head>
 
   <body>
+    <!-- This overlay covers the whole screen with the video attractor -->
+    <div id="attractorOverlay" class="sticky-top" onclick="hideAttractor()">
+      <div class="container">
+        <center>
+          <div style="color: white; font-size: 40px;">Touch to explore</div>
+          <div id="attractorDatasetName" style="color: white; font-size:200px; font-family:Good-Times;">Moon</div>
+        </center>
+      </div>
+    </div>
+
     <div class="container-fluid">
-      <div id='header' class="row sticky-top">
+      <div id='header' class="row sticky-top" style="z-index:1">
         <div class="col bg-primary pt-1">
           <center>
             <H1>Explore With Science on a Sphere</H1>
@@ -72,6 +102,9 @@
 
       // Keep the page from scrolling when we're using the touchpad
       event.preventDefault();
+
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(showAttractor, 30000);
 
       var touchX = event.changedTouches[0].pageX;
       var touchY = event.changedTouches[0].pageY;
@@ -119,7 +152,7 @@
       // on the contents
 
       var update = JSON.parse(responseText);
-
+      console.log(update)
       if ("id" in update) {
         id = update["id"];
       }
@@ -128,6 +161,9 @@
       }
       if (("server_ip_address" in update) && ("server_port" in update)) {
         serverAddress = "http://" + update["server_ip_address"] + ":" + update["server_port"];
+      }
+      if ("dictionary" in update) {
+        dictionary = update["dictionary"];
       }
     }
 
@@ -159,10 +195,14 @@
 
       // Send a command to the helper to tell SOS to go to the specified clip.
 
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(showAttractor, 30000);
+
       if (config["block"] == false) {
         config["clip_number"] = clipNumber;
         $(".card").removeClass("bg-primary");
         $("#card"+clipNumber).addClass("bg-primary");
+        $("#attractorDatasetName").html($("#cardName"+clipNumber).html());
 
         requestString = `action=SOS_gotoClip&clipNumber=${clipNumber}`;
 
@@ -188,12 +228,19 @@
 
       // Create a card that holds one dataset
 
+      // Try to look up a public-facing name for the dataset
+      if (dictionary != null) {
+        if (name.toLowerCase() in dictionary) {
+          name = dictionary[name.toLowerCase()];
+        }
+      }
+
       var html = `
         <div class='col-12 col-md-6 col-lg-4 col-xl-3 mt-3'>
           <div id="card${number}" class="card w-100 h-100" onclick="gotoClip(${number})">
               <img class='card-img-top' src="thumbnails/${icon}"></img>
               <div class="card-body">
-                <center><h3 class="card-title">${name}</h3></center>
+                <center><h3 id="cardName${number}" class="card-title">${name}</h3></center>
             </div>
           </div>
         </div>
@@ -276,12 +323,43 @@
       xhr.send(requestString);
     }
 
+    function showAttractor() {
+
+      // Make the attractor layer visible
+
+      $("#attractorOverlay").show();
+    }
+
+    function hideAttractor() {
+
+      // Make the attractor layer visible
+
+      $("#attractorOverlay").hide();
+      inactivityTimer = setTimeout(showAttractor, 30000);
+    }
+
+    // var inactivityTimer = function () {
+    //   var time;
+    //   window.onload = resetTimer;
+    //   // DOM Events
+    //
+    //   document.onmousemove = resetTimer;
+    //   document.onmousemove = resetTimer;
+    //   document.onkeypress = resetTimer;
+    //   function resetTimer() {
+    //           console.log("reset")
+    //           clearTimeout(time);
+    //           time = setTimeout(showAttractor, 30000) // 1000 milliseconds = 1 second
+    //       }
+    // }
+
     // These will be replaced by the values specified in defaults.ini
     var id = 'SOS-KIOSK';
     var type = 'KIOSK';
     var serverAddress = ""; // The address of the main control server
     var helperIP = "http://10.1.1.31:8000"; // This is the address of the local helper process that can interact with the OS
     var source = "";
+    var dictionary = null;
 
     config = {'playlist_name': null,
               'clip_number': null,
@@ -289,10 +367,11 @@
               'lastTouchX': null,
               'lastTouchY': null};
 
+    askForDefaults();
     // sendPing();
     // setInterval(sendPing, 5000);
-
     rebuildInterface();
+    inactivityTimer = setTimeout(showAttractor, 30000);
     setInterval(getSOSState, 5000);
 
   </script>

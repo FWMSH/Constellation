@@ -52,6 +52,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
         elif self.path.endswith(".css"):
             mimetype = 'text/css'
             sendReply = True
+        elif self.path.endswith(".ttf"):
+            mimetype = 'font/ttf'
+            sendReply = True
         else:
             print(f"Error: filetype not recognized: {self.path}")
 
@@ -112,8 +115,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     commandProjector(data["command"])
             elif data["action"] == "getDefaults":
                 configToSend = dict(config.items())
-                json_string = json.dumps(configToSend)
+                if dictionary is not None:
+                    configToSend["dictionary"] = dict(dictionary.items("DEFAULT"))
 
+                json_string = json.dumps(configToSend)
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif data["action"] == "updateDefaults":
                 if "content" in data:
@@ -278,6 +283,17 @@ def quit_handler(sig, frame):
         sosSocket.write(b'exit\n')
     sys.exit(0)
 
+def loadDictionary():
+
+    # look for a file called dictionary.ini and load it if it exists
+
+    if "dictionary.ini" in os.listdir():
+        parser = configparser.ConfigParser()
+        parser.read("dictionary.ini")
+        return(parser)
+    else:
+        return(None)
+
 def connectToSOS():
 
     global config
@@ -300,6 +316,7 @@ def connectToSOS():
 signal.signal(signal.SIGINT, quit_handler)
 
 configFile, config = readDefaultConfiguration()
+dictionary = loadDictionary()
 
 sosSocket = connectToSOS()
 
