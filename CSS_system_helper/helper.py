@@ -71,8 +71,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     commandProjector(data["command"])
             elif data["action"] == "getDefaults":
                 configToSend = dict(config.items())
-                if dictionary is not None:
-                    configToSend["dictionary"] = dict(dictionary.items("DEFAULT"))
+                    if dictionary is not None:
+                        configToSend["dictionary"] = dict(dictionary.items("DEFAULT"))
                 json_string = json.dumps(configToSend)
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif data["action"] == "updateDefaults":
