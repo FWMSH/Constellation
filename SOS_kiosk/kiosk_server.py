@@ -279,7 +279,7 @@ def sendSOSCommand(cmd, multiline=False):
 
 def readDefaultConfiguration():
 
-    config_object = configparser.ConfigParser()
+    config_object = configparser.ConfigParser(delimiters=("="))
     config_object.read('defaults.ini')
     default = config_object["DEFAULT"]
     config_dict = dict(default.items())
@@ -297,7 +297,7 @@ def loadDictionary():
     # look for a file called dictionary.ini and load it if it exists
 
     if "dictionary.ini" in os.listdir():
-        parser = configparser.ConfigParser()
+        parser = configparser.ConfigParser(delimiters=("="))
         parser.read("dictionary.ini")
         return(parser)
     else:
