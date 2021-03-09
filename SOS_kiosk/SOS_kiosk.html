@@ -56,8 +56,8 @@
     <div id="attractorOverlay" class="sticky-top" onclick="hideAttractor()">
       <div class="container">
         <center>
-          <div style="color: white; font-size: 40px;">Touch to explore</div>
-          <div id="attractorDatasetName" style="color: white; font-size:200px; font-family:Good-Times;">Moon</div>
+          <div style="color: white; font-size: 3vw;">Touch to explore</div>
+          <div id="attractorDatasetName" style="color: white; font-size:15vw; font-family:Good-Times;">The Moon</div>
         </center>
       </div>
     </div>
@@ -73,15 +73,15 @@
       </div>
       <div class="row">
 
-        <div class='col-4 mt-2' style="position: fixed;">
+        <div class='col-4 col-md-3 mt-2' style="position: fixed;">
           <H3><center>Drag your finger over the globe to rotate the sphere:</center></H3>
           <img src="sphere.svg" id="scrollPad" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event)"></img>
         </div>
-        <div class='col-8 offset-4'>
+        <div class='col-8 col-md-9 offset-4 offset-md-3'>
           <div id="cardRow" class="row">
           </div>
         </div>
-      </div>
+        </div>
 
     </div>
 
@@ -152,7 +152,7 @@
       // on the contents
 
       var update = JSON.parse(responseText);
-      console.log(update)
+
       if ("id" in update) {
         id = update["id"];
       }
@@ -296,7 +296,7 @@
         if (this.status == 200) {
           var state_dict = JSON.parse(this.responseText);
           var keys = Object.keys(state_dict);
-
+          
           for (var i=0;i<keys.length;i++) {
             key = keys[i];
             if (key in config) {
@@ -312,7 +312,16 @@
                   config[key] = state_dict[key]
                   $(".card").removeClass("bg-primary");
                   $("#card"+config[key]).addClass("bg-primary");
+                  $("#attractorDatasetName").html($("#cardName"+config[key]).html());
                 }
+              } else if (key == 'frame_number') {
+                // Calculate the approximate time left in the clip
+                var n = Number(state_dict["frame_number"]);
+                var n_tot = Number(state_dict["frame_count"]);
+                var fps_triple = state_dict["frame_rate "].split(" "); // That extra space is on purpose
+                var fps = Number(fps_triple[0]);
+
+                config["secondsToNextClip"] = (n_tot - n)/fps;
               }
             } else {
               config[key] = state_dict[key]
@@ -325,33 +334,34 @@
 
     function showAttractor() {
 
-      // Make the attractor layer visible
+      // Make the attractor layer visible and start autorun
 
       $("#attractorOverlay").show();
+
+      startAutorun = function() {
+        requestString = `action=SOS_startAutorun`;
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", helperIP, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(requestString);
+      }
+      autorunScheduler = setTimeout(startAutorun, (config["secondsToNextClip"]-2.5)*1000 );
     }
 
     function hideAttractor() {
 
-      // Make the attractor layer visible
+      // Make the attractor layer invisible and start the autorun
 
       $("#attractorOverlay").hide();
+      clearTimeout(autorunScheduler);
       inactivityTimer = setTimeout(showAttractor, 30000);
-    }
 
-    // var inactivityTimer = function () {
-    //   var time;
-    //   window.onload = resetTimer;
-    //   // DOM Events
-    //
-    //   document.onmousemove = resetTimer;
-    //   document.onmousemove = resetTimer;
-    //   document.onkeypress = resetTimer;
-    //   function resetTimer() {
-    //           console.log("reset")
-    //           clearTimeout(time);
-    //           time = setTimeout(showAttractor, 30000) // 1000 milliseconds = 1 second
-    //       }
-    // }
+      requestString = `action=SOS_stopAutorun`;
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperIP, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(requestString);
+    }
 
     // These will be replaced by the values specified in defaults.ini
     var id = 'SOS-KIOSK';
@@ -360,9 +370,11 @@
     var helperIP = "http://10.1.1.31:8000"; // This is the address of the local helper process that can interact with the OS
     var source = "";
     var dictionary = null;
+    var autorunScheduler = null; // Will hold a reference to a setTimeout object that handles starting autorun gracefully.
 
     config = {'playlist_name': null,
               'clip_number': null,
+              'secondsToNextClip': 100000,
               'block': false,
               'lastTouchX': null,
               'lastTouchY': null};
@@ -372,7 +384,7 @@
     // setInterval(sendPing, 5000);
     rebuildInterface();
     inactivityTimer = setTimeout(showAttractor, 30000);
-    setInterval(getSOSState, 5000);
+    setInterval(getSOSState, 2000);
 
   </script>
 

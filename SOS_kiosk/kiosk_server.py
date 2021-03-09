@@ -151,7 +151,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         temp = {'name': clip, 'clipNumber': counter}
                         path = sendSOSCommand(f"get_clip_info {counter} clip_filename")
                         split = path.split('/')
-                        icon_path = '/'.join(split[:-1]) + '/media/thumbnail_big.jpg'
+                        if split[-2] == "playlist":
+                            icon_root = '/'.join(split[:-2])
+                        else:
+                            icon_root = '/'.join(split[:-1])
+
+                        icon_path = icon_root + '/media/thumbnail_big.jpg'
                         filename = ''.join(e for e in clip if e.isalnum()) + ".jpg"
                         temp["icon"] = filename
                         # Cache the icon locally for use by the app.
@@ -210,6 +215,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     dLon = float(data["dLon"])
 
                     sendSOSCommand(f"set_tilt {tiltX} {tiltY + dLat/2} {tiltZ + dLon/2}")
+            elif data["action"] == "SOS_startAutorun":
+                sendSOSCommand("set_auto_presentation_mode 1")
+            elif data["action"] == "SOS_stopAutorun":
+                sendSOSCommand("set_auto_presentation_mode 0")
 
 
 def sleepDisplays():
