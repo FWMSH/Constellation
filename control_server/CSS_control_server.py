@@ -20,6 +20,8 @@ class Projector:
         self.state = {"status": "OFFLINE"}
         self.lastContactDateTime = datetime.datetime(2020,1,1)
 
+        self.update(full=True)
+
     def secondsSinceLastContact(self):
 
         diff = datetime.datetime.now() - self.lastContactDateTime
@@ -35,7 +37,7 @@ class Projector:
                 projector.authenticate()
 
                 if full:
-                    self.state["model"] = projector.get_manufacturer() + " " + projector.getget_product_name()
+                    self.state["model"] = projector.get_manufacturer() + " " + projector.get_product_name()
 
                 self.state["power_state"] = projector.get_power()
                 self.state["lamp_status"] = projector.get_lamps()

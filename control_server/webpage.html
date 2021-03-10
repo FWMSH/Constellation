@@ -58,6 +58,61 @@
             </div>
           </div>
 
+          <div class="modal" tabindex="-1" role="dialog" id="projectorInfoModal">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="projectorInfoModalTitle"></h5>
+                </div>
+                <div class="modal-body">
+                  <table class="table table-striped">
+                    <tbody>
+                      <tr>
+                        <th scope="row">Power state</th>
+                        <td><div id="projectorInfoPowerState"></div></td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Lamp hours</th>
+                        <td><div id="projectorInfoLampHours"></div></td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Lamp state</th>
+                        <td><div id="projectorInfoLampState"></div></td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Fan state</th>
+                        <td><div id="projectorInfoFanState"></div></td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Temperature state</th>
+                        <td><div id="projectorInfoTempState"></div></td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Filter state</th>
+                        <td><div id="projectorInfoFilterState"></div></td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Cover state</th>
+                        <td><div id="projectorInfoCoverState"></div></td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Other</th>
+                        <td><div id="projectorInfoOtherState"></div></td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Model</th>
+                        <td><div id="projectorInfoModel"></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="row" id="componentGroupsRow">
           </div>
         </div>
@@ -213,6 +268,7 @@
           this.id = id;
           this.type = type;
           this.content = null;
+          this.state = {};
           this.status = "OFFLINE";
           this.buildHTML();
 
@@ -238,6 +294,19 @@
               var response = JSON.parse(this.responseText);
               if ("status" in response) {
                 thisInstance.setStatus(response["status"]);
+
+                if ("model" in response) {
+                  thisInstance.state["model"] = response["model"];
+                }
+                if ("power_state" in response) {
+                  thisInstance.state["power_state"] = response["power_state"];
+                }
+                if ("lamp_status" in response) {
+                  thisInstance.state["lamp_status"] = response["lamp_status"];
+                }
+                if ("error_status" in response) {
+                  thisInstance.state["error_status"] = response["error_status"];
+                }
               }
             }
           };
@@ -276,6 +345,16 @@
           // Function to build the HTML representation of this component
           // and add it to the row of the parent group
 
+          var onCmdName = "";
+          var offCmdName = "";
+          if (this.type == "PROJECTOR") {
+            onCmdName = "Wake projector";
+            offCmdName = "Sleep projector";
+          } else {
+            onCmdName = "Wake display";
+            offCmdName = "Sleep display";
+          }
+
           var html = `
             <div class='col-md-12 col-lg-6 mt-1'>
               <div class="btn-group btn-block">
@@ -284,8 +363,8 @@
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <div class="dropdown-menu">
-                  <a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'wakeDisplay')">Wake display</a>
-                  <a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'sleepDisplay')">Sleep display</a>
+                  <a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'wakeDisplay')">${onCmdName}</a>
+                  <a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'sleepDisplay')">${offCmdName}</a>
                 </div>
               </div>
             </div>
@@ -328,6 +407,16 @@
           // Function to build the HTML representation of this group
           // and add it to the componentGroupsRow
 
+          var onCmdName = "";
+          var offCmdName = "";
+          if (this.type == "PROJECTOR") {
+            onCmdName = "Wake all projectors";
+            offCmdName = "Sleep all projectors";
+          } else {
+            onCmdName = "Wake all displays";
+            offCmdName = "Sleep all displays";
+          }
+
           var html = `
             <div class='col-md-6 col-lg-5 col-xl-4 mt-4'>
               <div class="btn-group btn-block">
@@ -336,8 +425,8 @@
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <div class="dropdown-menu">
-                  <a class="dropdown-item handCursor" onclick="sendGroupCommand('${this.type}', 'wakeDisplay')">Wake all displays</a>
-                  <a class="dropdown-item handCursor" onclick="sendGroupCommand('${this.type}', 'sleepDisplay')">Sleep all displays</a>
+                  <a class="dropdown-item handCursor" onclick="sendGroupCommand('${this.type}', 'wakeDisplay')">${onCmdName}</a>
+                  <a class="dropdown-item handCursor" onclick="sendGroupCommand('${this.type}', 'sleepDisplay')">${offCmdName}</a>
                 </div>
               </div>
               <div class="row" id='${this.type}ComponentList'>
@@ -356,12 +445,42 @@
 
         var obj = getExhibitComponent(id);
 
-        $("#componentInfoModalTitle").html(id);
-        $("#componentContentInputField").val(obj.content)
-        $("#componentSaveConfirmationButton").hide();
+        if (obj.type == "PROJECTOR") {
+          $("#projectorInfoModalTitle").html(id);
+          $("#projectorInfoPowerState").html(obj.state["power_state"]);
+          $("#projectorInfoLampState").html((obj.state["error_status"])["lamp"]);
+          $("#projectorInfoFanState").html((obj.state["error_status"])["fan"]);
+          $("#projectorInfoFilterState").html((obj.state["error_status"])["filter"]);
+          $("#projectorInfoCoverState").html((obj.state["error_status"])["cover"]);
+          $("#projectorInfoOtherState").html((obj.state["error_status"])["other"]);
+          $("#projectorInfoTempState").html((obj.state["error_status"])["temperature"]);
+          $("#projectorInfoModel").html(obj.state["model"]);
 
-        // Make the modal visible
-        $("#componentInfoModal").modal("show");
+          var lampList = obj.state["lamp_status"];
+          var lamp_html = ""
+          for (var i=0; i<lampList.length; i++) {
+            lamp = lampList[i]
+            var statusStr = ""
+            if (lamp[1] == false) {
+              statusStr = "(off)"
+            } else {
+              statusStr = "(on)"
+            }
+            lamp_html += `Lamp ${i+1} ${statusStr}: ${lamp[0]} hours<br>`;
+          }
+          $("#projectorInfoLampHours").html(lamp_html);
+
+          // Make the modal visible
+          $("#projectorInfoModal").modal("show");
+        } else {
+          $("#componentInfoModalTitle").html(id);
+          $("#componentContentInputField").val(obj.content)
+          $("#componentSaveConfirmationButton").hide();
+
+          // Make the modal visible
+          $("#componentInfoModal").modal("show");
+        }
+
       }
 
       function submitComponentContentChange() {
