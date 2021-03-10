@@ -215,17 +215,43 @@
           this.content = null;
           this.status = "OFFLINE";
           this.buildHTML();
+
+          if (this.type == "PROJECTOR") {
+            this.checkProjector();
+            var thisInstance = this;
+            setInterval(function() {thisInstance.checkProjector()}, 10000);
+          }
+        }
+
+        checkProjector() {
+
+          // Function to ask the server to ping the projector
+          var thisInstance = this;
+          requestString = `class=webpage&action=fetchProjectorUpdate&id=${this.id}`;
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", serverIP, true);
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.onreadystatechange = function () {
+            if (this.readyState != 4) return;
+
+            if (this.status == 200) {
+              var response = JSON.parse(this.responseText);
+              if ("status" in response) {
+                thisInstance.setStatus(response["status"]);
+              }
+            }
+          };
+          xhr.send(requestString);
         }
 
         setStatus(status) {
           this.status = status;
-
           $("#" + this.id + "StatusField").html(status);
 
           var btnClass = this.getButtonColorClass();
           // Strip all existing classes
-          $("#" + this.id + "MainButton").removeClass("btn-primary btn-warning btn-danger btn-success").addClass(btnClass);
-            $("#" + this.id + "DropdownButton").removeClass("btn-primary btn-warning btn-danger btn-success").addClass(btnClass);
+          $("#" + this.id + "MainButton").removeClass("btn-primary btn-warning btn-danger btn-success btn-info").addClass(btnClass);
+            $("#" + this.id + "DropdownButton").removeClass("btn-primary btn-warning btn-danger btn-success btn-info").addClass(btnClass);
         }
 
         getButtonColorClass() {
@@ -238,7 +264,10 @@
             btnClass = 'btn-success';
           } else if (this.status == "WAITING") {
             btnClass = 'btn-warning';
+          } else if (this.status == "STANDBY") {
+            btnClass = 'btn-info';
           }
+
           return btnClass;
         }
 
@@ -402,7 +431,7 @@
 
           // Add the component to the right group
           group.addComponent(newComponent);
-          
+
           newComponent.setStatus(component["status"]);
         }
       }
@@ -470,7 +499,7 @@
               }
             }
           }
-      };
+        };
         xhr.send(requestString);
       }
 
@@ -479,17 +508,19 @@
         // Function to send a command to the control server that will then
         // be sent to the component the next time it pings the server
 
-        var requestString = `class=webpage&action=queueCommand&id=${id}&command=${cmd}`;
+        var obj = getExhibitComponent(id);
+        var cmdType = ""
+        if (obj.type == "PROJECTOR") {
+          cmdType = "queueProjectorCommand";
+        } else {
+          cmdType = "queueCommand"
+        }
+
+        var requestString = `class=webpage&action=${cmdType}&id=${id}&command=${cmd}`;
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", serverIP, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.onreadystatechange = function () {
-          if (this.readyState != 4) return;
-
-          if (this.status == 200) {
-          }
-      };
         xhr.send(requestString);
       }
 

@@ -5,9 +5,72 @@ import dateutil.parser
 import configparser
 import json
 import os
+import pypjlink
 
-ADDR = "" # Accept connections from all interfaces
-# PORT = 8082
+
+class Projector:
+
+    # Holds basic data about a projector
+
+    def __init__(self, id, ip):
+
+        self.id = id
+        self.ip = ip # IP address of the projector
+
+        self.state = {"status": "OFFLINE"}
+        self.lastContactDateTime = datetime.datetime(2020,1,1)
+
+    def secondsSinceLastContact(self):
+
+        diff = datetime.datetime.now() - self.lastContactDateTime
+        return(diff.total_seconds())
+
+    def update(self, full=False):
+
+        # Contact the projector to get the latest state
+
+        error = False
+        try:
+            with pypjlink.Projector.from_address(self.ip, timeout=2) as projector:
+                projector.authenticate()
+
+                if full:
+                    self.state["model"] = projector.get_manufacturer() + " " + projector.getget_product_name()
+
+                self.state["power_state"] = projector.get_power()
+                self.state["lamp_status"] = projector.get_lamps()
+                self.state["error_status"] = projector.get_errors()
+
+                self.lastContactDateTime = datetime.datetime.now()
+        except Exception as e:
+            print(e)
+            error = True
+
+        if (error and (self.secondsSinceLastContact() > 60)):
+            self.state["status"] = "OFFLINE"
+        else:
+            if self.state["power_state"] == "on":
+                self.state["status"] = "ONLINE"
+            else:
+                self.state["status"] = "STANDBY"
+
+    def queueCommand(self, cmd):
+
+        # Function to send command to projector. Named "queueCommand" to match
+        # what is used for exhibitComponents
+
+        try:
+            with pypjlink.Projector.from_address(self.ip, timeout=2) as projector:
+                projector.authenticate()
+
+                if cmd == "wakeDisplay":
+                    projector.set_power("on")
+                    self.state["power_state"] = "on"
+                elif cmd == "sleepDisplay":
+                    projector.set_power("off")
+                    self.state["power_state"] = "off"
+        except:
+            pass
 
 class ExhibitComponent:
 
@@ -109,6 +172,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 dict["content"] = item.config["content"]
             dict["class"] = "exhibitComponent"
             dict["status"] = item.currentStatus()
+            componentDictList.append(dict)
+
+        for item in projectorList:
+            dict = {}
+            dict["id"] = item.id
+            dict["type"] = 'PROJECTOR'
+
+            dict["class"] = "exhibitComponent"
+            dict["status"] = item.state["status"]
             componentDictList.append(dict)
 
         # Also include an object with the status of the overall gallery
@@ -226,6 +298,13 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 return() # No id or type, so bail out
             if action == "fetchUpdate":
                 self.sendWebpageUpdate()
+            elif action == "fetchProjectorUpdate":
+                if "id" in data:
+                    proj = getProjector(data["id"])
+                    proj.update()
+
+                    json_string = json.dumps(proj.state)
+                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif action == "reloadConfiguration":
                 loadDefaultConfiguration()
 
@@ -233,6 +312,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif action == "queueCommand":
                 getExhibitComponent(data["id"]).queueCommand(data["command"])
+            elif action == "queueProjectorCommand":
+                getProjector(data["id"]).queueCommand(data["command"])
+                self.wfile.write(bytes("", encoding="UTF-8"))
             elif action == "updateSchedule":
                 print("Schedule update received:", data["day"], data["onTime"], data["offTime"])
 
@@ -381,7 +463,7 @@ def checkAvailableExhibits():
         if file.endswith(".exhibit"):
             exhibitList.append(file)
 
-def loadDefaultConfiguration():
+def loadDefaultConfiguration(startup=False):
 
     # Read the current exhibit configuration from file and initialize it
     # in self.currentExhibitConfiguration
@@ -401,6 +483,16 @@ def loadDefaultConfiguration():
         readSchedule(schedule)
     except KeyError:
         print("No on/off schedule to read")
+
+    try:
+        projectors = config["PROJECTORS"]
+        for key in projectors:
+            if getProjector(key) is None:
+                newProj = Projector(key, projectors[key])
+                newProj.update()
+                projectorList.append(newProj)
+    except:
+        print("No standalone projectors specified")
 
     # Then, load the configuration for that exhibit
     readExhibitConfiguration(current["current_exhibit"])
@@ -438,6 +530,15 @@ def getExhibitComponent(id):
 
     return(component)
 
+def getProjector(id):
+
+    # Return a component with the given id, or None if no such
+    # component exists
+
+    projector = next((x for x in projectorList if x.id == id), None)
+
+    return(projector)
+
 def addExhibitComponent(id, type):
 
     component = ExhibitComponent(id, type)
@@ -451,6 +552,9 @@ def commandAllExhibitComponents(cmd):
 
     for component in componentList:
         component.queueCommand(cmd)
+
+    for projector in projectorList:
+        projector.queueCommand(cmd)
 
 def updateExhibitComponentStatus(data, ip):
 
@@ -469,7 +573,9 @@ def updateExhibitComponentStatus(data, ip):
 
 serverPort = 8080 # Default; should be set in exhibit INI file
 ip_address = "localhost" # Default; should be set in exhibit INI file
+ADDR = "" # Accept connections from all interfaces
 componentList = []
+projectorList = []
 currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
 exhibitList = []
 currentExhibitConfiguration = None # the configParser object holding the current config
