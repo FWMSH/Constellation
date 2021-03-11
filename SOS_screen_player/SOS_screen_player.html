@@ -68,7 +68,8 @@
       // Send a message to the local helper process and ask it to sleep the
       // displays
 
-      requestString = `action=sleepDisplays`;
+      //requestString = `action=sleepDisplays`;
+      var requestString = JSON.stringify({"action": "sleepDisplays"});
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperIP, true);
@@ -87,7 +88,8 @@
       // Send a message to the local helper process and ask it to sleep the
       // displays
 
-      requestString = `action=wakeDisplays`;
+      // requestString = `action=wakeDisplays`;
+      var requestString = JSON.stringify({"action": "wakeDisplays"});
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperIP, true);
@@ -105,7 +107,8 @@
 
       // Send a message to the local helper process to control the projector
 
-      requestString = `action=commandProjector&command=${cmd}`;
+      // requestString = `action=commandProjector&command=${cmd}`;
+      var requestString = JSON.stringify({"action": "wakeDisplays", "command": cmd});
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperIP, true);
@@ -195,7 +198,8 @@
       // Send a message to the local helper and ask for the latest configuration
       // defaults, then use them.
 
-      requestString = `action=getDefaults`;
+      // requestString = `action=getDefaults`;
+      var requestString = JSON.stringify({"action": "getDefaults"});
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperIP, true);
@@ -216,7 +220,8 @@
       // Contact the control server and ask for any updates
 
       if (serverAddress != "") {
-        requestString = `class=exhibitComponent&id=${id}&type=${type}`;
+        //requestString = `class=exhibitComponent&id=${id}&type=${type}`;
+        var requestString = JSON.stringify({"class": "exhibitComponent", "id": id, "tpe": type});
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", serverAddress, true);
@@ -250,7 +255,8 @@
       // Function to ask SOS for the current dataset and switch the displayed
       // media based on the response.
 
-      requestString = `action=SOS_getCurrentClipName`;
+      // requestString = `action=SOS_getCurrentClipName`;
+      var requestString = JSON.stringify({"action": "SOS_getCurrentClipName"});
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", sosAddress, true);

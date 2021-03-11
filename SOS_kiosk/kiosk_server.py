@@ -98,12 +98,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
         length = int(self.headers['Content-length'])
         data_str = self.rfile.read(length).decode("utf-8")
 
-        # Unpack the data string into a dict
-        data = {}
-        split = data_str.split("&")
-        for seg in split:
-            split2 = seg.split("=")
-            data[split2[0]] = split2[1]
+        # Unpack the data
+        try: # JSON
+            data = json.loads(data_str)
+        except: # not JSON
+            data = {}
+            split = data_str.split("&")
+            for seg in split:
+                split2 = seg.split("=")
+                data[split2[0]] = split2[1]
 
         if "action" in data:
             if data["action"] == "sleepDisplays":

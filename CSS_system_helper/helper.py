@@ -74,8 +74,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     commandProjector(data["command"])
             elif data["action"] == "getDefaults":
                 configToSend = dict(config.items())
-                    if dictionary is not None:
-                        configToSend["dictionary"] = dict(dictionary.items("DEFAULT"))
+                if dictionary is not None:
+                    configToSend["dictionary"] = dict(dictionary.items("DEFAULT"))
                 json_string = json.dumps(configToSend)
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif data["action"] == "updateDefaults":
@@ -155,8 +155,6 @@ def readDefaultConfiguration():
 
 def quit_handler(sig, frame):
     print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
-    if sosSocket != None:
-        sosSocket.write(b'exit\n')
     sys.exit(0)
 
 def loadDictionary():
