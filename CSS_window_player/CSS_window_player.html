@@ -68,7 +68,8 @@
       // Send a message to the local helper process and ask it to sleep the
       // displays
 
-      requestString = `action=sleepDisplays`;
+      // requestString = `action=sleepDisplays`;
+      var requestString = JSON.stringify({"action": "sleepDisplays"});
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperIP, true);
@@ -87,7 +88,8 @@
       // Send a message to the local helper process and ask it to sleep the
       // displays
 
-      requestString = `action=wakeDisplays`;
+      // requestString = `action=wakeDisplays`;
+      var requestString = JSON.stringify({"action": "wakeDisplays"});
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperIP, true);
@@ -105,7 +107,8 @@
 
       // Send a message to the local helper process to control the projector
 
-      requestString = `action=commandProjector&command=${cmd}`;
+      // requestString = `action=commandProjector&command=${cmd}`;
+      var requestString = JSON.stringify({"action": "commandProjector", "command": cmd});
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperIP, true);
@@ -190,7 +193,8 @@
       // Send a message to the local helper and ask for the latest configuration
       // defaults, then use them.
 
-      requestString = `action=getDefaults`;
+      // requestString = `action=getDefaults`;
+      var requestString = JSON.stringify({"action": "getDefaults"});
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperIP, true);
@@ -211,7 +215,7 @@
       // Contact the control server and ask for any updates
 
       if (serverAddress != "") {
-        requestString = `class=exhibitComponent&id=${id}&type=${type}`;
+        requestString = JSON.stringify({"class": "exhibitComponent", "id": id, "type": type})
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", serverAddress, true);
@@ -235,10 +239,12 @@
       // Send a message to the helper with the latest configuration to set as
       // the default
 
-      var requestString = "action=updateDefaults"
+      //var requestString = "action=updateDefaults"
+      var requestString = JSON.stringify({"action": "updateDefaults"});
 
       if ("content" in update) {
-        requestString += "&content=" + update["content"];
+        //requestString += "&content=" + update["content"];
+        requestString["content"] = update["content"];
       }
 
       var xhr = new XMLHttpRequest();

@@ -54,12 +54,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
         length = int(self.headers['Content-length'])
         data_str = self.rfile.read(length).decode("utf-8")
 
-        # Unpack the data string into a dict
-        data = {}
-        split = data_str.split("&")
-        for seg in split:
-            split2 = seg.split("=")
-            data[split2[0]] = split2[1]
+        # Unpack the data
+        try: # JSON
+            data = json.loads(data_str)
+        except: # not JSON
+            data = {}
+            split = data_str.split("&")
+            for seg in split:
+                split2 = seg.split("=")
+                data[split2[0]] = split2[1]
 
         if "action" in data:
             if data["action"] == "sleepDisplays":
@@ -84,77 +87,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     # Update file
                     with open('defaults.ini', 'w') as f:
                         configFile.write(f)
-            elif data["action"] == "SOS_getCurrentClipName":
-                currentClip = sendSOSCommand("get_clip_number")
-                dataset = sendSOSCommand("get_clip_info " + currentClip)
-
-                self.wfile.write(bytes(dataset, encoding="UTF-8"))
-            elif data["action"] == "SOS_getClipList":
-                # First, get a list of clips
-                reply = sendSOSCommand("get_clip_info *", multiline=True)
-                split = reply.split('\r\n')
-                clipList = []
-                for segment in split:
-                    split2 = segment.split(" ")
-                    clipList.append(" ".join(split2[1:]))
-
-                # Then, get other improtant info
-                clipDictList = []
-                counter = 1
-                for clip in clipList:
-                    if clip != '':
-                        temp = {'name': clip, 'clipNumber': counter}
-                        path = sendSOSCommand(f"get_clip_info {counter} clip_filename")
-                        split = path.split('/')
-                        icon_path = '/'.join(split[:-1]) + '/media/thumbnail_big.jpg'
-                        filename = ''.join(e for e in clip if e.isalnum()) + ".jpg"
-                        temp["icon"] = filename
-                        # Cache the icon locally for use by the app.
-                        os.system(f'cp "{icon_path}" ./thumbnails/{filename}')
-
-
-                        clipDictList.append(temp)
-                    counter += 1
-                json_string = json.dumps(clipDictList)
-                self.wfile.write(bytes(json_string, encoding="UTF-8"))
-            elif data["action"] == "SOS_getPlaylistName":
-                reply = sendSOSCommand("get_playlist_name")
-                playlist = reply.split("/")[-1]
-
-                self.wfile.write(bytes(playlist, encoding="UTF-8"))
-            elif data["action"] == "SOS_getState":
-                reply = sendSOSCommand("get_state 0")
-
-                # Parse the response (with nested braces) and build a dictionary
-                state_dict = {}
-                segment_list = []
-
-                for char in reply:
-                    if char == '{':
-                        segment_list.append([])
-                    elif char == '}':
-                        if len(segment_list) == 1:
-                            # Key-value are separated by a space
-                            segment = ''.join(segment_list.pop())
-                            split = segment.split(" ")
-                            state_dict[split[0]] = split[1]
-                        elif len(segment_list) == 2:
-                            # Key-value are separated into two lists
-                            key = ''.join(segment_list[0])
-                            value = ''.join(segment_list[1])
-                            state_dict[key] = value
-                            segment_list = []
-                        elif len(segment_list) > 2:
-                            print("Error parsing state: too many nested braces")
-                    else:
-                        if len(segment_list) > 0:
-                            segment_list[-1].append(char)
-
-                json_string = json.dumps(state_dict)
-                self.wfile.write(bytes(json_string, encoding="UTF-8"))
-            elif data["action"] == "SOS_gotoClip":
-                if "clipNumber" in data:
-                    sendSOSCommand("play " + data["clipNumber"])
 
 
 def sleepDisplays():
@@ -244,14 +176,6 @@ configFile, config = readDefaultConfiguration()
 
 # If it exists, load the dictionary that maps one value into another
 dictionary = loadDictionary()
-
-try:
-    sosSocket = TCP(config["sos_ip_address"], 2468)
-    # Send Science on a Sphere command to begin communication
-    sosSocket.write_readline(b'enable\n')
-except:
-    print("Error: Connection with Science on a Sphere failed to initialize. Make sure you have specificed sos_ip_address in defaults.ini, both computers are on the same network, and port 2468 is accessible.")
-    sosSocket = None
 
 
 httpd = HTTPServer(("", int(config["helper_port"])), RequestHandler)
