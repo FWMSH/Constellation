@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="A system for controling exhibit components">
     <meta name="author" content="Morgan Rehnberg">
+    <link rel="shortcut icon" type="image/jpg" href="icon/red.ico"/>
+
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
     <title>Control server</title>
@@ -727,10 +729,16 @@
           if (this.status == 200) {
               var update = JSON.parse(this.responseText);
 
+              var n_comps = 0;
+              var n_online = 0;
               for (var i=0; i<update["length"]; i++) {
                 var component = update[String(i)];
                 if ("class" in component) {
                   if (component["class"] == "exhibitComponent") {
+                    n_comps += 1;
+                    if ((component["status"] == "ONLINE") || (component["status"] == "STANDBY")) {
+                      n_online += 1;
+                    }
                     updateComponentFromServer(component);
                   } else if (component["class"] == "gallery") {
                     setCurrentExhibitName(component["currentExhibit"]);
@@ -739,6 +747,14 @@
                     populateSchedule(component);
                   }
                 }
+              }
+              // Set the favicon to reflect the aggregate status
+              if (n_online == n_comps) {
+                $("link[rel='shortcut icon']").attr("href", "icon/green.ico");
+              } else if (n_online == 0) {
+                $("link[rel='shortcut icon']").attr("href", "icon/red.ico");
+              } else {
+                $("link[rel='shortcut icon']").attr("href", "icon/yellow.ico");
               }
           }
       };

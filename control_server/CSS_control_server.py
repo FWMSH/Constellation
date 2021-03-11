@@ -236,7 +236,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         # Receive a GET request and respond with a console webpage
 
-        try:
+        if self.path=="/":
+
             f = open("webpage.html","r")
             page = str(f.read())
 
@@ -252,8 +253,53 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
             f.close()
             return
-        except IOError:
-            self.send_error(404, "File Not Found: %s" % self.path)
+
+        else:
+            sendReply = False
+
+            if self.path.endswith(".html"):
+                mimetype = 'text/html'
+                sendReply = True
+            elif self.path.endswith(".json"):
+                mimetype = 'application/json'
+                sendReply = True
+            elif self.path.endswith(".jpg"):
+                mimetype = 'image/jpg'
+                sendReply = True
+            elif self.path.endswith(".gif"):
+                mimetype = 'image/gif'
+                sendReply = True
+            elif self.path.endswith(".svg"):
+                mimetype = 'image/svg+xml'
+                sendReply = True
+            elif self.path.endswith(".js"):
+                mimetype = 'application/javascript'
+                sendReply = True
+            elif self.path.endswith(".css"):
+                mimetype = 'text/css'
+                sendReply = True
+            elif self.path.endswith(".ttf"):
+                mimetype = 'font/ttf'
+                sendReply = True
+            elif self.path.endswith(".ico"):
+                mimetype = "image/vnd.microsoft.icon"
+                sendReply = True
+            else:
+                print(f"Error: filetype not recognized: {self.path}")
+
+            if sendReply == True:
+                # Open the static file requested and send it
+                try:
+                    f = open('.' + self.path, 'rb')
+                    self.send_response(200)
+                    self.send_header('Content-type', mimetype)
+                    self.end_headers()
+                    self.wfile.write(f.read())
+                    f.close()
+                    return
+                except IOError:
+                    self.send_error(404, "File Not Found: %s" % self.path)
+
 
     def do_OPTIONS(self):
 
