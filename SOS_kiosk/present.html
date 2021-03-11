@@ -23,23 +23,20 @@
       }
       .container-fluid {
         touch-action: manipulation;
-      }
-      #attractorOverlay {
+        height: 100vh;
         position: fixed;
-        display: flex;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0,0,0,0.9);
-        z-index: 2;
-        cursor: pointer;
-        justify-content: center;
-        align-items: center;
       }
+
       #header {
+      }
+      #cardRow {
+        height: 100vh;
+        overflow-y: scroll;
+      }
+      #presenterNotes {
+        height: 100vw;
+        font-size: 2vw;
+        overflow-y: scroll;
       }
 
       #scrollPad {
@@ -77,6 +74,10 @@
           <div id="cardRow" class="row">
           </div>
         </div>
+
+        <div id="presenterNotes" class='col-5  mt-2 mb-2'>
+        </div>
+
         <div class='col-4 col-md-3 offset-8 offset-md-9 mt-2' style="position: fixed;">
           <H3><center>Drag your finger over the globe to rotate the sphere:</center></H3>
           <img src="sphere.svg" id="scrollPad" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event)"></img>
@@ -88,6 +89,7 @@
   <script type="text/javascript" src="js/jquery-3.5.1.slim.min.js"></script>
   <script type="text/javascript" src="js/popper.min.js"></script>
   <script type="text/javascript" src="js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="js/showdown.min.js"></script>
   <script>
 
     function handleTouchEnd(event) {
@@ -102,9 +104,6 @@
 
       // Keep the page from scrolling when we're using the touchpad
       event.preventDefault();
-
-      clearTimeout(inactivityTimer);
-      inactivityTimer = setTimeout(showAttractor, 30000);
 
       var touchX = event.changedTouches[0].pageX;
       var touchY = event.changedTouches[0].pageY;
@@ -195,9 +194,6 @@
 
       // Send a command to the helper to tell SOS to go to the specified clip.
 
-      clearTimeout(inactivityTimer);
-      inactivityTimer = setTimeout(showAttractor, 30000);
-
       if (config["block"] == false) {
         config["clip_number"] = clipNumber;
         $(".card").removeClass("bg-primary");
@@ -281,6 +277,32 @@
         }
     };
       xhr.send(requestString);
+
+      // Get the presenter notes
+      requestString = `action=SOS_readPlaylist&playlistName=${config["playlist_name"]}`;
+
+      xhr = new XMLHttpRequest();
+      xhr.open("POST", helperIP, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onerror = function() {
+      }
+      xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
+      xhr.onreadystatechange = function () {
+
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+          $("#presenterNotes").empty();
+          var lines = this.response.split("\n");
+          for (var i=0; i<lines.length; i++){
+            var line = lines[i];
+            if (line.slice(0,2) == "#>") {
+              $("#presenterNotes").append(markdownConverter.makeHtml(line.slice(2)));
+            }
+          }
+        }
+    };
+      xhr.send(requestString);
     }
 
     function getSOSState() {
@@ -332,40 +354,9 @@
             }
           }
         }
-    };
+      };
       xhr.send(requestString);
     }
-
-    // function showAttractor() {
-    //
-    //   // Make the attractor layer visible and start autorun
-    //
-    //   $("#attractorOverlay").show();
-    //
-    //   startAutorun = function() {
-    //     requestString = `action=SOS_startAutorun`;
-    //     var xhr = new XMLHttpRequest();
-    //     xhr.open("POST", helperIP, true);
-    //     xhr.setRequestHeader('Content-Type', 'application/json');
-    //     xhr.send(requestString);
-    //   }
-    //   autorunScheduler = setTimeout(startAutorun, (config["secondsToNextClip"]-2.5)*1000 );
-    // }
-    //
-    // function hideAttractor() {
-    //
-    //   // Make the attractor layer invisible and start the autorun
-    //
-    //   $("#attractorOverlay").hide();
-    //   clearTimeout(autorunScheduler);
-    //   inactivityTimer = setTimeout(showAttractor, 30000);
-    //
-    //   requestString = `action=SOS_stopAutorun`;
-    //   var xhr = new XMLHttpRequest();
-    //   xhr.open("POST", helperIP, true);
-    //   xhr.setRequestHeader('Content-Type', 'application/json');
-    //   xhr.send(requestString);
-    // }
 
     // These will be replaced by the values specified in defaults.ini
     var id = 'SOS-KIOSK';
@@ -374,6 +365,7 @@
     var helperIP = "http://10.1.1.31:8000"; // This is the address of the local helper process that can interact with the OS
     var source = "";
     var dictionary = null;
+    var markdownConverter = new showdown.Converter();
     // var autorunScheduler = null; // Will hold a reference to a setTimeout object that handles starting autorun gracefully.
 
     config = {'playlist_name': null,
