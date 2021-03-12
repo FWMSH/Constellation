@@ -266,6 +266,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
             elif self.path.endswith(".jpg"):
                 mimetype = 'image/jpg'
                 sendReply = True
+            elif self.path.endswith(".png"):
+                mimetype = 'image/png'
+                sendReply = True
             elif self.path.endswith(".gif"):
                 mimetype = 'image/gif'
                 sendReply = True
