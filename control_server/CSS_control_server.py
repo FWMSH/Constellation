@@ -6,6 +6,7 @@ import configparser
 import json
 import os
 import pypjlink
+import mimetypes
 
 
 class Projector:
@@ -33,19 +34,20 @@ class Projector:
 
         error = False
         try:
-            with pypjlink.Projector.from_address(self.ip, timeout=2) as projector:
-                projector.authenticate()
+            projector = pypjlink.Projector.from_address(self.ip, timeout=2)
+        #with pypjlink.Projector.from_address(self.ip, timeout=2) as projector:
+            #try:
+            projector.authenticate()
 
-                if full:
-                    self.state["model"] = projector.get_manufacturer() + " " + projector.get_product_name()
+            if full:
+                self.state["model"] = projector.get_manufacturer() + " " + projector.get_product_name()
 
-                self.state["power_state"] = projector.get_power()
-                self.state["lamp_status"] = projector.get_lamps()
-                self.state["error_status"] = projector.get_errors()
+            self.state["power_state"] = projector.get_power()
+            self.state["lamp_status"] = projector.get_lamps()
+            self.state["error_status"] = projector.get_errors()
 
-                self.lastContactDateTime = datetime.datetime.now()
+            self.lastContactDateTime = datetime.datetime.now()
         except Exception as e:
-            print(e)
             error = True
 
         if (error and (self.secondsSinceLastContact() > 60)):
@@ -255,53 +257,56 @@ class RequestHandler(SimpleHTTPRequestHandler):
             return
 
         else:
-            sendReply = False
+            # sendReply = False
+            # print(self.path)
 
-            if self.path.endswith(".html"):
-                mimetype = 'text/html'
-                sendReply = True
-            elif self.path.endswith(".json"):
-                mimetype = 'application/json'
-                sendReply = True
-            elif self.path.endswith(".jpg"):
-                mimetype = 'image/jpg'
-                sendReply = True
-            elif self.path.endswith(".png"):
-                mimetype = 'image/png'
-                sendReply = True
-            elif self.path.endswith(".gif"):
-                mimetype = 'image/gif'
-                sendReply = True
-            elif self.path.endswith(".svg"):
-                mimetype = 'image/svg+xml'
-                sendReply = True
-            elif self.path.endswith(".js"):
-                mimetype = 'application/javascript'
-                sendReply = True
-            elif self.path.endswith(".css"):
-                mimetype = 'text/css'
-                sendReply = True
-            elif self.path.endswith(".ttf"):
-                mimetype = 'font/ttf'
-                sendReply = True
-            elif self.path.endswith(".ico"):
-                mimetype = "image/vnd.microsoft.icon"
-                sendReply = True
-            else:
-                print(f"Error: filetype not recognized: {self.path}")
+            # if self.path.endswith(".html"):
+            #     mimetype = 'text/html'
+            #     sendReply = True
+            # elif self.path.endswith(".json"):
+            #     mimetype = 'application/json'
+            #     sendReply = True
+            # elif self.path.endswith(".jpg"):
+            #     mimetype = 'image/jpg'
+            #     sendReply = True
+            # elif self.path.endswith(".png"):
+            #     mimetype = 'image/png'
+            #     sendReply = True
+            # elif self.path.endswith(".gif"):
+            #     mimetype = 'image/gif'
+            #     sendReply = True
+            # elif self.path.endswith(".svg"):
+            #     mimetype = 'image/svg+xml'
+            #     sendReply = True
+            # elif self.path.endswith(".js"):
+            #     mimetype = 'application/javascript'
+            #     sendReply = True
+            # elif self.path.endswith(".css"):
+            #     mimetype = 'text/css'
+            #     sendReply = True
+            # elif self.path.endswith(".ttf"):
+            #     mimetype = 'font/ttf'
+            #     sendReply = True
+            # elif self.path.endswith(".ico"):
+            #     mimetype = "image/vnd.microsoft.icon"
+            #     sendReply = True
+            # else:
+            #     print(f"Error: filetype not recognized: {self.path}")
+            # print(mimetype)
+            mimetype = mimetypes.guess_type(self.path, strict=False)[0]
+            # if sendReply == True:
 
-            if sendReply == True:
-                # Open the static file requested and send it
-                try:
-                    f = open('.' + self.path, 'rb')
-                    self.send_response(200)
-                    self.send_header('Content-type', mimetype)
-                    self.end_headers()
-                    self.wfile.write(f.read())
-                    f.close()
-                    return
-                except IOError:
-                    self.send_error(404, "File Not Found: %s" % self.path)
+            # Open the file requested and send it
+            try:
+                f = open('.' + self.path, 'rb')
+                self.send_response(200)
+                self.send_header('Content-type', mimetype)
+                self.end_headers()
+                self.wfile.write(f.read())
+                f.close()
+                return
+            except IOError:
+                self.send_error(404, "File Not Found: %s" % self.path)
 
 
     def do_OPTIONS(self):
@@ -540,13 +545,14 @@ def loadDefaultConfiguration(startup=False):
 
     try:
         projectors = config["PROJECTORS"]
-        for key in projectors:
-            if getProjector(key) is None:
-                newProj = Projector(key, projectors[key])
-                newProj.update()
-                projectorList.append(newProj)
     except:
         print("No standalone projectors specified")
+
+    for key in projectors:
+        if getProjector(key) is None:
+            newProj = Projector(key, projectors[key])
+            newProj.update()
+            projectorList.append(newProj)
 
     # Then, load the configuration for that exhibit
     readExhibitConfiguration(current["current_exhibit"])

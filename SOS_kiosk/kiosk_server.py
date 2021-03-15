@@ -11,6 +11,7 @@ import os
 import serial
 from sockio.sio import TCP
 import signal
+import mimetypes
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
@@ -29,44 +30,46 @@ class RequestHandler(SimpleHTTPRequestHandler):
         if self.path=="/":
             self.path="/SOS_kiosk.html"
 
-        sendReply = False
-        #try:
-        if self.path.endswith(".html"):
-            mimetype = 'text/html'
-            sendReply = True
-        elif self.path.endswith(".json"):
-            mimetype = 'application/json'
-            sendReply = True
-        elif self.path.endswith(".jpg"):
-            mimetype = 'image/jpg'
-            sendReply = True
-        elif self.path.endswith(".gif"):
-            mimetype = 'image/gif'
-            sendReply = True
-        elif self.path.endswith(".svg"):
-            mimetype = 'image/svg+xml'
-            sendReply = True
-        elif self.path.endswith(".js"):
-            mimetype = 'application/javascript'
-            sendReply = True
-        elif self.path.endswith(".css"):
-            mimetype = 'text/css'
-            sendReply = True
-        elif self.path.endswith(".ttf"):
-            mimetype = 'font/ttf'
-            sendReply = True
-        else:
-            print(f"Error: filetype not recognized: {self.path}")
+        # sendReply = False
+        # #try:
+        # if self.path.endswith(".html"):
+        #     mimetype = 'text/html'
+        #     sendReply = True
+        # elif self.path.endswith(".json"):
+        #     mimetype = 'application/json'
+        #     sendReply = True
+        # elif self.path.endswith(".jpg"):
+        #     mimetype = 'image/jpg'
+        #     sendReply = True
+        # elif self.path.endswith(".gif"):
+        #     mimetype = 'image/gif'
+        #     sendReply = True
+        # elif self.path.endswith(".svg"):
+        #     mimetype = 'image/svg+xml'
+        #     sendReply = True
+        # elif self.path.endswith(".js"):
+        #     mimetype = 'application/javascript'
+        #     sendReply = True
+        # elif self.path.endswith(".css"):
+        #     mimetype = 'text/css'
+        #     sendReply = True
+        # elif self.path.endswith(".ttf"):
+        #     mimetype = 'font/ttf'
+        #     sendReply = True
+        # else:
+        #     print(f"Error: filetype not recognized: {self.path}")
+        #
+        # if sendReply == True
 
-        if sendReply == True:
-            # Open the static file requested and send it
-            f = open('.' + self.path, 'rb')
-            self.send_response(200)
-            self.send_header('Content-type', mimetype)
-            self.end_headers()
-            self.wfile.write(f.read())
-            f.close()
-            return
+        # Open the static file requested and send it
+        mimetype = mimetypes.guess_type(self.path, strict=False)[0]
+        f = open('.' + self.path, 'rb')
+        self.send_response(200)
+        self.send_header('Content-type', mimetype)
+        self.end_headers()
+        self.wfile.write(f.read())
+        f.close()
+        return
         # except IOError:
         #     self.send_error(404,'File Not Found: %s' % self.path)
 
