@@ -46,22 +46,22 @@
             <div class="modal-dialog modal-dialog-centered" role="document">
               <div class="modal-content">
                 <div class="modal-header">
-                  <h5 class="modal-title" id="componentInfoModalTitle"></h5>
+                  <h4 class="modal-title" id="componentInfoModalTitle"></h4>
                 </div>
                 <div class="modal-body">
                   <div class="row">
-                    <div class="col">Available content</div>
+                    <H5 class="col-auto">Available content</H5>
                   </div>
-                  <div id="componentAvailableContentList" class="row">
+                  <div id="componentAvailableContentList" class="row mt-2">
                   </div>
-                  <div class="form-group">
-                    <label for="componentContentUpload">Upload new content</label>
+                  <div class="form-group mt-3">
+                    <label for="componentContentUpload"><H5>Upload new content</H5></label>
                     <div class="row">
                       <div class="col-8">
                         <input type="file" class="form-control-file" id="componentContentUpload">
                       </div>
                       <div class="col-4">
-                        <button class='btn btn-block' onclick="uploadComponentContentFile()">Upload</button>
+                        <button id="contentUploadSubmitButton" class='btn btn-block' onclick="uploadComponentContentFile()">Upload</button>
                       </div>
                     </div>
                   </div>
@@ -376,7 +376,7 @@
           var html = `
             <div class='col-md-12 col-lg-6 mt-1'>
               <div class="btn-group btn-block">
-                <button type="button" class="btn btn-danger btn-block" id="${this.id}MainButton" onclick="showExhibitComponentInfo('${this.id}')"><H5>${this.id}</H5><div id="${this.id}StatusField">OFFLINE</div></button>
+                <button type="button" class="btn btn-danger btn-block" id="${this.id}MainButton" onclick="showExhibitComponentInfo(id='${this.id}')"><H5>${this.id}</H5><div id="${this.id}StatusField">OFFLINE</div></button>
                 <button type="button" id="${this.id}DropdownButton" class="btn btn-danger dropdown-toggle dropdown-toggle-split"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
@@ -456,10 +456,14 @@
         }
       }
 
-      function showExhibitComponentInfo(id) {
+      function showExhibitComponentInfo(id="") {
 
         // This sets up the componentInfoModal with the info from the selected
         // component and shows it on the screen.
+
+        if (id == "") {
+          id = $("#componentInfoModalTitle").html();
+        }
 
         var obj = getExhibitComponent(id);
 
@@ -495,27 +499,33 @@
 
           $("#componentInfoModalTitle").html(id);
           $("#componentAvailableContentList").empty();
+          $("#contentUploadSubmitButton").prop("disabled", false);
+          $("#contentUploadSubmitButton").html("Upload");
 
-          var requestString = JSON.stringify({"class": "webpage",
-                                              "id": id,
-                                              "action": "getComponentContent"});
+          var requestString = JSON.stringify({"action": "getAvailableContent"});
 
           var xhr = new XMLHttpRequest();
-          xhr.open("POST", serverIP, true);
+          xhr.open("POST", `http://${obj.ip}:${obj.helperPort}`, true);
           xhr.setRequestHeader('Content-Type', 'application/json');
           xhr.onreadystatechange = function () {
             if (this.readyState != 4) return;
 
             if (this.status == 200) {
               var availableContent = JSON.parse(this.response);
-              console.log(availableContent);
+
               for (var i=0; i<availableContent["current_exhibit"].length; i++) {
                 var content = (availableContent["current_exhibit"])[i]
                 var html = `
-                <div class="col-auto"><button class="btn">${content}</button></div>
+                <div class="col-auto mt-1"><button class="btn componentContentButton">${content}</button></div>
                 `;
                 $("#componentAvailableContentList").append(html);
               }
+              // Attach an event handler to change the button's color when clicked
+              $(".componentContentButton").on("click", function(e){
+                $('.componentContentButton').not($(this)).removeClass("btn-primary");
+                $(this).addClass("btn-primary");
+                $("#componentSaveConfirmationButton").show();
+              });
             }
           };
           xhr.send(requestString);
@@ -534,16 +544,30 @@
         var fileInput = $("#componentContentUpload")[0];
         var component = getExhibitComponent(id);
 
+        $("#contentUploadSubmitButton").prop("disabled", true);
+        $("#contentUploadSubmitButton").html("Working...");
+
         var file = fileInput.files[0]
         var formData = new FormData();
         formData.append("exhibit", getCurrentExhibitName())
         formData.append("filename", file["name"])
         formData.append("mimetype", file["type"])
         formData.append("file", file);
-        // requestString = `class=webpage&action=setComponentContent&id=${id}&content=${content}`;
+
         var xhr = new XMLHttpRequest();
         xhr.open("POST", `http://${component.ip}:${component.helperPort}`, true);
-        // xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+          if (this.readyState != 4) return;
+          if (this.status == 200) {
+            var response = JSON.parse(this.responseText);
+
+            if ("success" in response) {
+              console.log(id)
+              queueCommand(id, 'reloadDefaults')
+              showExhibitComponentInfo();
+            }
+          }
+        };
         xhr.send(formData);
       }
 
@@ -553,9 +577,15 @@
         // back to the server to be changed.
 
         var id = $("#componentInfoModalTitle").html().trim();
-        var content = $("#componentContentInputField").val().trim();
+        var content = $('.componentContentButton.btn-primary').html().trim()
 
-        requestString = `class=webpage&action=setComponentContent&id=${id}&content=${content}`;
+        //requestString = `class=webpage&action=setComponentContent&id=${id}&content=${content}`;
+        requestString = JSON.stringify({
+          "class": "webpage",
+          "action": "setComponentContent",
+          "id": id,
+          "content": content
+        })
         var xhr = new XMLHttpRequest();
         xhr.open("POST", serverIP, true);
         xhr.setRequestHeader('Content-Type', 'application/json');

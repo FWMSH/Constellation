@@ -139,13 +139,13 @@ class ExhibitComponent:
     def updateConfiguration(self):
 
         # Retreive the latest configuration data from the configParser object
-
         try:
             fileConfig = dict(currentExhibitConfiguration.items(self.id))
             for key in fileConfig:
                 self.config[key] = fileConfig[key]
         except configparser.NoSectionError:
             print(f"Warning: there is no configuration available for component with id={self.id}")
+        self.config["current_exhibit"] = currentExhibit[0:-8]
 
     def queueCommand(self, command):
 
@@ -160,7 +160,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         # exhibit configuration
 
         json_string = json.dumps(getExhibitComponent(id).config)
-        getExhibitComponent(id).config["commands"] = [] # Clear the command list now that we have sent them
+        getExhibitComponent(id).config["commands"] = [] # Clear the command list now that we have sent
 
         self.wfile.write(bytes(json_string, encoding="UTF-8"))
 
@@ -180,7 +180,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
             dict["status"] = item.currentStatus()
             dict["ip_address"] = item.ip
             dict["helperPort"] = item.helperPort
-            dict["availableContent"] = item.config["availableContent"]
             componentDictList.append(dict)
 
         for item in projectorList:
@@ -359,11 +358,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                     readExhibitConfiguration(data["name"], updateDefault=True)
                     loadDefaultConfiguration()
-                elif action == "getComponentContent":
-                    if "id" in data:
-                        component = getExhibitComponent(data["id"])
-                        json_string = json.dumps(component.config["availableContent"])
-                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif action == "setComponentContent":
                     if ("id" in data) and ("content" in data):
                         print(f"Changing content file for {data['id']}:", data['content'])
@@ -510,7 +504,7 @@ def checkAvailableExhibits():
         if file.endswith(".exhibit"):
             exhibitList.append(file)
 
-def loadDefaultConfiguration(startup=False):
+def loadDefaultConfiguration():
 
     # Read the current exhibit configuration from file and initialize it
     # in self.currentExhibitConfiguration
@@ -615,7 +609,6 @@ def updateExhibitComponentStatus(data, ip):
 
     component.ip = ip
     component.helperPort = data["helperPort"]
-    component.config["availableContent"] = data["availableContent"]
     component.updateLastContactDateTime()
     if "currentInteraction" in data:
         if data["currentInteraction"].lower() == "true":

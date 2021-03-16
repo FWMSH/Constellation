@@ -55,23 +55,31 @@ class RequestHandler(SimpleHTTPRequestHandler):
         ctype, pdict = cgi.parse_header(self.headers.get('content-type'))
 
         if (ctype == "multipart/form-data"): # File upload
-            pdict['boundary'] = bytes(pdict['boundary'], "utf-8")
-            content_len = int(self.headers.get('Content-length'))
-            pdict['CONTENT-LENGTH'] = content_len
-            fields = cgi.parse_multipart(self.rfile, pdict)
-            file = fields.get('file')[0]
+            try:
+                pdict['boundary'] = bytes(pdict['boundary'], "utf-8")
+                content_len = int(self.headers.get('Content-length'))
+                pdict['CONTENT-LENGTH'] = content_len
+                fields = cgi.parse_multipart(self.rfile, pdict)
+                file = fields.get('file')[0]
 
-            root = os.path.dirname(os.path.abspath(__file__))
-            content_path = os.path.join(root, "content")
-            split = fields.get("exhibit")[0].split(".")
-            if len(split) > 2:
-                exhibit = ".".join(spilt[:-2])
-            else:
-                exhibit = split[0]
-            filepath = os.path.join(content_path, exhibit, fields.get("filename")[0])
-            print(f"Saving uploaded file to {filepath}")
-            with open(filepath, "wb") as f:
-                f.write(file)
+                root = os.path.dirname(os.path.abspath(__file__))
+                content_path = os.path.join(root, "content")
+                split = fields.get("exhibit")[0].split(".")
+                if len(split) > 2:
+                    exhibit = ".".join(spilt[:-2])
+                else:
+                    exhibit = split[0]
+                filepath = os.path.join(content_path, exhibit, fields.get("filename")[0])
+                print(f"Saving uploaded file to {filepath}")
+                with open(filepath, "wb") as f:
+                    f.write(file)
+
+                responseDict = {"success": True}
+                json_string = json.dumps(responseDict)
+                self.wfile.write(bytes(json_string, encoding="UTF-8"))
+            except:
+                json_string = json.dumps({"success": False})
+                self.wfile.write(bytes(json_string, encoding="UTF-8"))
 
         elif (ctype == "application/json"):
 
@@ -102,6 +110,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         configToSend["dictionary"] = dict(dictionary.items("DEFAULT"))
                     configToSend["availableContent"] = {"current_exhibit": getDirectoryContents(config["current_exhibit"]),
                                                         "all_exhibits": getAllDirectoryContents()}
+
+                    root = os.path.dirname(os.path.abspath(__file__))
+                    content_path = os.path.join(root, "content")
+                    configToSend["contentPath"] = content_path
                     json_string = json.dumps(configToSend)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif data["action"] == "updateDefaults":
@@ -113,6 +125,13 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         # Update file
                         with open('defaults.ini', 'w') as f:
                             configFile.write(f)
+                elif data["action"] == "getAvailableContent":
+                    response = {"current_exhibit": getDirectoryContents(config["current_exhibit"]),
+                                "all_exhibits": getAllDirectoryContents()}
+                    json_string = json.dumps(response)
+                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                else:
+                    print("Error: unrecognized action:", data["action"])
 
 
 def sleepDisplays():
@@ -178,7 +197,7 @@ def getAllDirectoryContents():
     content_path = os.path.join(root, "content")
     result = [os.path.relpath(os.path.join(dp, f), content_path) for dp, dn, fn in os.walk(content_path) for f in fn]
 
-    return(result)
+    return([x for x in result if x.find(".DS_Store") == -1 ])
 
 def getDirectoryContents(path):
 
@@ -187,7 +206,7 @@ def getDirectoryContents(path):
     root = os.path.dirname(os.path.abspath(__file__))
     content_path = os.path.join(root, "content")
     contents = os.listdir(os.path.join(content_path, path))
-    return(contents)
+    return([x for x in contents if x.find(".DS_Store") == -1])
 
 def readDefaultConfiguration():
 

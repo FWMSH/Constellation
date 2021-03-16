@@ -79,7 +79,7 @@
 
         if (this.status == 200) {
         }
-    };
+      };
       xhr.send(requestString);
     }
 
@@ -134,11 +134,8 @@
       if ("content" in update) {
         if (source != update["content"]) {
           source = update["content"];
-          changeMedia(source);
+          changeMedia(contentPath + '/' + currentExhibit + '/' + source);
         }
-      }
-      if ("availableContent" in update) {
-        availableContent = update["availableContent"];
       }
       if ('commands' in update) {
         for (var i=0; i<update["commands"].length; i++) {
@@ -148,8 +145,10 @@
             sleepDisplays();
           } else if (cmd == "wakeDisplay") {
             wakeDisplays();
-          } else if (cmd == "askForFileUpload") {
-            askForFileUpload();
+          } else if (cmd == "reloadDefaults"){
+            console.log("reloadDefaults");
+            askForDefaults();
+            sendPing();
           } else {
             console.log(`Command not recognized: ${cmd}`);
           }
@@ -164,30 +163,12 @@
       if (("server_ip_address" in update) && ("server_port" in update)) {
         serverAddress = "http://" + update["server_ip_address"] + ":" + update["server_port"];
       }
-    }
-
-    function askForFileUpload() {
-
-      // Function to ask the server to send a user-uploaded file and then
-      // transfer it to the helper to save to disk.
-
-      var requestString = JSON.stringify({"action": "getUploadedFile",
-                                          "id": id,
-                                          "class": "exhibitComponent"});
-
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", serverAddress, true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.onreadystatechange = function () {
-
-        if (this.readyState != 4) return;
-
-        if (this.status == 200) {
-          console.log(this.responseText);
-        }
-      };
-      xhr.send(requestString);
-
+      if ("contentPath" in update) {
+        contentPath = update["contentPath"];
+      }
+      if ("current_exhibit" in update) {
+        currentExhibit = update["current_exhibit"];
+      }
     }
 
     function changeMedia(source) {
@@ -247,8 +228,7 @@
         requestString = JSON.stringify({"class": "exhibitComponent",
                                         "id": id,
                                         "type": type,
-                                        "helperPort": helperPort,
-                                        "availableContent": availableContent});
+                                        "helperPort": helperPort});
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", serverAddress, true);
@@ -273,17 +253,17 @@
       // the default
 
       //var requestString = "action=updateDefaults"
-      var requestString = JSON.stringify({"action": "updateDefaults"});
+      var requestDict = {"action": "updateDefaults"};
 
       if ("content" in update) {
         //requestString += "&content=" + update["content"];
-        requestString["content"] = update["content"];
+        requestDict["content"] = update["content"];
       }
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", "http://localhost:" + helperPort, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.send(requestString);
+      xhr.send(JSON.stringify(requestDict));
     }
 
     // These will be replaced by the values specified in defaults.ini
@@ -292,7 +272,8 @@
     var serverAddress = ""; // The address of the main control server
     var helperPort = 8000; // This is the port of the localhost helper process that can interact with the OS
     var source = "";
-    var availableContent = {}
+    var contentPath = "";
+    var currentExhibit = ""; // This will double as the root of the source path
 
     askForDefaults();
     sendPing();
