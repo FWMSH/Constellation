@@ -69,12 +69,13 @@ def sendPing():
     server_full_address = "http://" + str(config["server_ip_address"]) + ":" + str(config["server_port"])
 
     try:
-        response = requests.post(server_full_address, data = bytes(requestString, encoding="UTF-8"), timeout=1)
+        headers = {'Content-type': 'application/json'}
+        response = requests.post(server_full_address, data = bytes(requestString, encoding="UTF-8"), headers=headers, timeout=1)
     except:
         type, value, traceback = sys.exc_info()
         print("Error sending request", type, value)
         return()
-
+    
     updates = response.json()
     if "content" in updates:
         if updates["content"] != config["content"]:
@@ -111,16 +112,8 @@ def commandProjector(cmd):
 
     make = "Optoma"
 
-    interface = ""
-    if sys.platform == "darwin": # MacOS
-        interface = "/dev/ttyUSB0"
-    elif sys.platform == "linux":
-        interface = "/dev/ttyUSB0"
-    elif sys.platform = "win32": # Windows
-        interface = "COM1"
-
     if make == "Optoma":
-        ser = serial.Serial(interface, 9600, timeout=0, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS)
+        ser = serial.Serial("/dev/ttyUSB0",9600, timeout=0, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS)
         ser.reset_input_buffer()
         ser.reset_output_buffer()
 

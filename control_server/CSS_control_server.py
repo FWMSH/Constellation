@@ -298,7 +298,11 @@ class RequestHandler(SimpleHTTPRequestHandler):
         self.end_headers()
 
         # Get the data from the request
-        ctype, pdict = cgi.parse_header(self.headers.get('content-type'))
+        try:
+            ctype, pdict = cgi.parse_header(self.headers.get('content-type'))
+        except:
+            print("DO_POST: Error: Are we missing the Content-Type header?")
+            print(self.headers)
 
         if (ctype == "application/json"):
 
@@ -529,6 +533,7 @@ def loadDefaultConfiguration():
         projectors = config["PROJECTORS"]
     except:
         print("No standalone projectors specified")
+        projectors = []
 
     for key in projectors:
         if getProjector(key) is None:
@@ -608,7 +613,8 @@ def updateExhibitComponentStatus(data, ip):
         component = addExhibitComponent(id, type)
 
     component.ip = ip
-    component.helperPort = data["helperPort"]
+    if "helperPort" in data:
+        component.helperPort = data["helperPort"]
     component.updateLastContactDateTime()
     if "currentInteraction" in data:
         if data["currentInteraction"].lower() == "true":
