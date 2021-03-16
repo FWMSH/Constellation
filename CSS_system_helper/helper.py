@@ -117,17 +117,26 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     json_string = json.dumps(configToSend)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif data["action"] == "updateDefaults":
+                    update_made = False
                     if "content" in data:
                         content = data["content"]
                         configFile.set("DEFAULT", "content", data["content"])
                         config["content"] = content
-
-                        # Update file
+                        update_made = True
+                    if "current_exhibit" in data:
+                        configFile.set("DEFAULT", "current_exhibit", data["current_exhibit"])
+                        config["current_exhibit"] = data["current_exhibit"]
+                        checkDirectoryStructure(config["current_exhibit"])
+                        update_made = True
+                    # Update file
+                    if update_made:
                         with open('defaults.ini', 'w') as f:
                             configFile.write(f)
                 elif data["action"] == "getAvailableContent":
                     response = {"current_exhibit": getDirectoryContents(config["current_exhibit"]),
-                                "all_exhibits": getAllDirectoryContents()}
+                                "all_exhibits": getAllDirectoryContents(),
+                                "active_content": config["content"]}
+
                     json_string = json.dumps(response)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 else:
@@ -208,15 +217,11 @@ def getDirectoryContents(path):
     contents = os.listdir(os.path.join(content_path, path))
     return([x for x in contents if x.find(".DS_Store") == -1])
 
-def readDefaultConfiguration():
+def checkDirectoryStructure(current_exhibit):
 
-    # Read defaults.ini
-    config_object = configparser.ConfigParser()
-    config_object.read('defaults.ini')
-    default = config_object["DEFAULT"]
-    config_dict = dict(default.items())
+    # Function that makes sure the appropriate content directories are present
+    # and creates them if they are not.
 
-    # Make sure we have the appropriate file system set up
     root = os.path.dirname(os.path.abspath(__file__))
     content_path = os.path.join(root, "content")
     try:
@@ -229,17 +234,27 @@ def readDefaultConfiguration():
         except:
             print("Error: unable to create directory. Do you have write permission?")
 
-    if "current_exhibit" in config_dict:
-        exhibit_path = os.path.join(content_path, config_dict["current_exhibit"])
-        try:
-            os.listdir(exhibit_path)
-        except FileNotFoundError:
-            print("Warning: exhibit content directory not found. Creating it...")
+    exhibit_path = os.path.join(content_path, current_exhibit)
+    try:
+        os.listdir(exhibit_path)
+    except FileNotFoundError:
+        print("Warning: exhibit content directory not found. Creating it...")
 
-            try:
-                os.mkdir(exhibit_path)
-            except:
-                print("Error: unable to create directory. Do you have write permission?")
+        try:
+            os.mkdir(exhibit_path)
+        except:
+            print("Error: unable to create directory. Do you have write permission?")
+
+def readDefaultConfiguration():
+
+    # Read defaults.ini
+    config_object = configparser.ConfigParser()
+    config_object.read('defaults.ini')
+    default = config_object["DEFAULT"]
+    config_dict = dict(default.items())
+
+    # Make sure we have the appropriate file system set up
+    checkDirectoryStructure(config_dict["current_exhibit"])
 
     return(config_object, config_dict)
 

@@ -58,11 +58,13 @@
                     <label for="componentContentUpload"><H5>Upload new content</H5></label>
                     <div class="row">
                       <div class="col-8">
-                        <input type="file" class="form-control-file" id="componentContentUpload">
+                        <input type="file" class="form-control-file" id="componentContentUpload" onchange="onUploadContentChange()">
                       </div>
                       <div class="col-4">
                         <button id="contentUploadSubmitButton" class='btn btn-block' onclick="uploadComponentContentFile()">Upload</button>
                       </div>
+                      <div class='col-auto text-danger' id='uploadOverwriteWarning'>Warning! This upload will overwrite a file of the same name.</div>
+
                     </div>
                   </div>
                 </div>
@@ -501,6 +503,8 @@
           $("#componentAvailableContentList").empty();
           $("#contentUploadSubmitButton").prop("disabled", false);
           $("#contentUploadSubmitButton").html("Upload");
+          $("#componentContentUpload").val(null);
+          $("#uploadOverwriteWarning").hide();
 
           var requestString = JSON.stringify({"action": "getAvailableContent"});
 
@@ -514,9 +518,15 @@
               var availableContent = JSON.parse(this.response);
 
               for (var i=0; i<availableContent["current_exhibit"].length; i++) {
-                var content = (availableContent["current_exhibit"])[i]
+                var content = (availableContent["current_exhibit"])[i];
+                var activeContent = availableContent["active_content"]
+                if (content == activeContent) {
+                  var active = "btn-primary";
+                } else {
+                  var active = "";
+                }
                 var html = `
-                <div class="col-auto mt-1"><button class="btn componentContentButton">${content}</button></div>
+                <div class="col-auto mt-1"><button class="btn componentContentButton ${active}">${content}</button></div>
                 `;
                 $("#componentAvailableContentList").append(html);
               }
@@ -536,6 +546,20 @@
           $("#componentInfoModal").modal("show");
         }
 
+      }
+
+      function onUploadContentChange() {
+
+        // When we select a file for uploading, check against the existing files
+        // (as defined by their buttons) and warn if we will overwrite.
+
+        var fileInput = $("#componentContentUpload")[0];
+        var currentFiles = $(".componentContentButton").map(function(){return $(this).html()}).toArray();
+        if(currentFiles.includes(fileInput.files[0].name)) {
+          $("#uploadOverwriteWarning").show();
+        } else {
+          $("#uploadOverwriteWarning").hide();
+        }
       }
 
       function uploadComponentContentFile() {

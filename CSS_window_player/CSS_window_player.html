@@ -131,12 +131,6 @@
       var update = JSON.parse(responseText);
       sendConfigUpdate(update); // Send to server to update the default config
 
-      if ("content" in update) {
-        if (source != update["content"]) {
-          source = update["content"];
-          changeMedia(contentPath + '/' + currentExhibit + '/' + source);
-        }
-      }
       if ('commands' in update) {
         for (var i=0; i<update["commands"].length; i++) {
           var cmd = (update["commands"])[i];
@@ -146,7 +140,6 @@
           } else if (cmd == "wakeDisplay") {
             wakeDisplays();
           } else if (cmd == "reloadDefaults"){
-            console.log("reloadDefaults");
             askForDefaults();
             sendPing();
           } else {
@@ -168,6 +161,14 @@
       }
       if ("current_exhibit" in update) {
         currentExhibit = update["current_exhibit"];
+      }
+
+      // This should be last to make sure the path has been updated
+      if ("content" in update) {
+        if (source != update["content"]) {
+          source = update["content"];
+          changeMedia(contentPath + '/' + currentExhibit + '/' + source);
+        }
       }
     }
 
@@ -256,8 +257,10 @@
       var requestDict = {"action": "updateDefaults"};
 
       if ("content" in update) {
-        //requestString += "&content=" + update["content"];
         requestDict["content"] = update["content"];
+      }
+      if ("current_exhibit" in update) {
+        requestDict["current_exhibit"] = update["current_exhibit"];
       }
 
       var xhr = new XMLHttpRequest();
