@@ -8,14 +8,6 @@
 
     <!-- Favicons -->
     <link rel="icon" type="image/x-icon" href="icon/green.ico">
-    <!-- <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"> -->
-    <!-- <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png"> -->
-    <!-- <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png"> -->
-    <!-- <link rel="manifest" href="icons/site.webmanifest"> -->
-    <!-- <link rel="shortcut icon" href="icons/favicon.ico"> -->
-    <!-- <meta name="msapplication-TileColor" content="#da532c">
-    <meta name="msapplication-config" content="icons/browserconfig.xml">
-    <meta name="theme-color" content="#ffffff"> -->
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
@@ -57,9 +49,21 @@
                   <h5 class="modal-title" id="componentInfoModalTitle"></h5>
                 </div>
                 <div class="modal-body">
+                  <div class="row">
+                    <div class="col">Available content</div>
+                  </div>
+                  <div id="componentAvailableContentList" class="row">
+                  </div>
                   <div class="form-group">
-                    <label for="componentContentInputField">Current content:</label>
-                    <textarea type="text" id="componentContentInputField" class="form-control" oninput="$('#componentSaveConfirmationButton').show()"></textarea>
+                    <label for="componentContentUpload">Upload new content</label>
+                    <div class="row">
+                      <div class="col-8">
+                        <input type="file" class="form-control-file" id="componentContentUpload">
+                      </div>
+                      <div class="col-4">
+                        <button class='btn btn-block' onclick="uploadComponentContentFile()">Upload</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div class="modal-footer">
@@ -280,6 +284,8 @@
           this.id = id;
           this.type = type;
           this.content = null;
+          this.ip = "localhost"; // Default; will be replaced when componet pings in
+          this.helperPort = 8000; // Default; will be replaced when componet pings in
           this.state = {};
           this.status = "OFFLINE";
           this.buildHTML();
@@ -484,15 +490,61 @@
 
           // Make the modal visible
           $("#projectorInfoModal").modal("show");
-        } else {
+
+        } else { // This is a normal ExhibitComponent
+
           $("#componentInfoModalTitle").html(id);
-          $("#componentContentInputField").val(obj.content)
+          $("#componentAvailableContentList").empty();
+
+          var requestString = JSON.stringify({"class": "webpage",
+                                              "id": id,
+                                              "action": "getComponentContent"});
+
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", serverIP, true);
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.onreadystatechange = function () {
+            if (this.readyState != 4) return;
+
+            if (this.status == 200) {
+              var availableContent = JSON.parse(this.response);
+              console.log(availableContent);
+              for (var i=0; i<availableContent["current_exhibit"].length; i++) {
+                var content = (availableContent["current_exhibit"])[i]
+                var html = `
+                <div class="col-auto"><button class="btn">${content}</button></div>
+                `;
+                $("#componentAvailableContentList").append(html);
+              }
+            }
+          };
+          xhr.send(requestString);
+
           $("#componentSaveConfirmationButton").hide();
 
           // Make the modal visible
           $("#componentInfoModal").modal("show");
         }
 
+      }
+
+      function uploadComponentContentFile() {
+
+        var id = $("#componentInfoModalTitle").html().trim();
+        var fileInput = $("#componentContentUpload")[0];
+        var component = getExhibitComponent(id);
+
+        var file = fileInput.files[0]
+        var formData = new FormData();
+        formData.append("exhibit", getCurrentExhibitName())
+        formData.append("filename", file["name"])
+        formData.append("mimetype", file["type"])
+        formData.append("file", file);
+        // requestString = `class=webpage&action=setComponentContent&id=${id}&content=${content}`;
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", `http://${component.ip}:${component.helperPort}`, true);
+        // xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(formData);
       }
 
       function submitComponentContentChange() {
@@ -546,6 +598,12 @@
           if ("content" in component) {
             obj.content = component["content"];
           }
+          if ("ip_address" in component) {
+            obj.ip = component["ip_address"];
+          }
+          if ("helperPort" in component) {
+            obj.helperPort = component["helperPort"];
+          }
         } else {
 
           // First, make sure the group matching this type exists
@@ -572,6 +630,10 @@
         document.getElementById("exhibitNameField").innerHTML = name;
         document.title = name;
         updateAvailableExhibits([name]);
+      }
+
+      function getCurrentExhibitName() {
+        return(document.getElementById("exhibitNameField").innerHTML)
       }
 
       function updateAvailableExhibits(exhibitList) {

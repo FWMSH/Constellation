@@ -7,6 +7,7 @@ import json
 import os
 import pypjlink
 import mimetypes
+import cgi
 
 
 class Projector:
@@ -85,6 +86,7 @@ class ExhibitComponent:
         self.id = id
         self.type = type
         self.ip = "" # IP address of client
+        self.helperPort = 8000 # port of the localhost helper for this component
 
         self.lastContactDateTime = datetime.datetime.now()
         self.lastInteractionDateTime = datetime.datetime(2020, 1, 1)
@@ -176,6 +178,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 dict["content"] = item.config["content"]
             dict["class"] = "exhibitComponent"
             dict["status"] = item.currentStatus()
+            dict["ip_address"] = item.ip
+            dict["helperPort"] = item.helperPort
+            dict["availableContent"] = item.config["availableContent"]
             componentDictList.append(dict)
 
         for item in projectorList:
@@ -257,46 +262,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
             return
 
         else:
-            # sendReply = False
-            # print(self.path)
-
-            # if self.path.endswith(".html"):
-            #     mimetype = 'text/html'
-            #     sendReply = True
-            # elif self.path.endswith(".json"):
-            #     mimetype = 'application/json'
-            #     sendReply = True
-            # elif self.path.endswith(".jpg"):
-            #     mimetype = 'image/jpg'
-            #     sendReply = True
-            # elif self.path.endswith(".png"):
-            #     mimetype = 'image/png'
-            #     sendReply = True
-            # elif self.path.endswith(".gif"):
-            #     mimetype = 'image/gif'
-            #     sendReply = True
-            # elif self.path.endswith(".svg"):
-            #     mimetype = 'image/svg+xml'
-            #     sendReply = True
-            # elif self.path.endswith(".js"):
-            #     mimetype = 'application/javascript'
-            #     sendReply = True
-            # elif self.path.endswith(".css"):
-            #     mimetype = 'text/css'
-            #     sendReply = True
-            # elif self.path.endswith(".ttf"):
-            #     mimetype = 'font/ttf'
-            #     sendReply = True
-            # elif self.path.endswith(".ico"):
-            #     mimetype = "image/vnd.microsoft.icon"
-            #     sendReply = True
-            # else:
-            #     print(f"Error: filetype not recognized: {self.path}")
-            # print(mimetype)
-            mimetype = mimetypes.guess_type(self.path, strict=False)[0]
-            # if sendReply == True:
 
             # Open the file requested and send it
+            mimetype = mimetypes.guess_type(self.path, strict=False)[0]
             try:
                 f = open('.' + self.path, 'rb')
                 self.send_response(200)
@@ -331,84 +299,104 @@ class RequestHandler(SimpleHTTPRequestHandler):
         self.end_headers()
 
         # Get the data from the request
-        length = int(self.headers['Content-length'])
-        data_str = self.rfile.read(length).decode("utf-8")
+        ctype, pdict = cgi.parse_header(self.headers.get('content-type'))
 
-        # Unpack the data
-        try: # JSON
-            data = json.loads(data_str)
-        except: # not JSON
-            data = {}
-            split = data_str.split("&")
-            for seg in split:
-                split2 = seg.split("=")
-                data[split2[0]] = split2[1]
+        if (ctype == "application/json"):
 
-        try:
-            pingClass = data["class"]
-        except:
-            print("Error: ping received without class field")
-            return() # No id or type, so bail out
-        if pingClass == "webpage":
+            # Unpack the data
+            length = int(self.headers['Content-length'])
+            data_str = self.rfile.read(length).decode("utf-8")
+
+            try: # JSON
+                data = json.loads(data_str)
+            except: # not JSON
+                data = {}
+                split = data_str.split("&")
+                for seg in split:
+                    split2 = seg.split("=")
+                    data[split2[0]] = split2[1]
+
             try:
-                action = data["action"]
+                pingClass = data["class"]
             except:
-                print("Error: webpage ping received without action field")
+                print("Error: ping received without class field")
                 return() # No id or type, so bail out
-            if action == "fetchUpdate":
-                self.sendWebpageUpdate()
-            elif action == "fetchProjectorUpdate":
-                if "id" in data:
-                    proj = getProjector(data["id"])
-                    proj.update()
+            if pingClass == "webpage":
+                try:
+                    action = data["action"]
+                except:
+                    print("Error: webpage ping received without action field")
+                    return() # No id or type, so bail out
+                if action == "fetchUpdate":
+                    self.sendWebpageUpdate()
+                elif action == "fetchProjectorUpdate":
+                    if "id" in data:
+                        proj = getProjector(data["id"])
+                        proj.update()
 
-                    json_string = json.dumps(proj.state)
+                        json_string = json.dumps(proj.state)
+                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                elif action == "reloadConfiguration":
+                    loadDefaultConfiguration()
+
+                    json_string = json.dumps({"result": "success"})
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
-            elif action == "reloadConfiguration":
-                loadDefaultConfiguration()
+                elif action == "queueCommand":
+                    getExhibitComponent(data["id"]).queueCommand(data["command"])
+                elif action == "queueProjectorCommand":
+                    getProjector(data["id"]).queueCommand(data["command"])
+                    self.wfile.write(bytes("", encoding="UTF-8"))
+                elif action == "updateSchedule":
+                    print("Schedule update received:", data["day"], data["onTime"], data["offTime"])
 
-                json_string = json.dumps({"result": "success"})
-                self.wfile.write(bytes(json_string, encoding="UTF-8"))
-            elif action == "queueCommand":
-                getExhibitComponent(data["id"]).queueCommand(data["command"])
-            elif action == "queueProjectorCommand":
-                getProjector(data["id"]).queueCommand(data["command"])
-                self.wfile.write(bytes("", encoding="UTF-8"))
-            elif action == "updateSchedule":
-                print("Schedule update received:", data["day"], data["onTime"], data["offTime"])
+                    schedule = {}
+                    schedule[data["day"].lower()+'_on'] = data["onTime"]
+                    schedule[data["day"].lower()+'_off'] = data["offTime"]
 
-                schedule = {}
-                schedule[data["day"].lower()+'_on'] = data["onTime"]
-                schedule[data["day"].lower()+'_off'] = data["offTime"]
+                    updateSchedule(schedule)
+                elif action == "setExhibit":
+                    print("Changing exhibit to:", data["name"])
 
-                updateSchedule(schedule)
-            elif action == "setExhibit":
-                print("Changing exhibit to:", data["name"])
+                    readExhibitConfiguration(data["name"], updateDefault=True)
+                    loadDefaultConfiguration()
+                elif action == "getComponentContent":
+                    if "id" in data:
+                        component = getExhibitComponent(data["id"])
+                        json_string = json.dumps(component.config["availableContent"])
+                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                elif action == "setComponentContent":
+                    if ("id" in data) and ("content" in data):
+                        print(f"Changing content file for {data['id']}:", data['content'])
+                        setComponentContent(data['id'], data['content'])
 
-                readExhibitConfiguration(data["name"], updateDefault=True)
-                loadDefaultConfiguration()
-            elif action == "setComponentContent":
-                if ("id" in data) and ("content" in data):
-                    print(f"Changing content file for {data['id']}:", data['content'])
-                    setComponentContent(data['id'], data['content'])
+            elif pingClass == "exhibitComponent":
+                if "action" in data: # not a ping
+                    action = data["action"]
+                    if action == "getUploadedFile":
+                        if "id" in data:
+                            component = getExhibitComponent(data["id"])
+                            if len(component.dataToUpload) > 0:
+                                upload = component.dataToUpload.pop(0)
+                                #json_string = json.dumps(upload)
+                                #self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                                self.wfile.write(upload)
+                else: # it's a ping
+                    try:
+                        id = data["id"]
+                        type = data["type"]
+                        if id == "UNKNOWN":
+                            #print(f"Warning: exhibitComponent ping with id=UNKNOWN coming from {self.address_string()}")
+                            return()
+                    except:
+                        print("Error: exhibitComponent ping received without id or type field")
+                        return() # No id or type, so bail out
 
-        elif pingClass == "exhibitComponent":
-            try:
-                id = data["id"]
-                type = data["type"]
-                if id == "UNKNOWN":
-                    #print(f"Warning: exhibitComponent ping with id=UNKNOWN coming from {self.address_string()}")
-                    return()
-            except:
-                print("Error: exhibitComponent ping received without id or type field")
-                return() # No id or type, so bail out
-
-            self.checkEventSchedule()
-            updateExhibitComponentStatus(data, self.address_string())
-            self.sendCurrentConfiguration(id)
-        else:
-            print(f"Error: ping with unknown class '{pingClass}' received")
-            return() # Bail out
+                    self.checkEventSchedule()
+                    updateExhibitComponentStatus(data, self.address_string())
+                    self.sendCurrentConfiguration(id)
+            else:
+                print(f"Error: ping with unknown class '{pingClass}' received")
+                return() # Bail out
 
 def setComponentContent(id, content):
 
@@ -626,6 +614,8 @@ def updateExhibitComponentStatus(data, ip):
         component = addExhibitComponent(id, type)
 
     component.ip = ip
+    component.helperPort = data["helperPort"]
+    component.config["availableContent"] = data["availableContent"]
     component.updateLastContactDateTime()
     if "currentInteraction" in data:
         if data["currentInteraction"].lower() == "true":
