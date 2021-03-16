@@ -303,7 +303,11 @@
 
           // Function to ask the server to ping the projector
           var thisInstance = this;
-          requestString = `class=webpage&action=fetchProjectorUpdate&id=${this.id}`;
+          //requestString = `class=webpage&action=fetchProjectorUpdate&id=${this.id}`;
+          var requestDict = {"class": "webpage",
+                             "action": "fetchProjectorUpdate",
+                             "id": this.id};
+
           var xhr = new XMLHttpRequest();
           xhr.open("POST", serverIP, true);
           xhr.setRequestHeader('Content-Type', 'application/json');
@@ -330,7 +334,7 @@
               }
             }
           };
-          xhr.send(requestString);
+          xhr.send(JSON.stringify(requestDict));
         }
 
         setStatus(status) {
@@ -710,13 +714,14 @@
         }
         else {
           $("#changeExhibitModal").modal("hide");
-          var name = $("#exhibitSelect").val();
 
-          requestString = `class=webpage&action=setExhibit&name=${name}`;
+          var requestDict = {"class": "webpage",
+                             "action": "setExhibit",
+                             "name": $("#exhibitSelect").val()};
           var xhr = new XMLHttpRequest();
           xhr.open("POST", serverIP, true);
           xhr.setRequestHeader('Content-Type', 'application/json');
-          xhr.send(requestString);
+          xhr.send(JSON.stringify(requestDict));
 
           askForUpdate();
         }
@@ -728,7 +733,9 @@
         // This function will send a message to the server asking it to reload
         // the current exhibit configuration file and update all the components
 
-        requestString = "class=webpage&action=reloadConfiguration";
+        //requestString = "class=webpage&action=reloadConfiguration";
+        var requestDict = {"class": "webpage",
+                           "action": "reloadConfiguration"};
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", serverIP, true);
@@ -747,7 +754,7 @@
             }
           }
         };
-        xhr.send(requestString);
+        xhr.send(JSON.stringify(requestDict));
       }
 
       function queueCommand(id, cmd) {
@@ -763,12 +770,16 @@
           cmdType = "queueCommand"
         }
 
-        var requestString = `class=webpage&action=${cmdType}&id=${id}&command=${cmd}`;
+        //var requestString = `class=webpage&action=${cmdType}&id=${id}&command=${cmd}`;
+        var requestDict = {"class": "webpage",
+                           "id": id,
+                           "command": cmd,
+                           "action": cmdType};
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", serverIP, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(requestString);
+        xhr.send(JSON.stringify(requestDict));
       }
 
       function sendGroupCommand(group, cmd) {
@@ -818,15 +829,20 @@
 
         if (days.length > 0) {
 
-          var requestString;
+          var requestDict;
           for (var i=0; i<days.length; i++) {
               day = days[i];
-              requestString = `class=webpage&action=updateSchedule&day=${day}&onTime=${onTime}&offTime=${offTime}`;
+              //requestString = `class=webpage&action=updateSchedule&day=${day}&onTime=${onTime}&offTime=${offTime}`;
+              requestDict = {"class": "webpage",
+                             "action": "updateSchedule",
+                             "day": day,
+                             "onTime": onTime,
+                             "offTime": offTime};
 
               var xhr = new XMLHttpRequest();
               xhr.open("POST", serverIP, true);
               xhr.setRequestHeader('Content-Type', 'application/json');
-              xhr.send(requestString);
+              xhr.send(JSON.stringify(requestDict));
           }
           document.getElementById("scheduleEditForm").reset();
           $('#scheduleEditModal').modal('hide')
@@ -844,7 +860,8 @@
 
       function askForUpdate() {
 
-        requestString = "class=webpage&action=fetchUpdate";
+        requestDict = {"class": "webpage",
+                       "action": "fetchUpdate"};
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", serverIP, true);
@@ -876,15 +893,15 @@
               }
               // Set the favicon to reflect the aggregate status
               if (n_online == n_comps) {
-                $("link[rel='shortcut icon']").attr("href", "icon/green.ico");
+                $("link[rel='icon']").attr("href", "icon/green.ico");
               } else if (n_online == 0) {
-                $("link[rel='shortcut icon']").attr("href", "icon/red.ico");
+                $("link[rel='icon']").attr("href", "icon/red.ico");
               } else {
-                $("link[rel='shortcut icon']").attr("href", "icon/yellow.ico");
+                $("link[rel='icon']").attr("href", "icon/yellow.ico");
               }
           }
       };
-        xhr.send(requestString);
+        xhr.send(JSON.stringify(requestDict));
       }
 
       var serverIP = INSERT_SERVERIP_HERE // This will be automatically inserted by the server before being sent to the client
