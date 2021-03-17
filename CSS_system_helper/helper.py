@@ -254,7 +254,10 @@ def readDefaultConfiguration():
     config_dict = dict(default.items())
 
     # Make sure we have the appropriate file system set up
-    checkDirectoryStructure(config_dict["current_exhibit"])
+    try:
+        checkDirectoryStructure(config_dict["current_exhibit"])
+    except KeyError:
+        print("Error: make sure current_exhibit is set in defaults.ini")
 
     return(config_object, config_dict)
 
