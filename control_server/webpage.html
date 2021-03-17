@@ -67,13 +67,15 @@
                   </div>
                   <div class="form-group mt-3">
                     <label for="componentContentUpload"><H5>Upload new content</H5></label>
-                    <div class="row">
+                    <div class="row align-middle">
                       <div class="col-8">
-                        <input type="file" class="form-control-file" id="componentContentUpload" onchange="onUploadContentChange()">
+                        <label class="btn btn-outline-secondary">
+                          <span id="componentContentUploadfilename">Choose file</span>
+                          <input hidden type="file" class="form-control-file" id="componentContentUpload" onchange="onUploadContentChange()">
+                        </label>
                       </div>
-
                       <div class="col-4">
-                        <button id="contentUploadSubmitButton" class='btn btn-block' onclick="uploadComponentContentFile()">Upload</button>
+                        <button id="contentUploadSubmitButton" class='btn btn-block btn-outline-primary' onclick="uploadComponentContentFile()">Upload</button>
                       </div>
 
                         <div class='col-12 mt-3' id='contentUploadProgressBarContainer'>
@@ -544,6 +546,7 @@
           $("#componentAvailableContentList").empty();
           $("#contentUploadSubmitButton").prop("disabled", false);
           $("#contentUploadSubmitButton").html("Upload");
+          $("#componentContentUploadfilename").html("Choose file")
           $("#componentContentUpload").val(null);
           $("#uploadOverwriteWarning").hide();
           $("#contentUploadProgressBarContainer").hide();
@@ -665,6 +668,7 @@
 
         var fileInput = $("#componentContentUpload")[0];
         var currentFiles = $(".componentContentButton").map(function(){return $(this).html()}).toArray();
+        $("#componentContentUploadfilename").html("File: " + fileInput.files[0].name);
         if(currentFiles.includes(fileInput.files[0].name)) {
           $("#uploadOverwriteWarning").show();
         } else {
