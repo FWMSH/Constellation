@@ -49,8 +49,19 @@
                   <h4 class="modal-title" id="componentInfoModalTitle"></h4>
                 </div>
                 <div class="modal-body">
+
+                  <div class='row' id="contentUploadDiskSpaceView">
+                    <H5 class="col-auto">Disk space</H5>
+                    <div class='col-12'>
+                      <div class="progress" style="height: 50px;">
+                        <div id="contentUploadDiskSpaceUsed" class="progress-bar bg-info" role="progressbar" style="width: 70%; font-size: large;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">Used: 50GB</div>
+                        <div id="contentUploadDiskSpaceFree" class="progress-bar bg-success" role="progressbar" style="width: 30%; font-size: large;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">Free: 18GB</div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="row">
-                    <H5 class="col-auto">Available content</H5>
+                    <H5 class="col-auto mt-3">Available content</H5>
                   </div>
                   <div id="componentAvailableContentList" class="row mt-2">
                   </div>
@@ -60,10 +71,17 @@
                       <div class="col-8">
                         <input type="file" class="form-control-file" id="componentContentUpload" onchange="onUploadContentChange()">
                       </div>
+
                       <div class="col-4">
                         <button id="contentUploadSubmitButton" class='btn btn-block' onclick="uploadComponentContentFile()">Upload</button>
                       </div>
-                      <div class='col-auto text-danger' id='uploadOverwriteWarning'>Warning! This upload will overwrite a file of the same name.</div>
+
+                        <div class='col-12 mt-3' id='contentUploadProgressBarContainer'>
+                          <div class="progress" style="height: 25px;">
+                            <div id='contentUploadProgressBar' class="progress-bar" role="progressbar" style="width: 30%; font-size: large;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+                          </div>
+                        </div>
+                      <div class='col-12 text-danger mt-2' id='uploadOverwriteWarning'>Warning! This upload will overwrite a file of the same name.</div>
 
                     </div>
                   </div>
@@ -528,6 +546,7 @@
           $("#contentUploadSubmitButton").html("Upload");
           $("#componentContentUpload").val(null);
           $("#uploadOverwriteWarning").hide();
+          $("#contentUploadProgressBarContainer").hide();
 
           var requestString = JSON.stringify({"action": "getAvailableContent"});
 
@@ -539,7 +558,25 @@
 
             if (this.status == 200) {
               var availableContent = JSON.parse(this.response);
+              console.log(availableContent)
+              // If it is provided, show the disk space available
+              if ("disk_size" in availableContent) {
+                var disk = availableContent["disk_size"];
+                var used_pct = Math.round(disk["used"]/disk["total"]*100);
+                var free_pct = Math.round(disk["free"]/disk["total"]*100);
+                $("#contentUploadDiskSpaceUsed").attr("ariaValueNow", used_pct);
+                $("#contentUploadDiskSpaceUsed").width(String(used_pct)+"%");
+                $("#contentUploadDiskSpaceUsed").html(`Used: ${String(Math.round(disk["used"]))} GB`);
+                $("#contentUploadDiskSpaceFree").attr("ariaValueNow", free_pct);
+                $("#contentUploadDiskSpaceFree").width(String(free_pct)+"%");
+                $("#contentUploadDiskSpaceFree").html(`Free: ${String(Math.round(disk["free"]))} GB`);
 
+                $("#contentUploadDiskSpaceView").show();
+              } else {
+                $("#contentUploadDiskSpaceView").hide();
+              }
+
+              // Build buttons for each file in the current exhibit
               for (var i=0; i<availableContent["current_exhibit"].length; i++) {
                 var content = (availableContent["current_exhibit"])[i];
                 var activeContent = availableContent["active_content"]
@@ -664,6 +701,21 @@
             }
           }
         };
+
+        xhr.upload.addEventListener("progress", function(evt) {
+          if (evt.lengthComputable) {
+            var percentComplete = evt.loaded / evt.total;
+            percentComplete = parseInt(percentComplete * 100);
+            $("#contentUploadProgressBar").width(String(percentComplete) + "%");
+            if (percentComplete > 0) {
+              $("#contentUploadProgressBarContainer").show();
+            }
+            else if (percentComplete == 100) {
+              $("#contentUploadProgressBarContainer").hide();
+            }
+          }
+        }, false);
+
         xhr.send(formData);
       }
 

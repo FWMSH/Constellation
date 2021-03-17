@@ -12,6 +12,7 @@ import serial
 from sockio.sio import TCP
 import signal
 import cgi
+import shutil
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
@@ -135,7 +136,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 elif data["action"] == "getAvailableContent":
                     response = {"current_exhibit": getDirectoryContents(config["current_exhibit"]),
                                 "all_exhibits": getAllDirectoryContents(),
-                                "active_content": config["content"]}
+                                "active_content": config["content"],
+                                "disk_size": getDiskSize()}
 
                     json_string = json.dumps(response)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
@@ -257,6 +259,20 @@ def checkDirectoryStructure(current_exhibit):
             os.mkdir(exhibit_path)
         except:
             print("Error: unable to create directory. Do you have write permission?")
+
+def getDiskSize():
+
+    # Function to return a dictionary with the total and free space available
+    # on the disk where we are storing files. Result is in GB
+
+    total, used, free = shutil.disk_usage(__file__)
+    # Used is not right sometimes, so calulate it
+    used = total - free
+    result = {'total': total / (2**30),
+              'used': used / (2**30),
+              'free': free / (2**30)}
+
+    return(result)
 
 def readDefaultConfiguration():
 
