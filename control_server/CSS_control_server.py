@@ -196,6 +196,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
         dict["class"] = "gallery"
         dict["currentExhibit"] = currentExhibit
         dict["availableExhibits"] = exhibitList
+        dict["galleryName"] = gallery_name
+
         componentDictList.append(dict)
 
         # Also include an object containing the current schedule
@@ -515,6 +517,7 @@ def loadDefaultConfiguration():
 
     global serverPort
     global ip_address
+    global gallery_name
 
     # First, retrieve the config filename that defines the desired exhibit
     config = configparser.ConfigParser()
@@ -522,6 +525,7 @@ def loadDefaultConfiguration():
     current = config["CURRENT"]
     serverPort = current.getint("server_port", 8080)
     ip_address = current.get("server_ip_address", "localhost")
+    gallery_name =  current.get("gallery_name", "Constellation")
 
     try:
         schedule = config["SCHEDULE"]
@@ -623,6 +627,7 @@ def updateExhibitComponentStatus(data, ip):
 serverPort = 8080 # Default; should be set in exhibit INI file
 ip_address = "localhost" # Default; should be set in exhibit INI file
 ADDR = "" # Accept connections from all interfaces
+gallery_name = ""
 componentList = []
 projectorList = []
 currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
