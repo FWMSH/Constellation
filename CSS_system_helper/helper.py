@@ -139,6 +139,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                     json_string = json.dumps(response)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                elif data["action"] == "deleteFile":
+                    if "file" in data:
+                        deleteFile(data["file"])
                 else:
                     print("Error: unrecognized action:", data["action"])
 
@@ -197,6 +200,16 @@ def sendSOSCommand(cmd, multiline=False):
             return(sosSocket.read(10000).decode("UTF-8"))
     else:
         return(None)
+
+def deleteFile(file):
+
+    # Function to delete a file from the current exhibit
+
+    root = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(root, "content", config["current_exhibit"], file)
+    print("Deleting file:", file_path)
+    os.remove(file_path)
+
 
 def getAllDirectoryContents():
 

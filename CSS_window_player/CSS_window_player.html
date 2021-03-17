@@ -183,7 +183,7 @@
       var split = source.split(".");
       var ext = split[split.length-1];
 
-      if (["mp4", "mpeg", "m4v", "webm", "mov", "ogg"].includes(ext.toLowerCase())) {
+      if (["mp4", "mpeg", "m4v", "webm", "mov", "ogg", "mpg"].includes(ext.toLowerCase())) {
         video.pause();
         video.src = source;
         video.load();
