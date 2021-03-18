@@ -684,50 +684,53 @@
 
       function uploadComponentContentFile() {
 
-        var id = $("#componentInfoModalTitle").html().trim();
         var fileInput = $("#componentContentUpload")[0];
-        var component = getExhibitComponent(id);
+        if (fileInput.files[0] != null){
+          var id = $("#componentInfoModalTitle").html().trim();
 
-        $("#contentUploadSubmitButton").prop("disabled", true);
-        $("#contentUploadSubmitButton").html("Working...");
+          var component = getExhibitComponent(id);
 
-        var file = fileInput.files[0]
-        var formData = new FormData();
-        formData.append("exhibit", getCurrentExhibitName())
-        formData.append("filename", file["name"])
-        formData.append("mimetype", file["type"])
-        formData.append("file", file);
+          $("#contentUploadSubmitButton").prop("disabled", true);
+          $("#contentUploadSubmitButton").html("Working...");
 
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", `http://${component.ip}:${component.helperPort}`, true);
-        xhr.onreadystatechange = function () {
-          if (this.readyState != 4) return;
-          if (this.status == 200) {
-            var response = JSON.parse(this.responseText);
+          var file = fileInput.files[0]
+          var formData = new FormData();
+          formData.append("exhibit", getCurrentExhibitName())
+          formData.append("filename", file["name"])
+          formData.append("mimetype", file["type"])
+          formData.append("file", file);
 
-            if ("success" in response) {
-              console.log(id)
-              queueCommand(id, 'reloadDefaults')
-              showExhibitComponentInfo();
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", `http://${component.ip}:${component.helperPort}`, true);
+          xhr.onreadystatechange = function () {
+            if (this.readyState != 4) return;
+            if (this.status == 200) {
+              var response = JSON.parse(this.responseText);
+
+              if ("success" in response) {
+                queueCommand(id, 'reloadDefaults')
+                showExhibitComponentInfo();
+              }
             }
-          }
-        };
+          };
 
-        xhr.upload.addEventListener("progress", function(evt) {
-          if (evt.lengthComputable) {
-            var percentComplete = evt.loaded / evt.total;
-            percentComplete = parseInt(percentComplete * 100);
-            $("#contentUploadProgressBar").width(String(percentComplete) + "%");
-            if (percentComplete > 0) {
-              $("#contentUploadProgressBarContainer").show();
+          xhr.upload.addEventListener("progress", function(evt) {
+            if (evt.lengthComputable) {
+              var percentComplete = evt.loaded / evt.total;
+              percentComplete = parseInt(percentComplete * 100);
+              $("#contentUploadProgressBar").width(String(percentComplete) + "%");
+              if (percentComplete > 0) {
+                $("#contentUploadProgressBarContainer").show();
+              }
+              else if (percentComplete == 100) {
+                $("#contentUploadProgressBarContainer").hide();
+              }
             }
-            else if (percentComplete == 100) {
-              $("#contentUploadProgressBarContainer").hide();
-            }
-          }
-        }, false);
+          }, false);
 
-        xhr.send(formData);
+          xhr.send(formData);
+        }
+
       }
 
       function submitComponentContentChange() {
