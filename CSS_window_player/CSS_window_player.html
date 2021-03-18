@@ -39,6 +39,7 @@
         top: 0px;
         left: 0px;
         opacity: 0;
+        cursor: none;
       }
       #fullscreenVideo {
         width: 100%;
@@ -281,6 +282,9 @@
     askForDefaults();
     sendPing();
     setInterval(sendPing, 5000);
+    
+    // Hide the cursor
+    document.body.style.cursor = 'none';
 
   </script>
 
