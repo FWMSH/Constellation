@@ -443,7 +443,7 @@
           var html = `
             <div class='col-md-12 col-lg-6 mt-1'>
               <div class="btn-group btn-block">
-                <button type="button" class="btn btn-danger btn-block" id="${this.id}MainButton" onclick="showExhibitComponentInfo(id='${this.id}')"><H5>${this.id}</H5><div id="${this.id}StatusField">OFFLINE</div></button>
+                <button type="button" class="btn btn-danger btn-block" id="${this.id}MainButton" onclick="showExhibitComponentInfo('${this.id}')"><H5>${this.id}</H5><div id="${this.id}StatusField">OFFLINE</div></button>
                 <button type="button" id="${this.id}DropdownButton" class="btn btn-danger dropdown-toggle dropdown-toggle-split"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
@@ -531,7 +531,7 @@
         }
       }
 
-      function showExhibitComponentInfo(id="") {
+      function showExhibitComponentInfo(id) {
 
         // This sets up the componentInfoModal with the info from the selected
         // component and shows it on the screen.
@@ -733,7 +733,7 @@
 
               if ("success" in response) {
                 queueCommand(id, 'reloadDefaults')
-                showExhibitComponentInfo();
+                showExhibitComponentInfo("");
               }
             }
           };
