@@ -337,10 +337,13 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 elif action == "fetchProjectorUpdate":
                     if "id" in data:
                         proj = getProjector(data["id"])
-                        proj.update()
-
-                        json_string = json.dumps(proj.state)
-                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                        if proj != None:
+                            proj.update()
+                            json_string = json.dumps(proj.state)
+                            self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                        else:
+                            json_string = json.dumps({"status": "DELETE"})
+                            self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif action == "reloadConfiguration":
                     loadDefaultConfiguration()
 
@@ -518,6 +521,7 @@ def loadDefaultConfiguration():
     global serverPort
     global ip_address
     global gallery_name
+    global projectorList
 
     # First, retrieve the config filename that defines the desired exhibit
     config = configparser.ConfigParser()
@@ -535,6 +539,7 @@ def loadDefaultConfiguration():
 
     try:
         projectors = config["PROJECTORS"]
+        projectorList = []
     except:
         print("No standalone projectors specified")
         projectors = []

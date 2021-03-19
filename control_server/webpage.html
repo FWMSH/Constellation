@@ -340,8 +340,21 @@
           if (this.type == "PROJECTOR") {
             this.checkProjector();
             var thisInstance = this;
-            setInterval(function() {thisInstance.checkProjector()}, 10000);
+            this.pollingFunction = setInterval(function() {thisInstance.checkProjector()}, 10000);
           }
+        }
+
+        remove() {
+
+          // Remove the component from its ComponentGroup
+          getExhibitComponentGroup(this.type).removeComponent(this.id);
+          // Remove the component from the exhibitComponents list
+          var thisInstance = this;
+          exhibitComponents = $.grep(exhibitComponents, function(el, idx) {return el.id == thisInstance.id}, true);
+          // Cancel the pollingFunction
+          clearInterval(this.pollingFunction);
+          // Rebuild the interface
+          rebuildComponentInterface();
         }
 
         checkProjector() {
@@ -362,8 +375,11 @@
             if (this.status == 200) {
               var response = JSON.parse(this.responseText);
               if ("status" in response) {
-                thisInstance.setStatus(response["status"]);
-
+                if (response["status"] != "DELETE") {
+                    thisInstance.setStatus(response["status"]);
+                } else {
+                  thisInstance.remove();
+                }
                 if ("model" in response) {
                   thisInstance.state["model"] = response["model"];
                 }
@@ -454,6 +470,7 @@
         addComponent(component) {
           this.components.push(component);
           this.sortComponentList();
+
         }
 
         sortComponentList() {
@@ -461,14 +478,21 @@
           // Sort the component list by ID and then rebuild the HTML
           // representation in order
 
-          // This line does the sorting
-          this.components.sort((a,b) => (a.id > b.id) ? 1 : ((b.id > a.id) ? -1 : 0))
+          if (this.components.length > 1) {
+            // This line does the sorting
+            this.components.sort((a,b) => (a.id > b.id) ? 1 : ((b.id > a.id) ? -1 : 0))
 
-          document.getElementById(this.type + "ComponentList").innerHTML = ""
-          for (var i=0; i<this.components.length; i++) {
-            this.components[i].buildHTML();
+            document.getElementById(this.type + "ComponentList").innerHTML = ""
+            for (var i=0; i<this.components.length; i++) {
+              this.components[i].buildHTML();
+            }
           }
+        }
 
+        removeComponent(id) {
+          // Remove a component based on its id
+
+          this.components = $.grep(this.components, function(el, idx) {return el.id == id}, true);
         }
 
         buildHTML() {
@@ -1037,8 +1061,21 @@
                 $("link[rel='icon']").attr("href", "icon/yellow.ico");
               }
           }
-      };
+        };
         xhr.send(JSON.stringify(requestDict));
+      }
+
+      function rebuildComponentInterface() {
+
+        // Clear the componentGroupsRow and rebuild it
+
+        document.getElementById('componentGroupsRow').innerHTML = ""
+        for (var i=0; i<componentGroups.length; i++) {
+          componentGroups[i].buildHTML();
+        }
+        for (var i=0; i<exhibitComponents.length; i++) {
+          exhibitComponents[i].buildHTML();
+        }
       }
 
       var serverIP = INSERT_SERVERIP_HERE // This will be automatically inserted by the server before being sent to the client
