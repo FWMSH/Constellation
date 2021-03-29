@@ -620,9 +620,9 @@
                 $("#contentUploadDiskSpaceFreeBar").attr("ariaValueNow", stats["disk_pct_free"]);
                 $("#contentUploadDiskSpaceFreeBar").width(String(stats["disk_pct_free"])+"%");
                 $("#contentUploadDiskSpaceFree").html(`Disk: ${String(Math.round(stats["disK_free_GB"]))} GB`);
-                if (stats["disk_pct_free"] < 80) {
+                if (stats["disk_pct_free"] > 20) {
                   $("#contentUploadDiskSpaceUsedBar").removeClass("bg-warning bg-danger").addClass("bg-success")
-                } else if (stats["disk_pct_free"] < 90) {
+                } else if (stats["disk_pct_free"] > 10) {
                   $("#contentUploadDiskSpaceUsedBar").removeClass("bg-success bg-danger").addClass("bg-warning")
                 } else {
                   $("#contentUploadDiskSpaceUsedBar").removeClass("bg-success bg-warning").addClass("bg-danger")
