@@ -29,9 +29,13 @@ def startPowerPoint():
         content = config["content"]
     else:
         print("PowerPoint_control: Error: you must specify a filepath to the content in defaults.ini")
-        return(config.get("DEFAULT", "content"))
+        return()
+        #return(config.get("DEFAULT", "content"))
 
-    cmd = ppPath + ' /S ' + content
+    root = os.path.dirname(os.path.abspath(__file__))
+    content_path = os.path.join(root, "content", config["current_exhibit"], content)
+
+    cmd = '"' + ppPath + '" /S "' + content_path + '"'
 
     print(cmd)
     ppProcess = subprocess.Popen(cmd.split(" "))
@@ -50,13 +54,8 @@ def handle_ctrl_c(sig, frame):
 def updateContent(content):
 
     global config
-    global configFile
 
-    # First, update the defaults.ini file
-    configFile.set("DEFAULT", "content", content)
     config["content"] = content
-    with open('defaults.ini', 'w') as f:
-        configFile.write(f)
 
     startPowerPoint()
 
