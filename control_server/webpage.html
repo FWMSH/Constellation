@@ -57,15 +57,32 @@
                 <div class="modal-body">
 
                   <div class='row' id="contentUploadDiskSpaceView">
-                    <H5 class="col-auto">Disk space</H5>
-                    <div class='col-12'>
-                      <div class="progress" style="height: 50px;">
-                        <div id="contentUploadDiskSpaceUsed" class="progress-bar bg-info" role="progressbar" style="width: 70%; font-size: large;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">Used: 50GB</div>
-                        <div id="contentUploadDiskSpaceFree" class="progress-bar bg-success" role="progressbar" style="width: 30%; font-size: large;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">Free: 18GB</div>
+
+                    <div class='col-4'>
+                      <strong id="contentUploadDiskSpaceFree"></strong>
+                      <div class="progress" style="height: 30px;">
+                        <div id="contentUploadDiskSpaceUsedBar" class="progress-bar bg-success" role="progressbar" style="width: 70%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div id="contentUploadDiskSpaceFreeBar" class="progress-bar bg-secondary" role="progressbar" style="width: 30%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+                      </div>
+                    </div>
+
+                    <div class='col-4'>
+                      <strong id="contentUploadCPUUsed"></strong>
+                      <div class="progress" style="height: 30px;">
+                        <div id="contentUploadCPUUsedBar" class="progress-bar bg-success" role="progressbar" style="width: 70%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div id="contentUploadCPUFreeBar"class="progress-bar bg-secondary" role="progressbar" style="width: 30%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+                      </div>
+                    </div>
+
+                    <div class='col-4'>
+                      <strong id="contentUploadRAMUsed"></strong>
+                      <div class="progress" style="height: 30px;">
+                        <div id="contentUploadRAMUsedBar" class="progress-bar bg-success" role="progressbar" style="width: 60%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div id="contentUploadRAMFreeBar" class="progress-bar bg-secondary" role="progressbar" style="width: 40%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
                       </div>
                     </div>
                   </div>
-
+                  <hr>
                   <div class="row">
                     <H5 class="col-auto mt-3">Available content</H5>
                   </div>
@@ -593,17 +610,51 @@
             if (this.status == 200) {
               var availableContent = JSON.parse(this.response);
 
-              // If it is provided, show the disk space available
-              if ("disk_size" in availableContent) {
-                var disk = availableContent["disk_size"];
-                var used_pct = Math.round(disk["used"]/disk["total"]*100);
-                var free_pct = Math.round(disk["free"]/disk["total"]*100);
-                $("#contentUploadDiskSpaceUsed").attr("ariaValueNow", used_pct);
-                $("#contentUploadDiskSpaceUsed").width(String(used_pct)+"%");
-                $("#contentUploadDiskSpaceUsed").html(`Used: ${String(Math.round(disk["used"]))} GB`);
-                $("#contentUploadDiskSpaceFree").attr("ariaValueNow", free_pct);
-                $("#contentUploadDiskSpaceFree").width(String(free_pct)+"%");
-                $("#contentUploadDiskSpaceFree").html(`Free: ${String(Math.round(disk["free"]))} GB`);
+              // If it is provided, show the system stats
+              if ("system_stats" in availableContent) {
+                var stats = availableContent["system_stats"];
+
+                // Disk
+                $("#contentUploadDiskSpaceUsedBar").attr("ariaValueNow", 100 - stats["disk_pct_free"]);
+                $("#contentUploadDiskSpaceUsedBar").width(String(100 - stats["disk_pct_free"])+"%");
+                $("#contentUploadDiskSpaceFreeBar").attr("ariaValueNow", stats["disk_pct_free"]);
+                $("#contentUploadDiskSpaceFreeBar").width(String(stats["disk_pct_free"])+"%");
+                $("#contentUploadDiskSpaceFree").html(`Disk: ${String(Math.round(stats["disK_free_GB"]))} GB`);
+                if (stats["disk_pct_free"] < 80) {
+                  $("#contentUploadDiskSpaceUsedBar").removeClass("bg-warning bg-danger").addClass("bg-success")
+                } else if (stats["disk_pct_free"] < 90) {
+                  $("#contentUploadDiskSpaceUsedBar").removeClass("bg-success bg-danger").addClass("bg-warning")
+                } else {
+                  $("#contentUploadDiskSpaceUsedBar").removeClass("bg-success bg-warning").addClass("bg-danger")
+                }
+
+                // CPU
+                $("#contentUploadCPUUsedBar").attr("ariaValueNow", stats["cpu_load_pct"]);
+                $("#contentUploadCPUUsedBar").width(String(stats["cpu_load_pct"])+"%");
+                $("#contentUploadCPUFreeBar").attr("ariaValueNow", 100 - stats["cpu_load_pct"]);
+                $("#contentUploadCPUFreeBar").width(String(100 - stats["cpu_load_pct"])+"%");
+                $("#contentUploadCPUUsed").html(`CPU: ${String(Math.round(stats["cpu_load_pct"]))}%`);
+                if (stats["cpu_load_pct"] < 80) {
+                  $("#contentUploadCPUUsedBar").removeClass("bg-warning bg-danger").addClass("bg-success")
+                } else if (stats["cpu_load_pct"] < 90) {
+                  $("#contentUploadCPUUsedBar").removeClass("bg-success bg-danger").addClass("bg-warning")
+                } else {
+                  $("#contentUploadCPUUsedBar").removeClass("bg-success bg-warning").addClass("bg-danger")
+                }
+
+                // RAM
+                $("#contentUploadRAMUsedBar").attr("ariaValueNow", stats["ram_used_pct"]);
+                $("#contentUploadRAMUsedBar").width(String(stats["ram_used_pct"])+"%");
+                $("#contentUploadRAMFreeBar").attr("ariaValueNow", 100 - stats["ram_used_pct"]);
+                $("#contentUploadRAMFreeBar").width(String(100 - stats["ram_used_pct"])+"%");
+                $("#contentUploadRAMUsed").html(`RAM: ${String(Math.round(stats["ram_used_pct"]))}%`);
+                if (stats["ram_used_pct"] < 80) {
+                  $("#contentUploadRAMUsedBar").removeClass("bg-warning bg-danger").addClass("bg-success")
+                } else if (stats["ram_used_pct"] < 90) {
+                  $("#contentUploadRAMUsedBar").removeClass("bg-success bg-danger").addClass("bg-warning")
+                } else {
+                  $("#contentUploadCPUUsedBar").removeClass("bg-success bg-warning").addClass("bg-danger")
+                }
 
                 $("#contentUploadDiskSpaceView").show();
               } else {

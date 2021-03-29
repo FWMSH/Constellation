@@ -13,6 +13,7 @@ from sockio.sio import TCP
 import signal
 import cgi
 import shutil
+import psutil
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
@@ -137,7 +138,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     response = {"current_exhibit": getDirectoryContents(config["current_exhibit"]),
                                 "all_exhibits": getAllDirectoryContents(),
                                 "active_content": config["content"],
-                                "disk_size": getDiskSize()}
+                                "system_stats": getSystemStats()}
 
                     json_string = json.dumps(response)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
@@ -260,17 +261,26 @@ def checkDirectoryStructure(current_exhibit):
         except:
             print("Error: unable to create directory. Do you have write permission?")
 
-def getDiskSize():
+def getSystemStats():
 
     # Function to return a dictionary with the total and free space available
     # on the disk where we are storing files. Result is in GB
 
+    result = {}
+
+    # Get the percentage the disk is full
     total, used, free = shutil.disk_usage(__file__)
     # Used is not right sometimes, so calulate it
     used = total - free
-    result = {'total': total / (2**30),
-              'used': used / (2**30),
-              'free': free / (2**30)}
+    result["disk_pct_free"] = round((free/total) * 100)
+    result["disK_free_GB"] = round(free / (2**30)) # GB
+
+    # Get CPU load
+    cpu_load = [x / psutil.cpu_count() * 100 for x in psutil.getloadavg()] # percent used in the last 1, 5, 15 min
+    result["cpu_load_pct"] = round(cpu_load[1])
+
+    # Get memory usage
+    result["ram_used_pct"] = round(psutil.virtual_memory().percent)
 
     return(result)
 
@@ -311,7 +321,6 @@ configFile, config = readDefaultConfiguration()
 
 # If it exists, load the dictionary that maps one value into another
 dictionary = loadDictionary()
-
 
 httpd = HTTPServer(("", int(config["helper_port"])), RequestHandler)
 httpd.serve_forever()
