@@ -60,31 +60,56 @@ def updateContent(content):
 
     startPowerPoint()
 
-def readDefaultConfiguration():
+def askForDefaults():
 
-    config_object = configparser.ConfigParser()
-    config_object.read('defaults.ini')
-    default = config_object["DEFAULT"]
-    config_dict = dict(default.items())
+    # Ask the helper to send the default configuration
 
-    return(config_object, config_dict)
+    global helperAddress
+    global config
+
+    headers = {'Content-type': 'application/json'}
+    requestDict = {"action": "getDefaults"}
+    result = requests.post(helperAddress, json=requestDict, headers=headers)
+
+    config = result.json()
+
+def updateDefaults(update):
+
+    # Send a JSON dictionary to the helper to update the defaults
+
+    global helperAddress
+
+    requestDict = {"action": "updateDefaults"}
+
+    if "content" in update:
+        requestDict["content"] = update["content"]
+    if "current_exhibit" in update:
+        requestDict["current_exhibit"] = update["current_exhibit"]
+
+    headers = {'Content-type': 'application/json'}
+    requests.post(helperAddress, json=requestDict, headers=headers)
 
 def sendPing():
 
     global config
 
-    requestString = "class=exhibitComponent&id=" + config["id"] + "&type=" + config["type"]
+    headers = {'Content-type': 'application/json'}
+    requestDict = {"class": "exhibitComponent",
+                   "id": config["id"],
+                   "type": config["type"]}
 
     server_full_address = "http://" + str(config["server_ip_address"]) + ":" + str(config["server_port"])
 
     try:
-        response = requests.post(server_full_address, data = bytes(requestString, encoding="UTF-8"), timeout=1)
+        response = requests.post(server_full_address, headers=headers, json=requestDict, timeout=1)
     except:
         type, value, traceback = sys.exc_info()
         print("Error sending request", type, value)
         return()
 
     updates = response.json()
+    updateDefaults(updates)
+
     if "content" in updates:
         if updates["content"] != config["content"]:
             updateContent(updates["content"])
@@ -97,60 +122,19 @@ def sendPing():
             else:
                 print(f"Error: command {command} not recognized!")
 
+
 def sleepDisplays():
 
-    if config["display_type"] == "screen":
-        if sys.platform == "darwin": # MacOS
-            os.system("pmset displaysleepnow")
-        elif sys.platform == "linux":
-            os.system("xset dpms force off")
-    elif config["display_type"] == "projector":
-        commandProjector("off")
+    pass
 
 def wakeDisplays():
-    if config["display_type"] == "screen":
-        if sys.platform == "darwin": # MacOS
-            os.system("caffeinate -u -t 2")
-        elif sys.platform == "linux":
-            os.system("xset dpms force on")
-        elif sys.platform == "win32":
-            pass
-    elif config["display_type"] == "projector":
-        commandProjector("on")
 
-def commandProjector(cmd):
+    pass
 
-    make = "Optoma"
-
-    interface = ""
-    if sys.platform == "darwin": # MacOS
-        interface = "/dev/ttyUSB0"
-    elif sys.platform == "linux":
-        interface = "/dev/ttyUSB0"
-    elif sys.platform == "win32": # Windows
-        interface = "COM1"
-
-    if make == "Optoma":
-        ser = serial.Serial(interface, 9600, timeout=0, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS)
-        ser.reset_input_buffer()
-        ser.reset_output_buffer()
-
-        if cmd == "on":
-            ser.write(b"~0000 1\r")
-        elif cmd == "off":
-            ser.write(b"~0000 0\r")
-        elif cmd == "checkState":
-            ser.write(b"~00124 1\r")
-            time.sleep(0.3)
-            response = ser.readline()
-            print(response)
-        else:
-            print(f"commandProjector: Error: Unknown command: {cmd}")
-
-
-configFile, config = readDefaultConfiguration()
+helperAddress = "http://localhost:8000"
 
 ppProcess = None
+askForDefaults()
 startPowerPoint()
 signal.signal(signal.SIGINT, handle_ctrl_c)  # Catch CTRL-C and handle it gracefully
 
