@@ -35,10 +35,13 @@ def startPowerPoint():
     root = os.path.dirname(os.path.abspath(__file__))
     content_path = os.path.join(root, "content", config["current_exhibit"], content)
 
-    cmd = '"' + ppPath + '" /S "' + content_path + '"'
+    cmd = [ppPath, '/S', content_path]
 
     print(cmd)
-    ppProcess = subprocess.Popen(cmd.split(" "))
+    try:
+        ppProcess = subprocess.Popen(cmd)
+    except Exception as e:
+        print(e)
 
 def handle_ctrl_c(sig, frame):
 
