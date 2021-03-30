@@ -1,5 +1,6 @@
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import time
+import logging
 import datetime
 import dateutil.parser
 import configparser
@@ -8,6 +9,9 @@ import os
 import pypjlink
 import mimetypes
 import cgi
+import signal
+import sys
+import traceback
 
 
 class Projector:
@@ -36,8 +40,6 @@ class Projector:
         error = False
         try:
             projector = pypjlink.Projector.from_address(self.ip, timeout=2)
-        #with pypjlink.Projector.from_address(self.ip, timeout=2) as projector:
-            #try:
             projector.authenticate()
 
             if full:
@@ -145,6 +147,7 @@ class ExhibitComponent:
                 self.config[key] = fileConfig[key]
         except configparser.NoSectionError:
             print(f"Warning: there is no configuration available for component with id={self.id}")
+            logging.warning(f"there is no configuration available for component with id={self.id}")
         self.config["current_exhibit"] = currentExhibit[0:-8]
 
     def queueCommand(self, command):
@@ -276,6 +279,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 return
             except IOError:
                 self.send_error(404, "File Not Found: %s" % self.path)
+                logging.error(f"GET for unexpected file {self.path}")
 
 
     def do_OPTIONS(self):
@@ -304,6 +308,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
             ctype, pdict = cgi.parse_header(self.headers.get('content-type'))
         except:
             print("DO_POST: Error: Are we missing the Content-Type header?")
+            logging.warning("POST received without content-type header")
             print(self.headers)
 
         if (ctype == "application/json"):
@@ -458,6 +463,7 @@ def readSchedule(schedule):
                     pass
             else:
                 print("readSchedule: error: unable to parse time:", schedule[key])
+                logging.error(f'"readSchedule is unable to parse time: {schedule[key]}"')
 
 
 def queueNextOnOffEvent():
@@ -629,6 +635,20 @@ def updateExhibitComponentStatus(data, ip):
         if data["currentInteraction"].lower() == "true":
             component.updateLastInteractionDateTime()
 
+def quit_handler(sig, frame):
+    print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
+    logging.info("Server shutdown")
+    sys.exit(0)
+
+def error_handler(*exc_info):
+
+    # Catch errors and log them to file
+
+    text = "".join(traceback.format_exception(*exc_info)).replace('"', "'").replace("\n", "<newline>")
+    logging.error(f'"{text}"')
+    print(f"Error: see control_server.log for more details ({datetime.datetime.now()})")
+
+
 serverPort = 8080 # Default; should be set in exhibit INI file
 ip_address = "localhost" # Default; should be set in exhibit INI file
 ADDR = "" # Accept connections from all interfaces
@@ -639,6 +659,13 @@ currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
 exhibitList = []
 currentExhibitConfiguration = None # the configParser object holding the current config
 schedule_dict = {} # Will hold a list of on/off times for every day of the week
+
+# Set up log file
+logging.basicConfig(datefmt='%Y-%m-%d %H:%M:%S', filename='control_server.log', format='%(levelname)s, %(asctime)s, %(message)s', level=logging.DEBUG)
+signal.signal(signal.SIGINT, quit_handler)
+sys.excepthook = error_handler
+
+logging.info("Server started")
 
 checkAvailableExhibits()
 loadDefaultConfiguration()
