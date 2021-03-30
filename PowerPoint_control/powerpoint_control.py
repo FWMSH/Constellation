@@ -113,6 +113,8 @@ def sendPing():
     updateDefaults(updates)
 
     if "content" in updates:
+        if 'current_exhibit' in updates:
+            config["current_exhibit"] = updates["current_exhibit"]
         if updates["content"] != config["content"]:
             updateContent(updates["content"])
     if "commands" in updates:
