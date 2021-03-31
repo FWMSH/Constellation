@@ -17,7 +17,12 @@
       .handCursor {
         cursor: pointer;
       }
-      #componentAvailableContentList {
+      #componentAvailableContentList-thisExhibit {
+        max-height: 25vh;
+        min-height: 15vh;
+        overflow-y: scroll;
+      }
+      #componentAvailableContentList-allExhibits {
         max-height: 25vh;
         min-height: 15vh;
         overflow-y: scroll;
@@ -92,9 +97,20 @@
                     </div>
                     <hr>
                   </div>
+
                   <div id="componentAvailableContentRow" class="row">
                     <H5 class="col-12 mt-3">Available content</H5>
-                    <div id="componentAvailableContentList" class="col-12 mt-2">
+                    <nav>
+                      <div class="nav nav-tabs col-12" id="componentAvailableContentList-tabs" role="tablist">
+                        <a class="nav-item nav-link active" id="componentAvailableContentList-thisExhibitTab" data-toggle="tab" href="#componentAvailableContentList-thisExhibit" role="tab" aria-controls="componentAvailableContentList-thisExhibit" aria-selected="true">This exhibit</a>
+                        <a class="nav-item nav-link" id="componentAvailableContentList-allExhibitsTab" data-toggle="tab" href="#componentAvailableContentList-allExhibits" role="tab" aria-controls="componentAvailableContentList-allExhibits" aria-selected="false">All exhibits</a>
+                      </div>
+                    </nav>
+                    <div class="tab-content col-12 mt-2" id="componentAvailableContentList">
+                      <div class="tab-pane fade show active col-12" id="componentAvailableContentList-thisExhibit" role="tabpanel" aria-labelledby="componentAvailableContentList-thisExhibitTab">
+                      </div>
+                      <div class="tab-pane fade col-12" id="componentAvailableContentList-allExhibits" role="tabpanel" aria-labelledby="componentAvailableContentList-allExhibitsTab">
+                      </div>
                     </div>
                   </div>
 
@@ -600,7 +616,8 @@
         } else { // This is a normal ExhibitComponent
 
           $("#componentInfoModalTitle").html(id);
-          $("#componentAvailableContentList").empty();
+          $("#componentAvailableContentList-thisExhibit").empty();
+          $("#componentAvailableContentList-allExhibits").empty();
           $("#contentUploadSubmitButton").prop("disabled", false);
           $("#contentUploadSubmitButton").html("Upload");
           $("#componentContentUploadfilename").html("Choose file")
@@ -691,33 +708,45 @@
                 $("#contentUploadSystemStatsView").hide();
               }
 
-              // Build buttons for each file in the current exhibit
-              for (var i=0; i<availableContent["current_exhibit"].length; i++) {
-                var content = (availableContent["current_exhibit"])[i];
-                var activeContent = availableContent["active_content"]
-                if (content == activeContent) {
-                  var active = "btn-primary";
-                } else {
-                  var active = "btn-secondary";
-                }
-                var html = `
-                <div class="col-auto mt-1">
-                  <div class="btn-group">
-                    <button type="button" id="${content.split('.').join("")}Button" class="btn componentContentButton ${active}">${content}</button>
-                    <button type="button" id="${content.split('.').join("")}ButtonDropdown" class="btn dropdown-toggle dropdown-toggle-split componentContentDropdownButton ${active}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      <span class="sr-only">Toggle Dropdown</span>
-                    </button>
-                    <div class="dropdown-menu">
-                      <a class="dropdown-item disabled text-secondary">Rename</a>
-                      <a class="dropdown-item disabled"></a>
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item text-danger" onclick="deleteRemoteFile('${id}', '${content}')">Delete</a>
+              var populateContent = function(key, id, div) {
+
+                // Get filenames listed under key in availableContent and add
+                // the resulting buttons to the div given by div
+
+                for (var i=0; i<availableContent[key].length; i++) {
+                  var content = (availableContent[key])[i];
+                  var activeContent = availableContent["active_content"]
+                  if (content == activeContent) {
+                    var active = "btn-primary";
+                  } else {
+                    var active = "btn-secondary";
+                  }
+                  var html = `
+                  <div class="col-auto mt-1">
+                    <div class="btn-group">
+                      <button type="button" id="${content.split('.').join("").split(/[\\\/]/).join("")}Button" class="btn componentContentButton ${active}">${content}</button>
+                      <button type="button" id="${content.split('.').join("").split(/[\\\/]/).join("")}ButtonDropdown" class="btn dropdown-toggle dropdown-toggle-split componentContentDropdownButton ${active}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="sr-only">Toggle Dropdown</span>
+                      </button>
+                      <div class="dropdown-menu">
+                        <a class="dropdown-item disabled text-secondary">Rename</a>
+                        <a class="dropdown-item disabled"></a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-danger" onclick="deleteRemoteFile('${id}', '${content}')">Delete</a>
+                      </div>
                     </div>
                   </div>
-                </div>
-                `;
-                $("#componentAvailableContentList").append(html);
+                  `;
+                  $("#"+div).append(html);
+                }
               }
+
+              // Build buttons for each file in the current exhibit
+              populateContent('current_exhibit', id, "componentAvailableContentList-thisExhibit")
+
+              // Build buttons for each file in all exhibits
+              populateContent('all_exhibits', id, "componentAvailableContentList-allExhibits")
+
               // Attach an event handler to change the button's color when clicked
               $(".componentContentButton").on("click", function(e){
                 var id = $(this).attr("id");
@@ -755,9 +784,21 @@
           });
           model.modal("show");
         } else {
+          var file_split = file.split(/[\\\/]/); // regex to split on forward and back slashes
+          var exhibit;
+          var file_to_delete;
+          if (file_split.length > 1) {
+            // our file is of form "exhibit/file"
+            exhibit = file_split[0];
+            file_to_delete = file_split[1]
+          } else {
+            exhibit = currentExhibit.split(".")[0];
+            file_to_delete = file;
+          }
           var obj = getExhibitComponent(id);
           var requestString = JSON.stringify({"action": "deleteFile",
-                                              "file": file});
+                                              "file": file_to_delete,
+                                              "fromExhibit": exhibit});
 
           var xhr = new XMLHttpRequest();
           xhr.open("POST", `http://${obj.ip}:${obj.helperPort}`, true);
@@ -842,9 +883,54 @@
         // back to the server to be changed.
 
         var id = $("#componentInfoModalTitle").html().trim();
-        var content = $('.componentContentButton.btn-primary').html().trim()
+        var content = $('.componentContentButton.btn-primary').html().trim();
+        var component = getExhibitComponent(id);
 
-        //requestString = `class=webpage&action=setComponentContent&id=${id}&content=${content}`;
+        content_split = content.split(/[\\\/]/); // regex to split on forward and back slash
+        if (content_split.length > 1) {
+          // We are trying to switch to a file picked from the "All exhibits" list
+          var currentExhibitName = currentExhibit.split('.')[0];
+          if (currentExhibitName == content_split[0]) {
+            // This file is already part of the exhibit and just needs to be selected
+            content = content_split[1];
+          } else {
+            // This file is loaded only for another exhibit. First we need to
+            // ask the remote helper to copy the file to the directory for this
+            // exhibit.
+            content = content_split[1];
+
+            requestString = JSON.stringify({
+              "action": "copyFile",
+              "file": content,
+              "fromExhibit": content_split[0],
+              "toExhibit": currentExhibitName
+            })
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", `http://${component.ip}:${component.helperPort}`, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function () {
+              if (this.readyState != 4) return;
+
+              if (this.status == 200) {
+                sendComponentContentChangeRequest(id, content)
+              }
+            };
+            xhr.send(requestString);
+          }
+        } else {
+          // We are trying to switch to a file from the Current exhibit tab
+          sendComponentContentChangeRequest(id, content);
+        }
+        askForUpdate();
+
+        // Hide the modal
+        $("#componentInfoModal").modal("hide");
+      }
+
+      function sendComponentContentChangeRequest(id, content) {
+
+        // Send a request to the server to initiate a content change
+
         requestString = JSON.stringify({
           "class": "webpage",
           "action": "setComponentContent",
@@ -855,11 +941,6 @@
         xhr.open("POST", serverIP, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.send(requestString);
-
-        askForUpdate();
-
-        // Hide the modal
-        $("#componentInfoModal").modal("hide");
       }
 
       function getExhibitComponent(id) {

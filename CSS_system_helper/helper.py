@@ -143,8 +143,11 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     json_string = json.dumps(response)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif data["action"] == "deleteFile":
-                    if "file" in data:
-                        deleteFile(data["file"])
+                    if ("file" in data) and ("fromExhibit" in data):
+                        deleteFile(data["file"], data["fromExhibit"])
+                elif data["action"] == 'copyFile':
+                    if ("file" in data) and ("fromExhibit" in data) and ("toExhibit" in data):
+                        copyFile(data["file"], data["fromExhibit"], data["toExhibit"])
                 else:
                     print("Error: unrecognized action:", data["action"])
 
@@ -204,15 +207,24 @@ def sendSOSCommand(cmd, multiline=False):
     else:
         return(None)
 
-def deleteFile(file):
+def deleteFile(file, fromExhibit):
 
     # Function to delete a file from the current exhibit
 
     root = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(root, "content", config["current_exhibit"], file)
+    file_path = os.path.join(root, "content", fromExhibit, file)
     print("Deleting file:", file_path)
     os.remove(file_path)
 
+def copyFile(filename, fromExhibit, toExhibit):
+
+    # Function to copy a file from one exhibit to another
+
+    root = os.path.dirname(os.path.abspath(__file__))
+    file_path_from = os.path.join(root, "content", fromExhibit, filename)
+    file_path_to = os.path.join(root, "content", toExhibit, filename)
+    print("Copying file", file_path_from, "to", file_path_to)
+    shutil.copyfile(file_path_from, file_path_to)
 
 def getAllDirectoryContents():
 
