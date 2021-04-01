@@ -1,4 +1,4 @@
-# This application sets up a small server to communicate with the screen players
+# This application sets up a small server to communicate with user facing interfaces
 # and handle interacting with the system (since the browser cannot)
 
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -192,24 +192,9 @@ def commandProjector(cmd):
         else:
             print(f"commandProjector: Error: Unknown command: {cmd}")
 
-def sendSOSCommand(cmd, multiline=False):
-
-    # Function to send a command to Science on a Sphere adn read its response
-
-    global sosSocket
-
-    if sosSocket is not None:
-        if not multiline:
-            return(sosSocket.write_readline(bytes(cmd + '\n', encoding='UTF-8')).decode('UTF-8').strip())
-        else:
-            sosSocket.write(bytes(cmd + '\n', encoding='UTF-8'))
-            return(sosSocket.read(10000).decode("UTF-8"))
-    else:
-        return(None)
-
 def deleteFile(file, fromExhibit):
 
-    # Function to delete a file from the current exhibit
+    # Function to delete a file from a given exhibit
 
     root = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(root, "content", fromExhibit, file)
@@ -276,7 +261,8 @@ def checkDirectoryStructure(current_exhibit):
 def getSystemStats():
 
     # Function to return a dictionary with the total and free space available
-    # on the disk where we are storing files. Result is in GB
+    # on the disk where we are storing files, as well as the current CPU and RAM
+    # load
 
     result = {}
 
