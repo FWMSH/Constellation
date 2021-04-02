@@ -144,7 +144,10 @@ class ExhibitComponent:
         try:
             fileConfig = dict(currentExhibitConfiguration.items(self.id))
             for key in fileConfig:
-                self.config[key] = fileConfig[key]
+                if key == 'content':
+                    self.config[key] = [s.strip() for s in fileConfig[key].split(",")]
+                else:
+                    self.config[key] = fileConfig[key]
         except configparser.NoSectionError:
             print(f"Warning: there is no configuration available for component with id={self.id}")
             logging.warning(f"there is no configuration available for component with id={self.id}")
@@ -374,7 +377,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     loadDefaultConfiguration()
                 elif action == "setComponentContent":
                     if ("id" in data) and ("content" in data):
-                        print(f"Changing content file for {data['id']}:", data['content'])
+                        print(f"Changing content for {data['id']}:", data['content'])
                         setComponentContent(data['id'], data['content'])
 
             elif pingClass == "exhibitComponent":
@@ -406,11 +409,18 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 print(f"Error: ping with unknown class '{pingClass}' received")
                 return() # Bail out
 
-def setComponentContent(id, content):
+def setComponentContent(id, contentList):
 
     global currentExhibitConfiguration
     global currentExhibit
 
+    # Loop the content list and build a string to write to the config file
+    content = ""
+    for i in range(len(contentList)):
+        if i != 0:
+            content += ', '
+        content += contentList[i]
+        
     try:
         currentExhibitConfiguration.set(id, "content", content)
     except configparser.NoSectionError: # This exhibit does not have content for this component

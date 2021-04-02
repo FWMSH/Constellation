@@ -51,7 +51,7 @@
   <body>
 
   <div id="videoOverlay">
-    <video id="fullscreenVideo" autoplay muted loop>
+    <video id="fullscreenVideo" autoplay muted>
     </video>
   </div>
 
@@ -130,7 +130,7 @@
       // on the contents
 
       var update = JSON.parse(responseText);
-      sendConfigUpdate(update); // Send to server to update the default config
+      sendConfigUpdate(update); // Send to helper to update the default config
 
       if ('commands' in update) {
         for (var i=0; i<update["commands"].length; i++) {
@@ -166,11 +166,51 @@
 
       // This should be last to make sure the path has been updated
       if ("content" in update) {
-        if (source != update["content"]) {
-          source = update["content"];
-          changeMedia(contentPath + '/' + currentExhibit + '/' + source);
+        if (arraysEqual(sourceList, update["content"]) == false) {
+          sourceList = update["content"];
+          gotoSource(0);
         }
       }
+    }
+
+    function arraysEqual(arr1, arr2) {
+
+      // Function to check if two arrays have the same elements in the same order
+
+      if (arr1.length != arr2.length) {
+        return false;
+      } else {
+        for (var i=0; i<arr1.length; i++) {
+          if (arr1[i] != arr2[i]) {
+            return false;
+          }
+        }
+        return true;
+      }
+    }
+
+    function gotoSource(index) {
+
+      // Load the media file from the sourceList with the given index
+
+      if (index < sourceList.length) {
+        activeIndex = index;
+        changeMedia(contentPath + '/' + currentExhibit + '/' + sourceList[index]);
+      }
+    }
+
+    function gotoNextSource() {
+
+      // Display the next file in sourceList, looping to the beginning if
+      // necessary
+
+      if (activeIndex + 1 >= sourceList.length) {
+        activeIndex = 0;
+      } else {
+        activeIndex += 1;
+      }
+
+      gotoSource(activeIndex);
     }
 
     function changeMedia(source) {
@@ -185,9 +225,19 @@
       var ext = split[split.length-1];
 
       if (["mp4", "mpeg", "m4v", "webm", "mov", "ogg", "mpg"].includes(ext.toLowerCase())) {
-        video.pause();
-        video.src = source;
-        video.load();
+        clearTimeout(sourceAdvanceTimer); // Only used for pictures
+        if (video.src != source) {
+          video.pause();
+          video.src = source;
+          video.load();
+
+        }
+        if (sourceList.length > 1) { // Don't loop or onended will never fire
+          video.loop = false;
+          video.onended = gotoNextSource;
+        } else {
+          video.loop = true;
+        }
         video.play();
         videoContainer.style.opacity = 1;
         imageContainer.style.opacity = 0;
@@ -196,6 +246,7 @@
         videoContainer.style.opacity = 0;
         image.src = source;
         imageContainer.style.opacity = 1;
+        sourceAdvanceTimer = setTimeout(gotoNextSource, 10000);
       }
 
     }
@@ -254,7 +305,6 @@
       // Send a message to the helper with the latest configuration to set as
       // the default
 
-      //var requestString = "action=updateDefaults"
       var requestDict = {"action": "updateDefaults"};
 
       if ("content" in update) {
@@ -275,7 +325,9 @@
     var type = 'UNKNOWN';
     var serverAddress = ""; // The address of the main control server
     var helperPort = 8000; // This is the port of the localhost helper process that can interact with the OS
-    var source = "";
+    var activeIndex = 0; // Index of the file from the source list currently showing
+    var sourceList = [];
+    var sourceAdvanceTimer = null; // Will hold reference to a setTimeout instance to move to the next media.
     var contentPath = "";
     var currentExhibit = ""; // This will double as the root of the source path
 

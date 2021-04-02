@@ -108,6 +108,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         commandProjector(data["command"])
                 elif data["action"] == "getDefaults":
                     configToSend = dict(config.items())
+                    # Reformat this content list as an array
+                    configToSend['content'] = [s.strip() for s in configToSend['content'].split(",")]
+
                     if dictionary is not None:
                         configToSend["dictionary"] = dict(dictionary.items("DEFAULT"))
                     configToSend["availableContent"] = {"current_exhibit": getDirectoryContents(config["current_exhibit"]),
@@ -121,8 +124,17 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 elif data["action"] == "updateDefaults":
                     update_made = False
                     if "content" in data:
-                        content = data["content"]
-                        configFile.set("DEFAULT", "content", data["content"])
+
+                        if isinstance(data["content"], str):
+                            content = data["content"]
+                        elif isinstance(data["content"], list):
+                            content = ""
+                            for i in range(len(data["content"])):
+                                file = (data["content"])[i]
+                                if i != 0:
+                                    content += ', '
+                                content += file
+                        configFile.set("DEFAULT", "content", content)
                         config["content"] = content
                         update_made = True
                     if "current_exhibit" in data:
@@ -135,9 +147,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         with open('defaults.ini', 'w') as f:
                             configFile.write(f)
                 elif data["action"] == "getAvailableContent":
+                    active_content = [s.strip() for s in config["content"].split(",")]
                     response = {"current_exhibit": getDirectoryContents(config["current_exhibit"]),
                                 "all_exhibits": getAllDirectoryContents(),
-                                "active_content": config["content"],
+                                "active_content": active_content,
                                 "system_stats": getSystemStats()}
 
                     json_string = json.dumps(response)

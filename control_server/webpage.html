@@ -715,8 +715,8 @@
 
                 for (var i=0; i<availableContent[key].length; i++) {
                   var content = (availableContent[key])[i];
-                  var activeContent = availableContent["active_content"]
-                  if (content == activeContent) {
+                  var activeContent = availableContent["active_content"];
+                  if (activeContent.includes(content)) {
                     var active = "btn-primary";
                   } else {
                     var active = "btn-secondary";
@@ -750,13 +750,17 @@
               // Attach an event handler to change the button's color when clicked
               $(".componentContentButton").on("click", function(e){
                 var id = $(this).attr("id");
-                $('.componentContentButton').not($(this)).removeClass("btn-primary").addClass("btn-secondary");
-                $(this).removeClass("btn-secondary").addClass("btn-primary");
+                // $('.componentContentButton').not($(this)).removeClass("btn-primary").addClass("btn-secondary");
+                $(this).toggleClass("btn-primary").toggleClass("btn-secondary");
 
-                $('.componentContentDropdownButton').not($("#"+id+"Dropdown")).removeClass("btn-primary").addClass("btn-secondary");
-                $("#"+id+"Dropdown").removeClass("btn-secondary").addClass("btn-primary");
+                // $('.componentContentDropdownButton').not($("#"+id+"Dropdown")).removeClass("btn-primary").addClass("btn-secondary");
+                $("#"+id+"Dropdown").toggleClass("btn-secondary").toggleClass("btn-primary");
 
-                $("#componentSaveConfirmationButton").show();
+                if ($(".componentContentButton.btn-primary").length == 0) {
+                  $("#componentSaveConfirmationButton").hide(); // Can't save a state with no selected content.
+                } else {
+                  $("#componentSaveConfirmationButton").show();
+                }
               });
             }
           };
@@ -883,44 +887,49 @@
         // back to the server to be changed.
 
         var id = $("#componentInfoModalTitle").html().trim();
-        var content = $('.componentContentButton.btn-primary').html().trim();
+        var selectedButtons = $('.componentContentButton.btn-primary');
         var component = getExhibitComponent(id);
+        var contentList = [];
+        for (var i=0; i<selectedButtons.length; i++) {
+          content = selectedButtons[i].innerHTML.trim();
+          content_split = content.split(/[\\\/]/); // regex to split on forward and back slash
 
-        content_split = content.split(/[\\\/]/); // regex to split on forward and back slash
-        if (content_split.length > 1) {
-          // We are trying to switch to a file picked from the "All exhibits" list
-          var currentExhibitName = currentExhibit.split('.')[0];
-          if (currentExhibitName == content_split[0]) {
-            // This file is already part of the exhibit and just needs to be selected
-            content = content_split[1];
-          } else {
-            // This file is loaded only for another exhibit. First we need to
-            // ask the remote helper to copy the file to the directory for this
-            // exhibit.
-            content = content_split[1];
+          // If the split > 1, we have a path, indicating we are selected content
+          // from another exhibit and need to copy it over first.
+          if (content_split.length > 1) {
+            var currentExhibitName = currentExhibit.split('.')[0];
+            if (currentExhibitName == content_split[0]) {
+              // This file is already part of the exhibit and just needs to be selected
+              content = content_split[1];
+            } else {
+              // This file is loaded only for another exhibit. First we need to
+              // ask the remote helper to copy the file to the directory for this
+              // exhibit.
+              content = content_split[1];
 
-            requestString = JSON.stringify({
-              "action": "copyFile",
-              "file": content,
-              "fromExhibit": content_split[0],
-              "toExhibit": currentExhibitName
-            })
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", `http://${component.ip}:${component.helperPort}`, true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.onreadystatechange = function () {
-              if (this.readyState != 4) return;
-
-              if (this.status == 200) {
-                sendComponentContentChangeRequest(id, content)
-              }
-            };
-            xhr.send(requestString);
+              requestString = JSON.stringify({
+                "action": "copyFile",
+                "file": content,
+                "fromExhibit": content_split[0],
+                "toExhibit": currentExhibitName
+              })
+              var xhr = new XMLHttpRequest();
+              xhr.open("POST", `http://${component.ip}:${component.helperPort}`, true);
+              xhr.setRequestHeader('Content-Type', 'application/json');
+              // xhr.onreadystatechange = function () {
+              //   if (this.readyState != 4) return;
+              //
+              //   if (this.status == 200) {
+              //     sendComponentContentChangeRequest(id, content)
+              //   }
+              // };
+              xhr.send(requestString);
+            }
           }
-        } else {
-          // We are trying to switch to a file from the Current exhibit tab
-          sendComponentContentChangeRequest(id, content);
+          contentList.push(content);
+          sendComponentContentChangeRequest(id, contentList);
         }
+
         askForUpdate();
 
         // Hide the modal
