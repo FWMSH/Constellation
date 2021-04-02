@@ -115,8 +115,9 @@ def sendPing():
     if "content" in updates:
         if 'current_exhibit' in updates:
             config["current_exhibit"] = updates["current_exhibit"]
-        if updates["content"] != config["content"]:
-            updateContent(updates["content"])
+        content = (updates["content"])[0] # No support for multiple files
+        if content != config["content"]:
+            updateContent(content)
     if "commands" in updates:
         for command in updates["commands"]:
             if command == "sleepDisplay":
