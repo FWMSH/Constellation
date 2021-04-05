@@ -391,6 +391,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                 #json_string = json.dumps(upload)
                                 #self.wfile.write(bytes(json_string, encoding="UTF-8"))
                                 self.wfile.write(upload)
+                    elif action == "beginSynchronization":
+                        if "synchronizeWith" in data:
+                            updateSynchronizationList(data["id"], data["synchronizeWith"])
                 else: # it's a ping
                     try:
                         id = data["id"]
@@ -420,7 +423,7 @@ def setComponentContent(id, contentList):
         if i != 0:
             content += ', '
         content += contentList[i]
-        
+
     try:
         currentExhibitConfiguration.set(id, "content", content)
     except configparser.NoSectionError: # This exhibit does not have content for this component
@@ -433,6 +436,42 @@ def setComponentContent(id, contentList):
     # Write new configuration to file
     with open(currentExhibit, 'w') as f:
         currentExhibitConfiguration.write(f)
+
+def updateSynchronizationList(id, other_ids):
+
+    # Function to manage synchronization. synchronizationList is a list of
+    # dictionaries, with one dictionary for every set of synchronized displays.
+
+    global synchronizationList
+    print("received sync request:", id)
+    print(synchronizationList)
+    id_known = False
+    index = 0
+    match_index = -1
+    for item in synchronizationList:
+        if id in item["ids"]:
+            id_known = True
+            match_index = index
+        index += 1
+
+    if id_known == False:
+        # Create a new dictionary
+        temp = {}
+        temp["ids"] = [id] + other_ids
+        temp["checked_in"] = [False for i in temp["ids"]]
+        (temp["checked_in"])[0] = True # Check in the current id
+        synchronizationList.append(temp)
+    else:
+        index = (synchronizationList[match_index])["ids"].index(id)
+        ((synchronizationList[match_index])["checked_in"])[index] = True
+        if (all((synchronizationList[match_index])["checked_in"])):
+            print("All components have checked in. Dispatching sync command")
+            time_to_start = (datetime.datetime.now() + datetime.timedelta(seconds=10)).strftime("%m/%d/%Y %H:%M:%S.%f")
+            for item in (synchronizationList[match_index])["ids"]:
+                getExhibitComponent(item).queueCommand(f"beginSynchronization_{time_to_start}")
+            # Remove this sync from the list in case it happens again later.
+            synchronizationList.pop(match_index)
+
 
 def updateSchedule(schedule):
 
@@ -665,6 +704,7 @@ ADDR = "" # Accept connections from all interfaces
 gallery_name = ""
 componentList = []
 projectorList = []
+synchronizationList = [] # Holds sets of displays that are being synchronized
 currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
 exhibitList = []
 currentExhibitConfiguration = None # the configParser object holding the current config

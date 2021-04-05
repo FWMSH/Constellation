@@ -1,8 +1,8 @@
 [WINDOW1]
-content = 2048.jpg, Science Studio Render C 1-20-21.jpg
+content = window_small.m4v
 
 [WINDOW2]
-content = testfile2.mp4
+content = window_small.m4v
 
 [WINDOW3]
 content = testfile3.mp4

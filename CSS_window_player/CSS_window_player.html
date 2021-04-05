@@ -51,7 +51,7 @@
   <body>
 
   <div id="videoOverlay">
-    <video id="fullscreenVideo" autoplay muted>
+    <video id="fullscreenVideo" muted>
     </video>
   </div>
 
@@ -124,6 +124,33 @@
 
     }
 
+    function synchronize(timeToPlay) {
+
+      // Function to set a timeout to begin playing the synchronized video
+
+      setTimeout(function(){console.log("Play"); changeMedia("", false, true);}, Date.parse(timeToPlay) - Date.now());
+    }
+
+    function askToSynchronize(other_ids) {
+
+      // Function to communicate with the control server and indicate that we
+      // are ready to begin synchronization.
+
+      console.log("Asking to synchronize with", other_ids)
+
+      requestString = JSON.stringify({"class": "exhibitComponent",
+                                      "id": id,
+                                      "type": type,
+                                      "action": "beginSynchronization",
+                                      "synchronizeWith": other_ids.split(",")});
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", serverAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(requestString);
+
+    }
+
     function readUpdate(responseText) {
 
       // Function to read a message from the server and take action based
@@ -142,7 +169,9 @@
             wakeDisplays();
           } else if (cmd == "reloadDefaults"){
             askForDefaults();
-            sendPing();
+          } else if (cmd.startsWith("beginSynchronization")){
+            var timeToPlay = cmd.split("_")[1];
+            synchronize(timeToPlay);
           } else {
             console.log(`Command not recognized: ${cmd}`);
           }
@@ -162,6 +191,10 @@
       }
       if ("current_exhibit" in update) {
         currentExhibit = update["current_exhibit"];
+      }
+      if ("synchornize_with" in update) {
+        askToSynchronize(update["synchornize_with"]);
+        waitingForSynchronization = true;
       }
 
       // This should be last to make sure the path has been updated
@@ -195,7 +228,7 @@
 
       if (index < sourceList.length) {
         activeIndex = index;
-        changeMedia(contentPath + '/' + currentExhibit + '/' + sourceList[index]);
+        changeMedia(contentPath + '/' + currentExhibit + '/' + sourceList[index], waitingForSynchronization, false);
       }
     }
 
@@ -213,42 +246,52 @@
       gotoSource(activeIndex);
     }
 
-    function changeMedia(source) {
+    function changeMedia(source, delayPlay, playOnly) {
 
+      // Load and play a media file given in source
+      // delayPlay and playOnly are used when synchronizing multiple displays
+      
       var video = document.getElementById("fullscreenVideo");
       var videoContainer = document.getElementById("videoOverlay");
       var image = document.getElementById("fullscreenImage");
       var imageContainer = document.getElementById("imageOverlay");
 
-      // Split off the extension
-      var split = source.split(".");
-      var ext = split[split.length-1];
+      if (playOnly == false) { // We are going to load the media before we play it
+        // Split off the extension
+        var split = source.split(".");
+        var ext = split[split.length-1];
 
-      if (["mp4", "mpeg", "m4v", "webm", "mov", "ogg", "mpg"].includes(ext.toLowerCase())) {
-        clearTimeout(sourceAdvanceTimer); // Only used for pictures
-        if (video.src != source) {
+        if (["mp4", "mpeg", "m4v", "webm", "mov", "ogg", "mpg"].includes(ext.toLowerCase())) {
+          clearTimeout(sourceAdvanceTimer); // Only used for pictures
+          if (video.src != source) {
+            video.pause();
+            video.src = source;
+            video.load();
+
+          }
+          if (sourceList.length > 1) { // Don't loop or onended will never fire
+            video.loop = false;
+            video.onended = gotoNextSource;
+          } else {
+            video.loop = true;
+          }
+          if (delayPlay == false) {
+            video.play();
+            videoContainer.style.opacity = 1;
+            imageContainer.style.opacity = 0;
+          }
+        } else if (["png", "jpg", "jpeg", "tiff", "bmp", "heic", "webp"].includes(ext.toLowerCase())) {
           video.pause();
-          video.src = source;
-          video.load();
-
+          videoContainer.style.opacity = 0;
+          image.src = source;
+          imageContainer.style.opacity = 1;
+          sourceAdvanceTimer = setTimeout(gotoNextSource, 10000);
         }
-        if (sourceList.length > 1) { // Don't loop or onended will never fire
-          video.loop = false;
-          video.onended = gotoNextSource;
-        } else {
-          video.loop = true;
-        }
+      } else {
         video.play();
         videoContainer.style.opacity = 1;
         imageContainer.style.opacity = 0;
-      } else if (["png", "jpg", "jpeg", "tiff", "bmp", "heic", "webp"].includes(ext.toLowerCase())) {
-        video.pause();
-        videoContainer.style.opacity = 0;
-        image.src = source;
-        imageContainer.style.opacity = 1;
-        sourceAdvanceTimer = setTimeout(gotoNextSource, 10000);
       }
-
     }
 
     function askForDefaults() {
@@ -338,6 +381,7 @@
     var sourceAdvanceTimer = null; // Will hold reference to a setTimeout instance to move to the next media.
     var contentPath = "";
     var currentExhibit = ""; // This will double as the root of the source path
+    var waitingForSynchronization = false;
 
     askForDefaults();
     sendPing();
