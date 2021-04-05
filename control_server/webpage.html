@@ -132,7 +132,8 @@
                             <div id='contentUploadProgressBar' class="progress-bar" role="progressbar" style="width: 30%; font-size: large;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
                           </div>
                         </div>
-                      <div class='col-12 text-danger mt-2' id='uploadOverwriteWarning'>Warning! This upload will overwrite a file of the same name.</div>
+                      <div class='col-12 text-danger mt-2' id='uploadOverwriteWarning'>Warning: this upload will overwrite a file of the same name.</div>
+                      <div class='col-12 text-danger mt-2' id='contentUploadEqualSignWarning'>Filenames cannot contain the equal sign (=).</div>
 
                     </div>
                   </div>
@@ -622,6 +623,8 @@
           $("#contentUploadSubmitButton").html("Upload");
           $("#componentContentUploadfilename").html("Choose file")
           $("#componentContentUpload").val(null);
+          $("#contentUploadSubmitButton").hide()
+          $("#contentUploadEqualSignWarning").hide();
           $("#uploadOverwriteWarning").hide();
           $("#contentUploadProgressBarContainer").hide();
           $("#contentUploadSystemStatsView").hide();
@@ -818,15 +821,26 @@
       function onUploadContentChange() {
 
         // When we select a file for uploading, check against the existing files
-        // (as defined by their buttons) and warn if we will overwrite.
+        // (as defined by their buttons) and warn if we will overwrite. Also
+        // check if the filename contains an =, which is not allowed
 
+        $("#contentUploadSubmitButton").show();
+        // Show the upload button (we may hide it later)
         var fileInput = $("#componentContentUpload")[0];
+        // Check for filename collision
         var currentFiles = $(".componentContentButton").map(function(){return $(this).html()}).toArray();
         $("#componentContentUploadfilename").html("File: " + fileInput.files[0].name);
         if(currentFiles.includes(fileInput.files[0].name)) {
           $("#uploadOverwriteWarning").show();
         } else {
           $("#uploadOverwriteWarning").hide();
+        }
+        // Check for = in filename
+        if (fileInput.files[0].name.includes("=")) {
+          $("#contentUploadEqualSignWarning").show();
+          $("#contentUploadSubmitButton").hide();
+        } else {
+          $("#contentUploadEqualSignWarning").hide();
         }
       }
 
