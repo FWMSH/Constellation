@@ -63,7 +63,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
             # Open the file requested and send it
             mimetype = mimetypes.guess_type(self.path, strict=False)[0]
             try:
-                f = open('.' + self.path, 'rb')
+                f = open(self.path, 'rb')
                 self.send_response(200)
                 self.send_header('Content-type', mimetype)
                 self.end_headers()

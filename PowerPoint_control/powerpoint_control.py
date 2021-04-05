@@ -26,7 +26,10 @@ def startPowerPoint():
         return()
 
     if "content" in config:
-        content = config["content"]
+        if isinstance(config['content'], list):
+            content = (config["content"])[0] # Supports only one content file
+        else:
+            content = config["content"]
     else:
         print("PowerPoint_control: Error: you must specify a filepath to the content in defaults.ini")
         return()
