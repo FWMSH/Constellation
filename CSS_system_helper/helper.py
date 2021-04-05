@@ -14,6 +14,8 @@ import signal
 import cgi
 import shutil
 import psutil
+import mimetypes
+import socket
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
@@ -25,9 +27,52 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
 
-        # Receive a GET
+        # Receive a GET request and respond with a console webpage
 
-        pass
+        global config
+
+        if self.path == "/":
+            pass
+        elif self.path.lower().endswith(".html"):
+            try:
+                f = open('.' + self.path,"r")
+            except IOError:
+                self.send_error(404, "File Not Found: %s" % self.path)
+                print(f"GET for unexpected file {self.path}")
+                return()
+                #logging.error(f"GET for unexpected file {self.path}")
+
+            page = str(f.read())
+
+            # Build the address that the webpage should contact to reach this helper
+            if self.address_string() == "127.0.0.1": # Request is coming from this machine too
+                address_to_insert = "'http://localhost:" + config["helper_port"] + "'"
+            else: # Request is coming from the network
+                address_to_insert = "'http://" + socket.gethostbyname(socket.gethostname()) + config["helper_port"] + "'"
+            # Then, insert that into the document
+            page = page.replace("INSERT_HELPERIP_HERE", address_to_insert)
+
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(bytes(page, encoding="UTF-8"))
+
+            f.close()
+            return()
+        else:
+            # Open the file requested and send it
+            mimetype = mimetypes.guess_type(self.path, strict=False)[0]
+            try:
+                f = open('.' + self.path, 'rb')
+                self.send_response(200)
+                self.send_header('Content-type', mimetype)
+                self.end_headers()
+                self.wfile.write(f.read())
+                f.close()
+                return
+            except IOError:
+                self.send_error(404, "File Not Found: %s" % self.path)
+                #logging.error(f"GET for unexpected file {self.path}")
 
     def do_OPTIONS(self):
 

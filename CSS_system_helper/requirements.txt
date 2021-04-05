@@ -1,3 +1,4 @@
 sockio
 pyserial
 psutil
+mimetypes
