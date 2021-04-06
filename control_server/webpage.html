@@ -411,6 +411,7 @@
                              "id": this.id};
 
           var xhr = new XMLHttpRequest();
+          xhr.timeout = 500;
           xhr.open("POST", serverIP, true);
           xhr.setRequestHeader('Content-Type', 'application/json');
           xhr.onreadystatechange = function () {
@@ -808,6 +809,7 @@
                                               "fromExhibit": exhibit});
 
           var xhr = new XMLHttpRequest();
+          xhr.timeout = 2000;
           xhr.open("POST", `http://${obj.ip}:${obj.helperPort}`, true);
           xhr.setRequestHeader('Content-Type', 'application/json');
           xhr.send(requestString);
@@ -961,6 +963,7 @@
           "content": content
         })
         var xhr = new XMLHttpRequest();
+        xhr.timeout = 1000;
         xhr.open("POST", serverIP, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.send(requestString);
@@ -1059,6 +1062,7 @@
                              "action": "setExhibit",
                              "name": $("#exhibitSelect").val()};
           var xhr = new XMLHttpRequest();
+          xhr.timeout = 1000;
           xhr.open("POST", serverIP, true);
           xhr.setRequestHeader('Content-Type', 'application/json');
           xhr.send(JSON.stringify(requestDict));
@@ -1078,6 +1082,7 @@
                            "action": "reloadConfiguration"};
 
         var xhr = new XMLHttpRequest();
+        xhr.timeout = 1000;
         xhr.open("POST", serverIP, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onreadystatechange = function () {
@@ -1117,6 +1122,7 @@
                            "action": cmdType};
 
         var xhr = new XMLHttpRequest();
+        xhr.timeout = 1000;
         xhr.open("POST", serverIP, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.send(JSON.stringify(requestDict));
@@ -1180,6 +1186,7 @@
                              "offTime": offTime};
 
               var xhr = new XMLHttpRequest();
+              xhr.timeout = 1000;
               xhr.open("POST", serverIP, true);
               xhr.setRequestHeader('Content-Type', 'application/json');
               xhr.send(JSON.stringify(requestDict));
@@ -1204,6 +1211,7 @@
                        "action": "fetchUpdate"};
 
         var xhr = new XMLHttpRequest();
+        xhr.timeout = 500;
         xhr.open("POST", serverIP, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onreadystatechange = function () {

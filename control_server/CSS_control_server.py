@@ -250,7 +250,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         # Receive a GET request and respond with a console webpage
 
-        if self.path=="/":
+        if self.path == "/":
 
             f = open("webpage.html","r")
             page = str(f.read())

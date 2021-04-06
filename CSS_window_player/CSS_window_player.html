@@ -145,6 +145,7 @@
                                       "synchronizeWith": other_ids.split(",")});
 
       var xhr = new XMLHttpRequest();
+      xhr.timeout = 1000;
       xhr.open("POST", serverAddress, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.send(requestString);
@@ -250,7 +251,7 @@
 
       // Load and play a media file given in source
       // delayPlay and playOnly are used when synchronizing multiple displays
-      
+
       var video = document.getElementById("fullscreenVideo");
       var videoContainer = document.getElementById("videoOverlay");
       var image = document.getElementById("fullscreenImage");
@@ -328,6 +329,7 @@
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", serverAddress, true);
+        xhr.timeout = 500;
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onerror = function() {
         }
@@ -358,6 +360,7 @@
       }
 
       var xhr = new XMLHttpRequest();
+      xhr.timeout = 1000;
       xhr.open("POST", helperAddress, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.send(JSON.stringify(requestDict));
