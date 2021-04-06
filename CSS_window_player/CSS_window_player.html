@@ -329,10 +329,9 @@
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", serverAddress, true);
-        xhr.timeout = 500;
+        xhr.timeout = 2000;
         xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.onerror = function() {
-        }
+
         xhr.onreadystatechange = function () {
 
           if (this.readyState != 4) return;
