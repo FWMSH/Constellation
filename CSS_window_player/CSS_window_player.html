@@ -62,6 +62,9 @@
   </img>
   </div>
 
+  <!-- Load js file with helperAddress -->
+  <script src="config.js"></script>
+
   <script>
 
     function sleepDisplays() {
@@ -369,14 +372,14 @@
     var id = 'UNKNOWN';
     var type = 'UNKNOWN';
     var serverAddress = ""; // The address of the main control server
-    try {
-      var helperAddress = INSERT_HELPERIP_HERE; // Will be replaced by the helper server before sending the file
-    }
-    catch {
-      // This will throw if INSERT_HELPERIP_HERE has not been replaced (such as when we load the file directly during developement)
-      console.log("Loading page in development mode... (helperAddress detauling to localhost:8000)")
-      var helperAddress = "http://localhost:8000";
-    }
+    // try {
+    //   var helperAddress = INSERT_HELPERIP_HERE; // Will be replaced by the helper server before sending the file
+    // }
+    // catch {
+    //   // This will throw if INSERT_HELPERIP_HERE has not been replaced (such as when we load the file directly during developement)
+    //   console.log("Loading page in development mode... (helperAddress detauling to localhost:8000)")
+    //   var helperAddress = "http://localhost:8000";
+    // }
     // var helperPort = 8000; // This is the port of the localhost helper process that can interact with the OS
     var activeIndex = 0; // Index of the file from the source list currently showing
     var sourceList = [];

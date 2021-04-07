@@ -28,17 +28,19 @@ class RequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
 
         # Receive a GET request and respond with a console webpage
-
+        #print("do_GET: ENTER")
         global config
 
         if self.path == "/":
             pass
         elif self.path.lower().endswith(".html"):
+            #print("  Handling HTML file")
             try:
                 f = open('.' + self.path,"r")
             except IOError:
                 self.send_error(404, "File Not Found: %s" % self.path)
                 print(f"GET for unexpected file {self.path}")
+                #print("do_GET: EXIT")
                 return()
                 #logging.error(f"GET for unexpected file {self.path}")
 
@@ -58,36 +60,46 @@ class RequestHandler(SimpleHTTPRequestHandler):
             self.wfile.write(bytes(page, encoding="UTF-8"))
 
             f.close()
+            #print("do_GET: EXIT")
             return()
         else:
             # Open the file requested and send it
             mimetype = mimetypes.guess_type(self.path, strict=False)[0]
+            #print(f"  Handling {mimetype}")
             try:
+                #print(f"  Opening file {self.path}")
                 f = open(self.path, 'rb')
+                #print(f"    File opened")
                 self.send_response(200)
                 self.send_header('Content-type', mimetype)
                 self.end_headers()
+                #print(f"    Writing data to client")
                 self.wfile.write(f.read())
+                #print(f"    Write complete")
                 f.close()
+                #print(f"  File closed")
+                #print("do_GET: EXIT")
                 return
             except IOError:
                 self.send_error(404, "File Not Found: %s" % self.path)
                 #logging.error(f"GET for unexpected file {self.path}")
+        # print("do_GET: EXIT")
 
     def do_OPTIONS(self):
-
+        # print("do_OPTIONS: ENTER")
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
         self.send_header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
         self.send_header('Access-Control-Allow-Credentials', 'true')
         self.end_headers()
+        # print("do_OPTIONS: EXIT")
 
     def do_POST(self):
 
         # Receives pings from client devices and respond with any updated
         # information
-
+        # print("do_POST: ENTER")
         global configFile
         global config
 
@@ -208,6 +220,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         copyFile(data["file"], data["fromExhibit"], data["toExhibit"])
                 else:
                     print("Error: unrecognized action:", data["action"])
+        #print("do_POST: EXIT")
 
 
 def sleepDisplays():
@@ -377,6 +390,8 @@ configFile, config = readDefaultConfiguration()
 
 # If it exists, load the dictionary that maps one value into another
 dictionary = loadDictionary()
+
+print(f"Launching server on port {config['helper_port']} to serve {config['id']}.")
 
 httpd = HTTPServer(("", int(config["helper_port"])), RequestHandler)
 httpd.serve_forever()
