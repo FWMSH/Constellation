@@ -204,10 +204,41 @@
       // This should be last to make sure the path has been updated
       if ("content" in update) {
         if (arraysEqual(sourceList, update["content"]) == false) {
+          updateClipList(update["content"]);
           sourceList = update["content"];
           gotoSource(0);
         }
       }
+    }
+
+    function updateClipList(list) {
+
+      // Function that takes a list of filenames and passes it to the helper
+      // to hold for potentially sharing with a player_kiosk instance.
+
+      var requestString = JSON.stringify({"action": "updateClipList",
+                                          "clipList": list});
+
+      var xhr = new XMLHttpRequest();
+      xhr.timeout = 2000;
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(requestString);
+    }
+
+    function updateActiveClip(index) {
+
+      // Function that takes a list of filenames and passes it to the helper
+      // to hold for potentially sharing with a player_kiosk instance.
+
+      var requestString = JSON.stringify({"action": "updateActiveClip",
+                                          "index": index});
+
+      var xhr = new XMLHttpRequest();
+      xhr.timeout = 2000;
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(requestString);
     }
 
     function arraysEqual(arr1, arr2) {
@@ -232,6 +263,7 @@
 
       if (index < sourceList.length) {
         activeIndex = index;
+        updateActiveClip(activeIndex);
         changeMedia(contentPath + '/' + currentExhibit + '/' + sourceList[index], waitingForSynchronization, false);
       }
     }
@@ -275,7 +307,13 @@
           }
           if (sourceList.length > 1) { // Don't loop or onended will never fire
             video.loop = false;
-            video.onended = gotoNextSource;
+            video.onended = function() {
+              if (autoplayEnabled == true) {
+                gotoNextSource();
+              } else {
+                video.play();
+              }
+            }
           } else {
             video.loop = true;
           }
@@ -303,7 +341,6 @@
       // Send a message to the local helper and ask for the latest configuration
       // defaults, then use them.
 
-      // requestString = `action=getDefaults`;
       var requestString = JSON.stringify({"action": "getDefaults"});
 
       var xhr = new XMLHttpRequest();
@@ -368,25 +405,19 @@
       xhr.send(JSON.stringify(requestDict));
     }
 
-    // These will be replaced by the values specified in defaults.ini
+    // These will be replaced by the values specified in defaults.ini, passed
+    // to this app by the helper server
     var id = 'UNKNOWN';
     var type = 'UNKNOWN';
     var serverAddress = ""; // The address of the main control server
-    // try {
-    //   var helperAddress = INSERT_HELPERIP_HERE; // Will be replaced by the helper server before sending the file
-    // }
-    // catch {
-    //   // This will throw if INSERT_HELPERIP_HERE has not been replaced (such as when we load the file directly during developement)
-    //   console.log("Loading page in development mode... (helperAddress detauling to localhost:8000)")
-    //   var helperAddress = "http://localhost:8000";
-    // }
-    // var helperPort = 8000; // This is the port of the localhost helper process that can interact with the OS
+
     var activeIndex = 0; // Index of the file from the source list currently showing
     var sourceList = [];
     var sourceAdvanceTimer = null; // Will hold reference to a setTimeout instance to move to the next media.
     var contentPath = "";
     var currentExhibit = ""; // This will double as the root of the source path
     var waitingForSynchronization = false;
+    var autoplayEnabled = true;
 
     askForDefaults();
     sendPing();

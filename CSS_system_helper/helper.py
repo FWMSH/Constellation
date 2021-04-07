@@ -102,6 +102,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         # print("do_POST: ENTER")
         global configFile
         global config
+        global clipList
 
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -218,6 +219,18 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 elif data["action"] == 'copyFile':
                     if ("file" in data) and ("fromExhibit" in data) and ("toExhibit" in data):
                         copyFile(data["file"], data["fromExhibit"], data["toExhibit"])
+                elif data["action"] == "updateClipList":
+                    if "clipList" in data:
+                        clipList["clipList"] = data["clipList"]
+                elif data["action"] == "updateActiveClip":
+                    if "index" in data:
+                        clipList["activeClip"] = data["index"]
+                elif data["action"] == "getClipList":
+                    responseList = []
+                    # for clip in clipList:
+                    #     temp = {"name": }
+                    json_string = json.dumps(clipList)
+                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 else:
                     print("Error: unrecognized action:", data["action"])
         #print("do_POST: EXIT")
@@ -390,6 +403,9 @@ configFile, config = readDefaultConfiguration()
 
 # If it exists, load the dictionary that maps one value into another
 dictionary = loadDictionary()
+
+# This is hold information about currently loaded media, e.g., for the player
+clipList = {}
 
 print(f"Launching server on port {config['helper_port']} to serve {config['id']}.")
 

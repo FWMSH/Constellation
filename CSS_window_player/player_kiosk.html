@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <meta name="description" content="">
+    <meta name="author" content="Morgan Rehnberg">
+
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+
+    <style>
+
+      @font-face {
+        font-family: Good-Times;
+        src: url(good-times-rg.ttf);
+      }
+
+      html {
+        touch-action: manipulation;
+      }
+      .container-fluid {
+        touch-action: manipulation;
+      }
+      #attractorOverlay {
+        position: fixed;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,0,0,0.9);
+        z-index: 2;
+        cursor: pointer;
+        justify-content: center;
+        align-items: center;
+      }
+      #header {
+      }
+    </style>
+
+    <title>Player Kiosk</title>
+
+  </head>
+
+  <body>
+    <!-- This overlay covers the whole screen with the video attractor -->
+    <div id="attractorOverlay" class="sticky-top" onclick="hideAttractor()">
+      <div class="container">
+        <center>
+          <div style="color: white; font-size: 3vw;">Touch to explore</div>
+          <div id="attractorDatasetName" style="color: white; font-size:15vw; font-family:Good-Times;">Types of Rockets</div>
+        </center>
+      </div>
+    </div>
+
+    <div class="container-fluid">
+      <div id='header' class="row sticky-top" style="z-index:1">
+        <div class="col bg-primary pt-1">
+          <center>
+            <H1>Types of Rockets</H1>
+          </center>
+        </div>
+      </div>
+      <div class="row">
+        <div class='col-12'>
+          <div id="cardRow" class="row">
+          </div>
+        </div>
+        </div>
+
+    </div>
+
+  <script type="text/javascript" src="js/jquery-3.5.1.slim.min.js"></script>
+  <script type="text/javascript" src="js/popper.min.js"></script>
+  <script type="text/javascript" src="js/bootstrap.min.js"></script>
+  <!-- Load js file with helperAddress -->
+  <script src="config.js"></script>
+  <script>
+
+    function askForDefaults() {
+
+      // Send a message to the local helper and ask for the latest configuration
+      // defaults, then use them.
+
+      requestString = `action=getDefaults`;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+          readUpdate(this.responseText);
+        }
+    };
+      xhr.send(requestString);
+    }
+
+    function readUpdate(responseText) {
+
+      // Function to read a message from the server and take action based
+      // on the contents
+
+      var update = JSON.parse(responseText);
+
+      if ("id" in update) {
+        id = update["id"];
+      }
+      if ("type" in update) {
+        type = update["type"]
+      }
+      if (("server_ip_address" in update) && ("server_port" in update)) {
+        serverAddress = "http://" + update["server_ip_address"] + ":" + update["server_port"];
+      }
+      if ("dictionary" in update) {
+        dictionary = update["dictionary"];
+      }
+    }
+
+    function sendPing() {
+
+      // Contact the control server and ask for any updates
+
+      if (serverAddress != "") {
+        requestString = `class=exhibitComponent&id=${id}&type=${type}`;
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", serverAddress, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onerror = function() {
+        }
+        xhr.onreadystatechange = function () {
+
+          if (this.readyState != 4) return;
+
+          if (this.status == 200) {
+            readUpdate(this.responseText);
+          }
+      };
+        xhr.send(requestString);
+      }
+    }
+
+    function createCard(name, number, icon) {
+
+      // Create a card that holds one dataset
+
+      // Try to look up a public-facing name for the dataset
+      if (dictionary != null) {
+        if (name.toLowerCase() in dictionary) {
+          name = dictionary[name.toLowerCase()];
+        }
+      }
+
+      var html = `
+        <div class='col-12 col-md-6 col-lg-4 col-xl-3 mt-3'>
+          <div id="card${number}" class="card w-100 h-100" onclick="gotoClip(${number})">
+              <img class='card-img-top' src="thumbnails/${icon}"></img>
+              <div class="card-body">
+                <center><h3 id="cardName${number}" class="card-title">${name}</h3></center>
+            </div>
+          </div>
+        </div>
+      `
+      $("#cardRow").append(html)
+    }
+
+    function rebuildInterface() {
+
+      // Repopulate the clip buttons in response to a change in playlist
+
+      // Retreive the new clip list
+      requestString = `action=getClipList`;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onerror = function() {
+      }
+      xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
+      xhr.onreadystatechange = function () {
+
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+          $("#cardRow").empty();
+          var update = JSON.parse(this.responseText);
+          var clipList = update["clipList"];
+          var activeClip = update["activeClip"]
+          for (var i=0; i<clipList.length; i++) {
+            clip = clipList[i];
+
+            createCard(clip, i, "");
+          }
+          $("#card"+activeClip).addClass("bg-primary");
+        }
+    };
+      xhr.send(requestString);
+    }
+
+    function showAttractor() {
+
+      // Make the attractor layer visible and start autorun
+
+      $("#attractorOverlay").show();
+
+    }
+
+    function hideAttractor() {
+
+      // Make the attractor layer invisible and start the autorun
+
+      $("#attractorOverlay").hide();
+
+    }
+
+    // These will be replaced by the values specified in defaults.ini
+    var id = 'UNKNWON';
+    var type = 'PLAYER_KIOSK';
+    var serverAddress = ""; // The address of the main control server
+    var dictionary = null;
+
+    askForDefaults();
+    // sendPing();
+    // setInterval(sendPing, 5000);
+    rebuildInterface();
+    inactivityTimer = setTimeout(showAttractor, 30000);
+
+  </script>
+
+  </body>
+
+</html>
