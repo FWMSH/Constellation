@@ -238,13 +238,14 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
 def sleepDisplays():
 
-    if config["display_type"] == "screen":
-        if sys.platform == "darwin": # MacOS
-            os.system("pmset displaysleepnow")
-        elif sys.platform == "linux":
-            os.system("xset dpms force off")
-    elif config["display_type"] == "projector":
-        commandProjector("off")
+    if strToBool(config.get("allow_sleep", True)):
+        if config["display_type"] == "screen":
+            if sys.platform == "darwin": # MacOS
+                os.system("pmset displaysleepnow")
+            elif sys.platform == "linux":
+                os.system("xset dpms force off")
+        elif config["display_type"] == "projector":
+            commandProjector("off")
 
 def wakeDisplays():
     if config["display_type"] == "screen":
@@ -267,7 +268,8 @@ def commandProjector(cmd):
         if cmd == "on":
             ser.write(b"~0000 1\r")
         elif cmd == "off":
-            ser.write(b"~0000 0\r")
+            if strToBool(config.get("allow_sleep", True)):
+                ser.write(b"~0000 0\r")
         elif cmd == "checkState":
             ser.write(b"~00124 1\r")
             time.sleep(0.3)
@@ -341,6 +343,21 @@ def checkDirectoryStructure(current_exhibit):
             os.mkdir(exhibit_path)
         except:
             print("Error: unable to create directory. Do you have write permission?")
+
+def strToBool(val):
+
+    # Take a string value like "false" and convert it to a bool
+
+    if isinstance(val, bool):
+        return(val)
+    else:
+        val = str(val).strip()
+        if val in ["false", "False"]:
+            return(False)
+        elif val in ["true", "True"]:
+            return(True)
+        else:
+            print("strToBool: Error: ambiguous string", val)
 
 def getSystemStats():
 
