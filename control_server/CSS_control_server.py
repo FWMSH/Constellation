@@ -18,10 +18,11 @@ class Projector:
 
     # Holds basic data about a projector
 
-    def __init__(self, id, ip):
+    def __init__(self, id, ip, password=None):
 
         self.id = id
         self.ip = ip # IP address of the projector
+        self.password = password # Password to access PJLink
 
         self.state = {"status": "OFFLINE"}
         self.lastContactDateTime = datetime.datetime(2020,1,1)
@@ -40,7 +41,7 @@ class Projector:
         error = False
         try:
             projector = pypjlink.Projector.from_address(self.ip, timeout=2)
-            projector.authenticate()
+            projector.authenticate(password=self.password)
 
             if full:
                 self.state["model"] = projector.get_manufacturer() + " " + projector.get_product_name()
@@ -68,7 +69,7 @@ class Projector:
 
         try:
             with pypjlink.Projector.from_address(self.ip, timeout=2) as projector:
-                projector.authenticate()
+                projector.authenticate(password=self.password)
 
                 if cmd == "wakeDisplay":
                     projector.set_power("on")
@@ -601,7 +602,16 @@ def loadDefaultConfiguration():
 
     for key in projectors:
         if getProjector(key) is None:
-            newProj = Projector(key, projectors[key])
+            # Try to split on a comma. If we get two elements back, that means
+            # we have the form "ip, passwprd"
+            split = projectors[key].split(",")
+            if len(split) == 2:
+                newProj = Projector(key, split[0].strip(), password=split[1].strip())
+            elif len(split) == 1:
+                newProj = Projector(key, projectors[key])
+            else:
+                print("Invalid projector entry:", projcetors[key])
+                break
             newProj.update()
             projectorList.append(newProj)
 

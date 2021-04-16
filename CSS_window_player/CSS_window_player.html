@@ -169,16 +169,19 @@
           var cmd = (update["commands"])[i];
 
           if (cmd == "sleepDisplay") {
-            sleepDisplays();
+              sleepDisplays();
           } else if (cmd == "wakeDisplay") {
-            wakeDisplays();
+              wakeDisplays();
           } else if (cmd == "reloadDefaults"){
-            askForDefaults();
+              askForDefaults();
           } else if (cmd.startsWith("beginSynchronization")){
-            var timeToPlay = cmd.split("_")[1];
-            synchronize(timeToPlay);
+              var timeToPlay = cmd.split("_")[1];
+              synchronize(timeToPlay);
+          } else if (cmd.startsWith("gotoClip")) {
+              var clipNumber = cmd.split("_")[1];
+              gotoSource(clipNumber);
           } else {
-            console.log(`Command not recognized: ${cmd}`);
+              console.log(`Command not recognized: ${cmd}`);
           }
         }
       }
@@ -385,6 +388,29 @@
       }
     }
 
+    function checkForCommands() {
+
+      // Function to ask the helper for any new commands, like switching between
+      // media clips
+
+      var requestString = JSON.stringify({"action": "getCommands"});
+
+      var xhr = new XMLHttpRequest();
+      xhr.timeout = 50;
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+          readUpdate(this.responseText);
+        }
+    };
+      xhr.send(requestString);
+
+    }
+
     function sendConfigUpdate(update) {
 
       // Send a message to the helper with the latest configuration to set as
@@ -423,6 +449,7 @@
     askForDefaults();
     sendPing();
     setInterval(sendPing, 5000);
+    setInterval(checkForCommands, 100);
 
     // Hide the cursor
     document.body.style.cursor = 'none';

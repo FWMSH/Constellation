@@ -169,7 +169,7 @@
             <div class="modal-dialog modal-dialog-centered" role="document">
               <div class="modal-content">
                 <div class="modal-header">
-                  <h5 class="modal-title" id="projectorInfoModalTitle"></h5>
+                  <h4 class="modal-title" id="projectorInfoModalTitle"></h4>
                 </div>
                 <div class="modal-body">
                   <table class="table table-striped">
@@ -477,9 +477,11 @@
 
           var onCmdName = "";
           var offCmdName = "";
+          var displayName = this.id;
           if (this.type == "PROJECTOR") {
             onCmdName = "Wake projector";
             offCmdName = "Sleep projector";
+            displayName = displayName.toUpperCase();
           } else {
             onCmdName = "Wake display";
             offCmdName = "Sleep display";
@@ -488,7 +490,7 @@
           var html = `
             <div class='col-md-12 col-lg-6 mt-1'>
               <div class="btn-group btn-block">
-                <button type="button" class="btn btn-danger btn-block" id="${this.id}MainButton" onclick="showExhibitComponentInfo('${this.id}')"><H5>${this.id}</H5><div id="${this.id}StatusField">OFFLINE</div></button>
+                <button type="button" class="btn btn-danger btn-block" id="${this.id}MainButton" onclick="showExhibitComponentInfo('${this.id}')"><H5>${displayName}</H5><div id="${this.id}StatusField">OFFLINE</div></button>
                 <button type="button" id="${this.id}DropdownButton" class="btn btn-danger dropdown-toggle dropdown-toggle-split"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
@@ -588,7 +590,7 @@
         var obj = getExhibitComponent(id);
 
         if (obj.type == "PROJECTOR") {
-          $("#projectorInfoModalTitle").html(id);
+          $("#projectorInfoModalTitle").html(id.toUpperCase());
           $("#projectorInfoPowerState").html(obj.state["power_state"]);
           $("#projectorInfoLampState").html((obj.state["error_status"])["lamp"]);
           $("#projectorInfoFanState").html((obj.state["error_status"])["fan"]);
