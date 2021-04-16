@@ -79,6 +79,7 @@
   <script type="text/javascript" src="js/jquery-3.5.1.slim.min.js"></script>
   <script type="text/javascript" src="js/popper.min.js"></script>
   <script type="text/javascript" src="js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="js/showdown.min.js"></script>
   <!-- Load js file with helperAddress -->
   <script src="config.js"></script>
   <script>
@@ -149,6 +150,25 @@
       }
     }
 
+    function selectClip(number) {
+
+      // Called when a user taps on one of the cards.
+
+      if (blockTouches == false) {
+        blockTouches = true;
+        setTimeout(function() {blockTouches = false;}, 1000);
+
+        // Ask the helper to switch the clip
+        gotoClip(number);
+
+        $(".card-footer").hide();
+        $(".border.rounded.no-gutters").removeClass("bg-primary"); // Selects all the cards
+        $("#cardName" + number).addClass("bg-primary");
+        getLabelText("testLabel", "en", number);
+      }
+
+    }
+
     function gotoClip(number) {
 
       // Function to ask the helper to ask the player to change the media to the
@@ -180,6 +200,39 @@
       xhr.send(requestString);
     }
 
+    function getLabelText(name, lang, index) {
+
+      // Ask the helper to retreive a label file for the specified object in
+      // the specified language and send the text.
+
+      var requestDict = {"action": "getLabelText",
+                         "lang": "en",
+                         "name": name}
+
+      requestString = JSON.stringify(requestDict);
+
+      var xhr = new XMLHttpRequest();
+      xhr.timeout = 2000;
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+          if (this.responseText != "") {
+            var formatted_text = markdownConverter.makeHtml(this.responseText);
+            $("#cardName" + index + "Label").html(formatted_text);
+            $("#cardName" + index + "Label").show();
+          } else {
+
+          }
+        }
+      };
+      xhr.send(requestString);
+
+    }
+
     function createCard(name, number, icon) {
 
       // Create a card that holds one dataset
@@ -192,15 +245,17 @@
       }
 
       var html = `
-      <div class='col-12 col-md-6 col-lg-4 col-xl-3 mt-2' onclick="gotoClip(${number})">
-        <div class="row no-gutters p-2 border border-primary rounded">
+      <div class='col-12 col-md-6 mt-2' onclick="selectClip(${number})">
+        <div id="cardName${number}" class="row no-gutters p-2 border border-primary rounded">
           <div class="col-3">
             <img class='card-img-top' src="thumbnails/${icon}"></img>
           </div>
-          <div class="col-9">
+          <div class="col-9 pl-2">
             <div class="card-body">
-              <h3 id="cardName${number}" class="card-title">${name}</h3>
-              </div>
+              <h3 class="card-title">${name}</h3>
+            </div>
+            <div id="cardName${number}Label" class="card-footer rounded">
+            </div>
           </div>
         </div>
       </div>
@@ -267,6 +322,9 @@
     var type = 'PLAYER_KIOSK';
     var serverAddress = ""; // The address of the main control server
     var dictionary = null;
+    var markdownConverter = new showdown.Converter();
+    var blockTouches = false;
+    //var labelCache = {}; // This will hold labels that we have received from the helper
 
     askForDefaults();
     // sendPing();

@@ -247,6 +247,25 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             commandList.append("disableAutoplay")
                         elif data["state"] == "toggle":
                             commandList.append("toggleAutoplay")
+                elif data["action"] == 'getLabelText':
+                    if "lang" in data:
+                        lang = data["lang"]
+                    else:
+                        lang = "en"
+                    if "name" in data:
+                        root = os.path.dirname(os.path.abspath(__file__))
+                        label_path = os.path.join(root, "labels", config["current_exhibit"], lang, data["name"] +'.txt')
+
+                        try:
+                            f = open(label_path,"r")
+                            label = f.read()
+                        except:
+                            print(f"Error: Unknown label {data['name']} requested in language {lang} for exhibit {config['current_exhibit']}")
+                            return()
+
+                        self.wfile.write(bytes(label, encoding="UTF-8"))
+                    else:
+                        print(f"Error: Label requested without name")
                 else:
                     print("Error: unrecognized action:", data["action"])
         #print("do_POST: EXIT")
