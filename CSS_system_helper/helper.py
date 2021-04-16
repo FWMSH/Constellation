@@ -28,24 +28,24 @@ class RequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
 
         # Receive a GET request and respond with a console webpage
-        #print("do_GET: ENTER")
+        print("do_GET: ENTER")
+        print("  ", self.path)
         global config
-
         if self.path == "/":
             pass
         elif self.path.lower().endswith(".html"):
-            #print("  Handling HTML file")
+            #print("  Handling HTML file", self.path)
             try:
-                f = open('.' + self.path,"r")
+                f = open(self.path[1:],"r")
             except IOError:
                 self.send_error(404, "File Not Found: %s" % self.path)
                 print(f"GET for unexpected file {self.path}")
-                #print("do_GET: EXIT")
+                print("do_GET: EXIT")
                 return()
+
                 #logging.error(f"GET for unexpected file {self.path}")
 
             page = str(f.read())
-
             # Build the address that the webpage should contact to reach this helper
             if self.address_string() == "127.0.0.1": # Request is coming from this machine too
                 address_to_insert = "'http://localhost:" + config["helper_port"] + "'"
@@ -60,7 +60,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
             self.wfile.write(bytes(page, encoding="UTF-8"))
 
             f.close()
-            #print("do_GET: EXIT")
+            print("do_GET: EXIT")
             return()
         else:
             # Open the file requested and send it
@@ -68,7 +68,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
             #print(f"  Handling {mimetype}")
             try:
                 #print(f"  Opening file {self.path}")
-                f = open(self.path, 'rb')
+                f = open(self.path[1:], 'rb')
                 #print(f"    File opened")
                 self.send_response(200)
                 self.send_header('Content-type', mimetype)
@@ -78,12 +78,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 #print(f"    Write complete")
                 f.close()
                 #print(f"  File closed")
-                #print("do_GET: EXIT")
+                print("do_GET: EXIT")
                 return
             except IOError:
                 self.send_error(404, "File Not Found: %s" % self.path)
                 #logging.error(f"GET for unexpected file {self.path}")
-        # print("do_GET: EXIT")
+        print("do_GET: EXIT")
 
     def do_OPTIONS(self):
         # print("do_OPTIONS: ENTER")
@@ -103,6 +103,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         global configFile
         global config
         global clipList
+        global commandList
 
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -231,6 +232,13 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     #     temp = {"name": }
                     json_string = json.dumps(clipList)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                elif data["action"] == 'gotoClip':
+                    if "clipNumber" in data:
+                        commandList.append("gotoClip_"+str(data["clipNumber"]))
+                elif data["action"] == "getCommands":
+                    json_string = json.dumps({"commands": commandList})
+                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                    commandList = []
                 else:
                     print("Error: unrecognized action:", data["action"])
         #print("do_POST: EXIT")
@@ -423,6 +431,7 @@ dictionary = loadDictionary()
 
 # This is hold information about currently loaded media, e.g., for the player
 clipList = {}
+commandList = []
 
 print(f"Launching server on port {config['helper_port']} to serve {config['id']}.")
 

@@ -20,6 +20,7 @@
 
       html {
         touch-action: manipulation;
+        word-wrap: break-word;
       }
       .container-fluid {
         touch-action: manipulation;
@@ -148,6 +149,21 @@
       }
     }
 
+    function gotoClip(number) {
+
+      // Function to ask the helper to ask the player to change the media to the
+      // specified clip
+
+      requestString = JSON.stringify({"action": "gotoClip",
+                                      "clipNumber": number});
+
+      var xhr = new XMLHttpRequest();
+      xhr.timeout = 1000;
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(requestString);
+    }
+
     function createCard(name, number, icon) {
 
       // Create a card that holds one dataset
@@ -160,14 +176,18 @@
       }
 
       var html = `
-        <div class='col-12 col-md-6 col-lg-4 col-xl-3 mt-3'>
-          <div id="card${number}" class="card w-100 h-100" onclick="gotoClip(${number})">
-              <img class='card-img-top' src="thumbnails/${icon}"></img>
-              <div class="card-body">
-                <center><h3 id="cardName${number}" class="card-title">${name}</h3></center>
-            </div>
+      <div class='col-12 col-md-6 col-lg-4 col-xl-3 mt-2' onclick="gotoClip(${number})">
+        <div class="row no-gutters p-2 border border-primary rounded">
+          <div class="col-3">
+            <img class='card-img-top' src="thumbnails/${icon}"></img>
+          </div>
+          <div class="col-9">
+            <div class="card-body">
+              <h3 id="cardName${number}" class="card-title">${name}</h3>
+              </div>
           </div>
         </div>
+      </div>
       `
       $("#cardRow").append(html)
     }
@@ -192,14 +212,17 @@
         if (this.status == 200) {
           $("#cardRow").empty();
           var update = JSON.parse(this.responseText);
-          var clipList = update["clipList"];
-          var activeClip = update["activeClip"]
-          for (var i=0; i<clipList.length; i++) {
-            clip = clipList[i];
+          console.log("Update received:", update);
+          if ("clipList" in update) {
+            var clipList = update["clipList"];
+            var activeClip = update["activeClip"];
+            for (var i=0; i<clipList.length; i++) {
+              clip = clipList[i];
 
-            createCard(clip, i, "");
+              createCard(clip, i, "default.svg");
+            }
+            $("#card"+activeClip).addClass("bg-primary");
           }
-          $("#card"+activeClip).addClass("bg-primary");
         }
     };
       xhr.send(requestString);
