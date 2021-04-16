@@ -180,6 +180,12 @@
           } else if (cmd.startsWith("gotoClip")) {
               var clipNumber = cmd.split("_")[1];
               gotoSource(clipNumber);
+          } else if (cmd == "disableAutoplay") {
+              autoplayEnabled = false;
+          } else if (cmd == "enableAutoplay") {
+              autoplayEnabled = true;
+          } else if (cmd == "toggleAutoplay") {
+              autoplayEnabled = !autoplayEnabled;
           } else {
               console.log(`Command not recognized: ${cmd}`);
           }

@@ -239,6 +239,14 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     json_string = json.dumps({"commands": commandList})
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                     commandList = []
+                elif data["action"] == "setAutoplay":
+                    if "state" in data:
+                        if data["state"] == "on":
+                            commandList.append("enableAutoplay")
+                        elif data["state"] == "off":
+                            commandList.append("disableAutoplay")
+                        elif data["state"] == "toggle":
+                            commandList.append("toggleAutoplay")
                 else:
                     print("Error: unrecognized action:", data["action"])
         #print("do_POST: EXIT")

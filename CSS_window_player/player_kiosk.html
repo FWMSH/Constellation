@@ -154,11 +154,27 @@
       // Function to ask the helper to ask the player to change the media to the
       // specified clip
 
-      requestString = JSON.stringify({"action": "gotoClip",
+      var requestString = JSON.stringify({"action": "gotoClip",
                                       "clipNumber": number});
 
       var xhr = new XMLHttpRequest();
       xhr.timeout = 1000;
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(requestString);
+    }
+
+    function setAutoplay(state) {
+
+      // state should be "off", "on", or "toggle"
+
+      var requestDict = {"action": "setAutoplay",
+                         "state": state}
+
+      requestString = JSON.stringify(requestDict);
+
+      var xhr = new XMLHttpRequest();
+      xhr.timeout = 2000;
       xhr.open("POST", helperAddress, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.send(requestString);
@@ -233,6 +249,7 @@
       // Make the attractor layer visible and start autorun
 
       $("#attractorOverlay").show();
+      setAutoplay("on");
 
     }
 
@@ -241,6 +258,7 @@
       // Make the attractor layer invisible and start the autorun
 
       $("#attractorOverlay").hide();
+      setAutoplay("off");
 
     }
 
