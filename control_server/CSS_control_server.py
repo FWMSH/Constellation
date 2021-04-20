@@ -12,6 +12,7 @@ import cgi
 import signal
 import sys
 import traceback
+from threading import Timer
 
 
 class Projector:
@@ -228,19 +229,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         self.wfile.write(bytes(json_string, encoding="UTF-8"))
 
-    def checkEventSchedule(self):
-
-        # Read the "Next event" tuple in schedule_dict and take action if necessary
-
-        global schedule_dict
-
-        nextEventDateTime, nextAction = schedule_dict["Next event"]
-
-        if nextEventDateTime is not None:
-            if datetime.datetime.now() > nextEventDateTime:
-                commandAllExhibitComponents(nextAction)
-                queueNextOnOffEvent()
-
     def log_request(code='-', size='-'):
 
         # Override to suppress the automatic logging
@@ -406,7 +394,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         print("Error: exhibitComponent ping received without id or type field")
                         return() # No id or type, so bail out
 
-                    self.checkEventSchedule()
+                    # self.checkEventSchedule()
                     updateExhibitComponentStatus(data, self.address_string())
                     self.sendCurrentConfiguration(id)
             else:
@@ -473,6 +461,23 @@ def updateSynchronizationList(id, other_ids):
             # Remove this sync from the list in case it happens again later.
             synchronizationList.pop(match_index)
 
+def pollEventSchedule():
+
+    checkEventSchedule()
+    Timer(10, pollEventSchedule).start()
+
+def checkEventSchedule():
+
+    # Read the "Next event" tuple in schedule_dict and take action if necessary
+
+    global schedule_dict
+
+    nextEventDateTime, nextAction = schedule_dict["Next event"]
+
+    if nextEventDateTime is not None:
+        if datetime.datetime.now() > nextEventDateTime:
+            commandAllExhibitComponents(nextAction)
+            queueNextOnOffEvent()
 
 def updateSchedule(schedule):
 
@@ -671,6 +676,9 @@ def commandAllExhibitComponents(cmd):
 
     # Queue a command for every exhibit component
 
+    print("Sending command to all components:", cmd)
+    logging.info(f"commandAllExhibitComponents: {cmd}")
+
     for component in componentList:
         component.queueCommand(cmd)
 
@@ -729,6 +737,7 @@ logging.info("Server started")
 
 checkAvailableExhibits()
 loadDefaultConfiguration()
+pollEventSchedule()
 
 httpd = HTTPServer((ADDR, serverPort), RequestHandler)
 httpd.serve_forever()
