@@ -658,7 +658,7 @@ def getExhibitComponent(id):
 
 def getProjector(id):
 
-    # Return a component with the given id, or None if no such
+    # Return a projector with the given id, or None if no such
     # component exists
 
     projector = next((x for x in projectorList if x.id == id), None)
