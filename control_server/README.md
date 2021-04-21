@@ -22,6 +22,22 @@ The control server coordinates communication between **_Constellation_** compone
 
 #### currentExhibitConfiguration.ini
 
+##### Basic configuration
+
+##### Scheduling exhibit startup and shutdown
+
+##### Controlling projectors
+The control server can manage projectors over IP using the PJLink protocol. With this method, you can read the state of various internal projector parameters, as well as turn the projector on and off. Since this happens independently of whatever device is actually connected to the projector, projectors are not considered a `component` and do not have `content`.
+
+Projectors are defined in the `[PROJECTORS]` section as such:
+
+```
+[PROJECTORS]
+myprojector = 10.8.0.177
+secureProjector = 10.8.1.235, thePassword
+```
+Each line defines one projector, in which the keyword becomes the `id`. Note that INI keywords are case insensitive; the `id` will be converted to uppercase when displayed in the web console. If a projector has a password for access to PJLink, specify it with a comma after the IP address. All projectors are assigned the `type` of "PROJECTOR."
+
 #### Exhibit files
 An exhibit file defines the content for a particular exhibit. It is in INI format, with the equals sign (=) as the separator. Each component has its own section. The `content` keyword defines the files that component should use. To specify multiple media pieces, separate them by a comma. For example, the content definition for two displays with `id`s of DISPLAY1 and DISPLAY2 would look like:
 
