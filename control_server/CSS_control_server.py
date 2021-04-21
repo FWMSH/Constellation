@@ -368,6 +368,13 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     if ("id" in data) and ("content" in data):
                         print(f"Changing content for {data['id']}:", data['content'])
                         setComponentContent(data['id'], data['content'])
+                elif action == "getHelpText":
+                    try:
+                        with open("README.md", 'r') as f:
+                            text = f.read()
+                            self.wfile.write(bytes(text, encoding="UTF-8"))
+                    except:
+                        logging.error("Unable to read README.md")
 
             elif pingClass == "exhibitComponent":
                 if "action" in data: # not a ping
