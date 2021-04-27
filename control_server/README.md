@@ -119,6 +119,38 @@ The following states apply only to a `projector`:
 
 * `STANDBY` (teal): The `projector` is accessible via PJLink but is currently powered off.
 
+### Component status page
+
+<img src="images/component_status_page.png" style="width: 40%; float: right; border: 2px solid gray; margin: 5px;"></img>
+
+Clicking on a `component` opens its status page. Here, you can see a snapshot of the remote system's performance and manipulate its content. The status page is broken into three areas.
+
+#### System status
+
+The system status area, located at the top, provides a summary of the performance of the computer running the `component`. These values are only estimates—if a `component` is behaving inconsistently, use the operating system's tools to diagnose the problem.
+
+Note that CPU usage is not properly reported for `component`s running Windows.
+
+#### Content management
+
+The content management area in the middle allows you to manipulate the displayed `content` for components that support it. It is broken into two tabs: "This exhibit" shows the available `content` loaded for the currently-selected `exhibit`, while "All exhibits" aggregates all `content` available on the `component`. Note that this panel only shows `content` managed by the system helper, including all `content` uploaded through the web console.
+
+`Content` highlighted in blue is in the current display queue, which loops indefinitely. To add or remove a piece of `content`, click it to toggle its color. These changes are not saved until the "Save changes" button is pressed. If you select a file from another `exhibit` (by clicking it in the "All exhibits" tab), that file will be copied to the current `exhibit`.
+
+`Content` can also be deleted from the system using the item's dropdown menu. Note that deleting content takes effect immediately and cannot be undone.
+
+#### Content upload
+
+New `content` can be uploaded using the bottom part of the status page. Click the "Choose file" button and select a file you wish to upload. The uploaded file will be stored as part of the `content` for the currently-running `exhibit`.
+
+Note that uploaded files cannot contain an equals sign (=). If you upload a file with the same filename as a piece of existing `content`, the old file will be overwritten.
+
+### Projector status page
+
+Clicking on a `projector` that is `ONLINE` or `STANDBY` will bring up its status page. Here, you can see an array of information reported by the projector using the PJLink protocol.
+
 ### Schedule tab
+
+The schedule tab allows you to modify the power on/power off schedule for the `gallery`. Each day can have one power on and one power off; neither are required.
 
 ### Settings tab
