@@ -611,26 +611,71 @@
 
         if (obj.type == "PROJECTOR") {
           $("#projectorInfoModalTitle").html(id.toUpperCase());
-          $("#projectorInfoPowerState").html(obj.state["power_state"]);
-          $("#projectorInfoLampState").html((obj.state["error_status"])["lamp"]);
-          $("#projectorInfoFanState").html((obj.state["error_status"])["fan"]);
-          $("#projectorInfoFilterState").html((obj.state["error_status"])["filter"]);
-          $("#projectorInfoCoverState").html((obj.state["error_status"])["cover"]);
-          $("#projectorInfoOtherState").html((obj.state["error_status"])["other"]);
-          $("#projectorInfoTempState").html((obj.state["error_status"])["temperature"]);
-          $("#projectorInfoModel").html(obj.state["model"]);
-
-          var lampList = obj.state["lamp_status"];
-          var lamp_html = ""
-          for (var i=0; i<lampList.length; i++) {
-            lamp = lampList[i]
-            var statusStr = ""
-            if (lamp[1] == false) {
-              statusStr = "(off)"
+          if ("power_state" in obj.state) {
+            $("#projectorInfoPowerState").html(obj.state["power_state"]);
+          } else {
+            $("#projectorInfoPowerState").html("-");
+          }
+          if ("error_status" in obj.state) {
+            if ("lamp" in obj.state["error_status"]) {
+              $("#projectorInfoLampState").html((obj.state["error_status"])["lamp"]);
             } else {
-              statusStr = "(on)"
+              $("#projectorInfoLampState").html("-");
             }
-            lamp_html += `Lamp ${i+1} ${statusStr}: ${lamp[0]} hours<br>`;
+            if ("fan" in obj.state["error_status"]) {
+              $("#projectorInfoFanState").html((obj.state["error_status"])["fan"]);
+            } else {
+              $("#projectorInfoFanState").html("-");
+            }
+            if ("filter" in obj.state["error_status"]) {
+              $("#projectorInfoFilterState").html((obj.state["error_status"])["filter"]);
+            } else {
+              $("#projectorInfoFilterState").html("-");
+            }
+            if ("cover" in obj.state["error_status"]) {
+              $("#projectorInfoCoverState").html((obj.state["error_status"])["cover"]);
+            } else {
+              $("#projectorInfoCoverState").html("-");
+            }
+            if ("other" in obj.state["error_status"]) {
+              $("#projectorInfoOtherState").html((obj.state["error_status"])["other"]);
+            } else {
+              $("#projectorInfoOtherState").html("-");
+            }
+            if ("temperature" in obj.state["error_status"]) {
+              $("#projectorInfoTempState").html((obj.state["error_status"])["temperature"]);
+            } else {
+              $("#projectorInfoTempState").html("-");
+            }
+          } else {
+            $("#projectorInfoLampState").html("-");
+            $("#projectorInfoFanState").html("-");
+            $("#projectorInfoFilterState").html("-");
+            $("#projectorInfoCoverState").html("-");
+            $("#projectorInfoOtherState").html("-");
+            $("#projectorInfoTempState").html("-");
+          }
+          if ("model" in obj.state) {
+            $("#projectorInfoModel").html(obj.state["model"]);
+          } else {
+            $("#projectorInfoModel").html("-");
+          }
+
+          if ("lamp_status" in obj.state) {
+            var lampList = obj.state["lamp_status"];
+            var lamp_html = "";
+            for (var i=0; i<lampList.length; i++) {
+              lamp = lampList[i];
+              var statusStr = "";
+              if (lamp[1] == false) {
+                statusStr = "(off)";
+              } else {
+                statusStr = "(on)";
+              }
+              lamp_html += `Lamp ${i+1} ${statusStr}: ${lamp[0]} hours<br>`;
+            }
+          } else {
+            lamp_html = "-";
           }
           $("#projectorInfoLampHours").html(lamp_html);
 
