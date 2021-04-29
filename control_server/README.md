@@ -154,3 +154,7 @@ Clicking on a `projector` that is `ONLINE` or `STANDBY` will bring up its status
 The schedule tab allows you to modify the power on/power off schedule for the `gallery`. Each day can have one power on and one power off; neither are required.
 
 ### Settings tab
+
+#### Reloading currentExhibitConfiguration.ini
+
+If you make a manual change to `currentExhibitConfiguration.ini`, pressing this button will cause the control server to reload it and parse the new configuration as if it were starting up. This means you do not have to stop and restart the server process to make an update.
