@@ -12,18 +12,19 @@ import cgi
 import signal
 import sys
 import traceback
-from threading import Timer
+import threading
 
 
 class Projector:
 
     # Holds basic data about a projector
 
-    def __init__(self, id, ip, password=None):
+    def __init__(self, id, ip, mac_address=None, password=None):
 
         self.id = id
         self.ip = ip # IP address of the projector
         self.password = password # Password to access PJLink
+        self.mac_address = mac_address # For use with Wake on LAN
 
         self.state = {"status": "OFFLINE"}
         self.lastContactDateTime = datetime.datetime(2020,1,1)
@@ -41,8 +42,11 @@ class Projector:
 
         error = False
         try:
+            #print(f"Attempting to connect to projector {self.id} ...")
             projector = pypjlink.Projector.from_address(self.ip, timeout=2)
+            #print("Connectopm established. Authenticaing...")
             projector.authenticate(password=self.password)
+            #print("Authenticated.")
 
             if full:
                 self.state["model"] = projector.get_manufacturer() + " " + projector.get_product_name()
@@ -53,6 +57,7 @@ class Projector:
 
             self.lastContactDateTime = datetime.datetime.now()
         except Exception as e:
+            # print(e)
             error = True
 
         if (error and (self.secondsSinceLastContact() > 60)):
@@ -65,11 +70,19 @@ class Projector:
 
     def queueCommand(self, cmd):
 
-        # Function to send command to projector. Named "queueCommand" to match
-        # what is used for exhibitComponents
+        # Function to spawn a thread that sends a command to the projector.
+        # Named "queueCommand" to match what is used for exhibitComponents
+        print(f"Queuing command {cmd} for {self.id}")
+        th = threading.Thread(target=self.sendCommand, args=[cmd])
+        th.daemon = True
+        th.start()
+
+    def sendCommand(self, cmd):
+
+        # Function to connect to a PJLink projector and send a command
 
         try:
-            with pypjlink.Projector.from_address(self.ip, timeout=2) as projector:
+            with pypjlink.Projector.from_address(self.ip, timeout=10) as projector:
                 projector.authenticate(password=self.password)
 
                 if cmd == "wakeDisplay":
@@ -78,8 +91,8 @@ class Projector:
                 elif cmd == "sleepDisplay":
                     projector.set_power("off")
                     self.state["power_state"] = "off"
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
 class ExhibitComponent:
 
@@ -335,7 +348,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     if "id" in data:
                         proj = getProjector(data["id"])
                         if proj != None:
-                            proj.update()
+                            #proj.update()
                             json_string = json.dumps(proj.state)
                             self.wfile.write(bytes(json_string, encoding="UTF-8"))
                         else:
@@ -470,8 +483,25 @@ def updateSynchronizationList(id, other_ids):
 
 def pollEventSchedule():
 
+    global pollingThreadDict
+
     checkEventSchedule()
-    Timer(10, pollEventSchedule).start()
+    pollingThreadDict["eventSchedule"] = threading.Timer(10, pollEventSchedule)
+    pollingThreadDict["eventSchedule"].start()
+
+def pollProjectors():
+
+    global pollingThreadDict
+
+    #print("Polling projectors...")
+
+    for projector in projectorList:
+        th = threading.Thread(target=projector.update)
+        th.daemon = True # So it dies if we exit
+        th.start()
+
+    pollingThreadDict["pollProjectors"] = threading.Timer(30, pollProjectors)
+    pollingThreadDict["pollProjectors"].start()
 
 def checkEventSchedule():
 
@@ -608,24 +638,45 @@ def loadDefaultConfiguration():
     try:
         projectors = config["PROJECTORS"]
         projectorList = []
+        print("Connecting to projectors...", end="\r", flush=True)
     except:
         print("No standalone projectors specified")
         projectors = []
 
+    n_proj = len(projectors)
+    cur_proj = 0
     for key in projectors:
+        cur_proj += 1
+        print(f"Connecting to projectors... {cur_proj}/{n_proj}", end="\r", flush=True)
         if getProjector(key) is None:
             # Try to split on a comma. If we get two elements back, that means
             # we have the form "ip, passwprd"
             split = projectors[key].split(",")
-            if len(split) == 2:
-                newProj = Projector(key, split[0].strip(), password=split[1].strip())
+            if len(split) == 3:
+                # We have an IP address, a password, and a MAC address
+                ip = split[0].strip()
+                password = split[1].strip()
+                if password == "":
+                    password = None
+                mac = split[2]
+                if mac == "":
+                    mac = None
+                newProj = Projector(key, ip, mac_address=mac, password=password)
+            elif len(split) == 2:
+                # We have an IP address and a password
+                ip = split[0].strip()
+                password = split[1].strip()
+                if password == "":
+                    password = None
+                newProj = Projector(key, ip, password=password)
             elif len(split) == 1:
+                # We have an IP address only
                 newProj = Projector(key, projectors[key])
             else:
                 print("Invalid projector entry:", projcetors[key])
                 break
-            newProj.update()
             projectorList.append(newProj)
+    print("Connecting to projectors... done")
 
     # Then, load the configuration for that exhibit
     readExhibitConfiguration(current["current_exhibit"])
@@ -711,6 +762,8 @@ def updateExhibitComponentStatus(data, ip):
 
 def quit_handler(sig, frame):
     print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
+    for key in pollingThreadDict:
+        pollingThreadDict[key].cancel()
     logging.info("Server shutdown")
     sys.exit(0)
 
@@ -734,6 +787,7 @@ currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
 exhibitList = []
 currentExhibitConfiguration = None # the configParser object holding the current config
 schedule_dict = {} # Will hold a list of on/off times for every day of the week
+pollingThreadDict = {} # Holds references to the threads starting by various polling procedures
 
 # Set up log file
 logging.basicConfig(datefmt='%Y-%m-%d %H:%M:%S', filename='control_server.log', format='%(levelname)s, %(asctime)s, %(message)s', level=logging.DEBUG)
@@ -745,6 +799,7 @@ logging.info("Server started")
 checkAvailableExhibits()
 loadDefaultConfiguration()
 pollEventSchedule()
+pollProjectors()
 
 httpd = HTTPServer((ADDR, serverPort), RequestHandler)
 httpd.serve_forever()

@@ -129,3 +129,80 @@ ERROR, 2021-04-26 09:38:52, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-04-26 09:39:11, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-04-26 14:58:44, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-04-27 13:45:28, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-04-29 13:14:45, Server shutdown
+INFO, 2021-04-29 13:14:46, Server shutdown
+INFO, 2021-04-29 13:14:49, Server started
+INFO, 2021-04-29 13:16:36, Server shutdown
+INFO, 2021-04-29 13:16:36, Server shutdown
+INFO, 2021-04-29 13:16:38, Server started
+INFO, 2021-04-29 13:21:27, Server shutdown
+INFO, 2021-04-29 13:21:28, Server shutdown
+INFO, 2021-04-29 13:21:31, Server started
+INFO, 2021-04-29 13:21:49, Server shutdown
+INFO, 2021-04-29 13:23:58, Server started
+INFO, 2021-04-29 13:24:09, Server shutdown
+INFO, 2021-04-29 13:24:31, Server started
+INFO, 2021-04-29 13:24:34, Server shutdown
+INFO, 2021-04-29 13:24:57, Server started
+INFO, 2021-04-29 13:25:11, Server shutdown
+INFO, 2021-04-29 13:26:27, Server started
+INFO, 2021-04-29 13:28:06, Server shutdown
+INFO, 2021-04-29 13:28:07, Server started
+INFO, 2021-04-29 13:31:25, Server shutdown
+INFO, 2021-04-29 13:31:27, Server started
+INFO, 2021-04-29 13:31:39, Server shutdown
+INFO, 2021-04-29 13:32:04, Server started
+INFO, 2021-04-29 13:32:08, Server shutdown
+INFO, 2021-04-29 13:32:23, Server started
+INFO, 2021-04-29 13:32:55, Server shutdown
+INFO, 2021-04-29 13:33:48, Server started
+INFO, 2021-04-29 13:34:26, Server shutdown
+INFO, 2021-04-29 13:36:09, Server started
+ERROR, 2021-04-29 13:36:48, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-04-29 13:37:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-04-29 13:40:48, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-04-29 13:48:33, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-04-29 13:49:03, Server shutdown
+INFO, 2021-04-29 13:49:06, Server started
+ERROR, 2021-04-29 13:49:30, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-04-29 13:56:11, Server shutdown
+INFO, 2021-04-29 13:56:13, Server started
+INFO, 2021-04-29 13:57:02, Server shutdown
+INFO, 2021-04-29 13:57:03, Server started
+INFO, 2021-04-29 13:58:35, Server shutdown
+INFO, 2021-04-29 13:58:37, Server started
+ERROR, 2021-04-29 13:59:41, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-04-29 14:02:07, Server shutdown
+INFO, 2021-04-29 14:02:09, Server started
+INFO, 2021-04-29 14:10:20, Server shutdown
+INFO, 2021-04-29 14:10:22, Server started
+INFO, 2021-04-29 14:10:43, Server shutdown
+INFO, 2021-04-29 14:13:31, Server started
+ERROR, 2021-04-29 14:13:59, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 779, in <module><newline>    httpd.serve_forever()<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/socketserver.py', line 232, in serve_forever<newline>    ready = selector.select(poll_interval)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/selectors.py', line 415, in select<newline>    fd_event_list = self._selector.poll(timeout)<newline>  File 'CSS_control_server.py', line 740, in quit_handler<newline>    pollingThreadDict[key].cancel()<newline>AttributeError: 'Thread' object has no attribute 'cancel'<newline>"
+INFO, 2021-04-29 14:15:51, Server started
+INFO, 2021-04-29 14:22:44, Server shutdown
+INFO, 2021-04-29 14:22:47, Server started
+INFO, 2021-04-29 14:23:15, Server shutdown
+INFO, 2021-04-29 14:23:39, Server started
+INFO, 2021-04-29 14:24:17, Server shutdown
+INFO, 2021-04-29 14:24:19, Server started
+INFO, 2021-04-29 14:24:44, Server shutdown
+INFO, 2021-04-29 14:24:46, Server started
+INFO, 2021-04-29 14:28:11, Server shutdown
+INFO, 2021-04-29 14:28:12, Server started
+INFO, 2021-04-29 14:29:00, Server shutdown
+INFO, 2021-04-29 14:29:02, Server started
+ERROR, 2021-04-29 14:29:17, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-04-29 14:29:52, Server shutdown
+INFO, 2021-04-29 14:29:54, Server started
+ERROR, 2021-04-29 14:30:06, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-04-29 14:32:48, Server shutdown
+INFO, 2021-04-29 14:32:56, Server started
+ERROR, 2021-04-29 14:33:11, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-04-29 14:34:23, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-04-29 14:39:47, Server shutdown
+INFO, 2021-04-29 14:39:49, Server started
+ERROR, 2021-04-29 14:40:06, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-04-29 14:57:57, Server shutdown
+INFO, 2021-04-29 14:57:59, Server started
+ERROR, 2021-04-29 15:04:43, GET for unexpected file /js/popper.min.js.map

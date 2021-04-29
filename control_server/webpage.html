@@ -405,7 +405,7 @@
           if (this.type == "PROJECTOR") {
             this.checkProjector();
             var thisInstance = this;
-            this.pollingFunction = setInterval(function() {thisInstance.checkProjector()}, 10000);
+            this.pollingFunction = setInterval(function() {thisInstance.checkProjector()}, 5000);
           }
         }
 
@@ -426,7 +426,6 @@
 
           // Function to ask the server to ping the projector
           var thisInstance = this;
-          //requestString = `class=webpage&action=fetchProjectorUpdate&id=${this.id}`;
           var requestDict = {"class": "webpage",
                              "action": "fetchProjectorUpdate",
                              "id": this.id};
