@@ -61,7 +61,8 @@ class Projector:
             error = True
 
         if (error and (self.secondsSinceLastContact() > 60)):
-            self.state["status"] = "OFFLINE"
+            self.state = {"status": "OFFLINE"}
+            #self.state["status"] = "OFFLINE"
         else:
             if self.state["power_state"] == "on":
                 self.state["status"] = "ONLINE"
@@ -676,7 +677,7 @@ def loadDefaultConfiguration():
                 print("Invalid projector entry:", projcetors[key])
                 break
             projectorList.append(newProj)
-    print("Connecting to projectors... done")
+    print("Connecting to projectors... done                      ")
 
     # Then, load the configuration for that exhibit
     readExhibitConfiguration(current["current_exhibit"])
