@@ -13,18 +13,21 @@ import signal
 import sys
 import traceback
 import threading
+import projector_control # Our file
 
 
 class Projector:
 
     # Holds basic data about a projector
 
-    def __init__(self, id, ip, mac_address=None, password=None):
+    def __init__(self, id, ip, connection_type, mac_address=None, make=None, password=None):
 
         self.id = id
         self.ip = ip # IP address of the projector
         self.password = password # Password to access PJLink
         self.mac_address = mac_address # For use with Wake on LAN
+        self.connection_type = connection_type
+        self.make = make
 
         self.state = {"status": "OFFLINE"}
         self.lastContactDateTime = datetime.datetime(2020,1,1)
@@ -42,22 +45,34 @@ class Projector:
 
         error = False
         try:
-            #print(f"Attempting to connect to projector {self.id} ...")
-            projector = pypjlink.Projector.from_address(self.ip, timeout=2)
-            #print("Connectopm established. Authenticaing...")
-            projector.authenticate(password=self.password)
-            #print("Authenticated.")
+            # projector = pypjlink.Projector.from_address(self.ip, timeout=2)
+            # projector.authenticate(password=self.password)
+            #
+            # if full:
+            #     self.state["model"] = projector.get_manufacturer() + " " + projector.get_product_name()
+            #
+            # self.state["power_state"] = projector.get_power()
+            # self.state["lamp_status"] = projector.get_lamps()
+            # self.state["error_status"] = projector.get_errors()
 
-            if full:
-                self.state["model"] = projector.get_manufacturer() + " " + projector.get_product_name()
-
-            self.state["power_state"] = projector.get_power()
-            self.state["lamp_status"] = projector.get_lamps()
-            self.state["error_status"] = projector.get_errors()
+            if self.connection_type == 'pjlink':
+                connection = projector_control.pjlink_connect(self.ip, password=self.password)
+                if full:
+                    self.state["model"] = projector_control.pjlink_send_command(connection, "get_model")
+                self.state["power_state"] = projector_control.pjlink_send_command(connection, "power_state")
+                self.state["lamp_status"] = projector_control.pjlink_send_command(connection, "lamp_status")
+                self.state["error_status"] = projector_control.pjlink_send_command(connection, "error_status")
+            elif self.connection_type == "serial":
+                connection = projector_control.serial_connect_with_url(self.ip, make=self.make)
+                if full:
+                    self.state["model"] = projector_control.serial_send_command(connection, "get_model", make=self.make)
+                self.state["power_state"] = projector_control.serial_send_command(connection, "power_state", make=self.make)
+                self.state["lamp_status"] = projector_control.serial_send_command(connection, "lamp_status", make=self.make)
+                self.state["error_status"] = projector_control.serial_send_command(connection, "error_status", make=self.make)
 
             self.lastContactDateTime = datetime.datetime.now()
         except Exception as e:
-            # print(e)
+            #print(e)
             error = True
 
         if (error and (self.secondsSinceLastContact() > 60)):
@@ -82,16 +97,35 @@ class Projector:
 
         # Function to connect to a PJLink projector and send a command
 
-        try:
-            with pypjlink.Projector.from_address(self.ip, timeout=10) as projector:
-                projector.authenticate(password=self.password)
+        # Translate commands for projector_control
+        cmd_dict = {
+            "sleepDisplay": "power_off",
+            "wakeDisplay": "power_on"
+        }
 
-                if cmd == "wakeDisplay":
-                    projector.set_power("on")
-                    self.state["power_state"] = "on"
-                elif cmd == "sleepDisplay":
-                    projector.set_power("off")
-                    self.state["power_state"] = "off"
+        try:
+            # with pypjlink.Projector.from_address(self.ip, timeout=10) as projector:
+            #     projector.authenticate(password=self.password)
+            #
+            #     if cmd == "wakeDisplay":
+            #         projector.set_power("on")
+            #         self.state["power_state"] = "on"
+            #     elif cmd == "sleepDisplay":
+            #         projector.set_power("off")
+            #         self.state["power_state"] = "off"
+            if self.connection_type == "pjlink":
+                connection = projector_control.pjlink_connect(self.ip, password=self.password)
+                if cmd in cmd_dict:
+                    projector_control.pjlink_send_command(connection, cmd_dict[cmd])
+                else:
+                    projector_control.pjlink_send_command(connection, cmd)
+            elif self.connection_type == "serial":
+                connection = projector_control.serial_connect_with_url(self.ip, make=self.make)
+                if cmd in cmd_dict:
+                    projector_control.serial_send_command(connection, cmd_dict[cmd], make=self.make)
+                else:
+                    projector_control.serial_send_command(connection, cmd, make=self.make)
+
         except Exception as e:
             print(e)
 
@@ -636,48 +670,75 @@ def loadDefaultConfiguration():
     except KeyError:
         print("No on/off schedule to read")
 
-    try:
-        projectors = config["PROJECTORS"]
-        projectorList = []
-        print("Connecting to projectors...", end="\r", flush=True)
-    except:
-        print("No standalone projectors specified")
-        projectors = []
+    projectorList = []
 
-    n_proj = len(projectors)
+    # Parse list of PJLink projectors
+
+    try:
+        pjlink_projectors = config["PJLINK_PROJECTORS"]
+        print("Connecting to PJLink projectors...", end="\r", flush=True)
+    except:
+        print("No PJLink projectors specified")
+        pjlink_projectors = []
+
+    n_proj = len(pjlink_projectors)
     cur_proj = 0
-    for key in projectors:
+    for key in pjlink_projectors:
         cur_proj += 1
-        print(f"Connecting to projectors... {cur_proj}/{n_proj}", end="\r", flush=True)
+        print(f"Connecting to PJLink projectors... {cur_proj}/{n_proj}", end="\r", flush=True)
         if getProjector(key) is None:
             # Try to split on a comma. If we get two elements back, that means
             # we have the form "ip, passwprd"
-            split = projectors[key].split(",")
-            if len(split) == 3:
-                # We have an IP address, a password, and a MAC address
-                ip = split[0].strip()
-                password = split[1].strip()
-                if password == "":
-                    password = None
-                mac = split[2]
-                if mac == "":
-                    mac = None
-                newProj = Projector(key, ip, mac_address=mac, password=password)
-            elif len(split) == 2:
+            split = pjlink_projectors[key].split(",")
+            if len(split) == 2:
                 # We have an IP address and a password
                 ip = split[0].strip()
                 password = split[1].strip()
                 if password == "":
                     password = None
-                newProj = Projector(key, ip, password=password)
+                newProj = Projector(key, ip, "pjlink", password=password)
             elif len(split) == 1:
                 # We have an IP address only
-                newProj = Projector(key, projectors[key])
+                newProj = Projector(key, pjlink_projectors[key], "pjlink")
             else:
-                print("Invalid projector entry:", projcetors[key])
+                print("Invalid PJLink projector entry:", pjlink_projectors[key])
                 break
             projectorList.append(newProj)
-    print("Connecting to projectors... done                      ")
+    print("Connecting to PJLink projectors... done                      ")
+
+    # Parse list of serial proejctors
+
+    try:
+        serial_projectors = config["SERIAL_PROJECTORS"]
+        print("Connecting to serial projectors...", end="\r", flush=True)
+    except:
+        print("No serial projectors specified")
+        serial_projectors = []
+
+    n_proj = len(serial_projectors)
+    cur_proj = 0
+    for key in serial_projectors:
+        cur_proj += 1
+        print(f"Connecting to serial projectors... {cur_proj}/{n_proj}", end="\r", flush=True)
+        if getProjector(key) is None:
+            # Try to split on a comma. If we get two elements back, that means
+            # we have the form "ip, passwprd"
+            split = serial_projectors[key].split(",")
+            if len(split) == 2:
+                # We have an IP address and a make
+                ip = split[0].strip()
+                make = split[1].strip()
+                if make == "":
+                    make = None
+                newProj = Projector(key, ip, "serial", make=make)
+            elif len(split) == 1:
+                # We have an IP address only
+                newProj = Projector(key, serial_projectors[key], "serial")
+            else:
+                print("Invalid serial projector entry:", serial_projectors[key])
+                break
+            projectorList.append(newProj)
+    print("Connecting to serial projectors... done                      ")
 
     # Then, load the configuration for that exhibit
     readExhibitConfiguration(current["current_exhibit"])

@@ -616,7 +616,7 @@
           } else {
             $("#projectorInfoPowerState").html("-");
           }
-          if ("error_status" in obj.state) {
+          if (("error_status" in obj.state) && (obj.state["error_status"].constructor == Object)) {
             if ("lamp" in obj.state["error_status"]) {
               $("#projectorInfoLampState").html((obj.state["error_status"])["lamp"]);
             } else {

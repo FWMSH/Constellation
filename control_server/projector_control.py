@@ -2,7 +2,7 @@ import serial
 import pypjlink
 import platform
 
-def serial_connect_with_url(ip, baudrate=9600, make=None, port=None, protocol='socket', timeout=1):
+def serial_connect_with_url(ip, baudrate=9600, make=None, port=None, protocol='socket', timeout=2):
 
     # Function to establish a serial connection over TCP/IP
 
@@ -48,12 +48,15 @@ def serial_connect(baudrate=9600,
     return(connection)
 
 
-def serial_send_command(connection, command, make=None):
+def serial_send_command(connection, command, debug=False, make=None):
 
     # Function to send a command to a projector, wait for a response and
     # return that response
 
     command_dict = {
+        "get_source": {
+            "barco": serial_barco_get_source,
+        },
         "lamp_status": {
             "barco": serial_barco_lamp_status,
         },
@@ -66,8 +69,27 @@ def serial_send_command(connection, command, make=None):
             "optoma": "~0000 1\r"
         },
         "power_state": {
-            "barco": ":POST?\r"
-        }
+            "barco": ":POST?\r",
+            "optoma": "~00124 1\r"
+        },
+        "set_dvi_1": {
+            "barco": ":IDVI1\r",
+        },
+        "set_dvi_2": {
+            "barco": ":IDVI2\r",
+        },
+        "set_hdmi_1": {
+            "barco": ":IHDM1\r",
+        },
+        "set_hdmi_2": {
+            "barco": ":IHDM2\r",
+        },
+        "set_vga_1": {
+            "barco": ":IVGA1\r",
+        },
+        "set_vga_2": {
+            "barco": ":IVGA2\r",
+        },
     }
 
     response_dict = {
@@ -87,13 +109,16 @@ def serial_send_command(connection, command, make=None):
         raise Exception("You must specify a projector make to use a command alias")
 
     command_to_send = None
+    if debug: print(command)
     if command.lower() in command_dict:
+        if debug: print("Command in command_dict")
         # First look up the command alias
         cmd_alias = command_dict[command.lower()]
         # Then, find the make-specific command
         if make.lower() in cmd_alias:
+            if debug: print(f"Make {make} in cmd_alias")
             command_to_send = cmd_alias[make.lower()]
-
+            if debug: print(f"command_to_send: {command_to_send}")
             # If this command is a function, call it instead of continuing
             if callable(command_to_send):
                 response = command_to_send(connection)
@@ -151,6 +176,26 @@ def serial_barco_lamp_status(connection):
         lamp_status.append((l2_hours, lamp_status_codes[l2_state]))
 
     return(lamp_status)
+
+def serial_barco_get_source(connection):
+
+    # Iterate through the Barco inputs to find the one that is active
+
+    # (Barco name, English name, number)
+    inputs = [("IDVI", "DVI"),("IHDM", "HDMI"), ("IVGA", "VGA"),("IDHD", "Dual Head DVI"),
+                ("IDHH", "Dual Head HDMI"),("IDHX", "Dual Head XP2"), ("IXP2", "XP2"),
+                ("IYPP", "Component")]
+
+    for input in inputs:
+        code, name = input
+        #print(":"+code+"?\r")
+        response = serial_send_command(connection, ":"+code+"?\r")
+        if len(response) > 0:
+            num = response[-1]
+            if num != "0":
+                return(name + " " + num)
+
+    return("")
 
 
 def pjlink_connect(ip, password=None, timeout=2):
