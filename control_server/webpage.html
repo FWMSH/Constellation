@@ -795,8 +795,8 @@
                   var html = `
                   <div class="col-auto mt-1">
                     <div class="btn-group">
-                      <button type="button" id="${content.split('.').join("").split(/[\\\/]/).join("")}Button" class="btn componentContentButton ${active}">${content}</button>
-                      <button type="button" id="${content.split('.').join("").split(/[\\\/]/).join("")}ButtonDropdown" class="btn dropdown-toggle dropdown-toggle-split componentContentDropdownButton ${active}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      <button type="button" id="${content.split('.').join("").split(")").join("").split("(").join("").split(/[\\\/]/).join("")}Button" class="btn componentContentButton ${active}">${content}</button>
+                      <button type="button" id="${content.split('.').join("").split(")").join("").split("(").join("").split(/[\\\/]/).join("")}ButtonDropdown" class="btn dropdown-toggle dropdown-toggle-split componentContentDropdownButton ${active}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="sr-only">Toggle Dropdown</span>
                       </button>
                       <div class="dropdown-menu">
@@ -1112,7 +1112,6 @@
             $("#exhibitSelect").append(new Option(exhibitList[i], exhibitList[i]));
           }
         }
-
       }
 
       function changeExhibit(warningShown) {
@@ -1136,7 +1135,6 @@
 
           askForUpdate();
         }
-
       }
 
       function reloadConfiguration() {
