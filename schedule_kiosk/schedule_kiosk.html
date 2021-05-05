@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Morgan Rehnberg">
+
+    <title>Schedule Kiosk</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+
+    <style>
+
+      @font-face {
+        font-family: Gotham-Bold;
+        src: url(Gotham-Bold.otf);
+      }
+      @font-face {
+        font-family: Gotham-Book;
+        src: url(Gotham-Book.otf);
+      }
+
+      body,html {
+        margin: 0;
+        padding: 0;
+        background-color: #0067b1;
+        font-family: Gotham-Book;
+      }
+      #videoOverlay {
+        width: 100vw;
+        height: 100vh;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        opacity: 0;
+        /* cursor: none; */
+      }
+      #fullscreenVideo {
+        width: 100%;
+        height: 100%;
+      }
+      #masthead {
+        width: 100%;
+      }
+      #cardRow {
+        height: 75vh;
+        overflow-y: scroll;
+      }
+      #cardRow::-webkit-scrollbar {
+        display: none;
+      }
+      .card-title {
+        font-family: Gotham-Bold;
+      }
+    </style>
+  </head>
+
+  <body>
+  <div id="videoOverlay">
+    <video id="fullscreenVideo" muted>
+    </video>
+  </div>
+
+  <main role="main" class="container mb-4">
+    <div class="row mt-4">
+      <div class="col-12">
+        <img id="masthead" src="graphics/masthead_en.png"></img>
+      </div>
+    </div>
+    <div id="cardRow" class="row">
+    </div>
+  </main>
+
+  <!-- Load js file with helperAddress -->
+  <script src="config.js"></script>
+
+  <script type="text/javascript" src="js/jquery-3.5.1.slim.min.js"></script>
+  <script type="text/javascript" src="js/popper.min.js"></script>
+  <script type="text/javascript" src="js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="js/showdown.min.js"></script>
+
+  <script>
+
+    function sleepDisplays() {
+
+      // Send a message to the local helper process and ask it to sleep the
+      // displays
+
+      // requestString = `action=sleepDisplays`;
+      var requestString = JSON.stringify({"action": "sleepDisplays"});
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+        }
+      };
+      xhr.send(requestString);
+    }
+
+    function wakeDisplays() {
+
+      // Send a message to the local helper process and ask it to sleep the
+      // displays
+
+      // requestString = `action=wakeDisplays`;
+      var requestString = JSON.stringify({"action": "wakeDisplays"});
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+        }
+    };
+      xhr.send(requestString);
+    }
+
+    function commandProjector(cmd) {
+
+      // Send a message to the local helper process to control the projector
+
+      // requestString = `action=commandProjector&command=${cmd}`;
+      var requestString = JSON.stringify({"action": "commandProjector", "command": cmd});
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+        }
+    };
+      xhr.send(requestString);
+
+    }
+
+    function synchronize(timeToPlay) {
+
+      // Function to set a timeout to begin playing the synchronized video
+
+      setTimeout(function(){console.log("Play"); changeMedia("", false, true);}, Date.parse(timeToPlay) - Date.now());
+    }
+
+    function askToSynchronize(other_ids) {
+
+      // Function to communicate with the control server and indicate that we
+      // are ready to begin synchronization.
+
+      console.log("Asking to synchronize with", other_ids)
+
+      requestString = JSON.stringify({"class": "exhibitComponent",
+                                      "id": id,
+                                      "type": type,
+                                      "action": "beginSynchronization",
+                                      "synchronizeWith": other_ids.split(",")});
+
+      var xhr = new XMLHttpRequest();
+      xhr.timeout = 1000;
+      xhr.open("POST", serverAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(requestString);
+
+    }
+
+    function readUpdate(responseText) {
+
+      // Function to read a message from the server and take action based
+      // on the contents
+
+      var update = JSON.parse(responseText);
+      sendConfigUpdate(update); // Send to helper to update the default config
+
+      if ('commands' in update) {
+        for (var i=0; i<update["commands"].length; i++) {
+          var cmd = (update["commands"])[i];
+
+          if (cmd == "sleepDisplay") {
+              sleepDisplays();
+          } else if (cmd == "wakeDisplay") {
+              wakeDisplays();
+          } else if (cmd == "reloadDefaults"){
+              askForDefaults();
+          } else if (cmd.startsWith("beginSynchronization")){
+              var timeToPlay = cmd.split("_")[1];
+              synchronize(timeToPlay);
+          } else if (cmd.startsWith("gotoClip")) {
+              var clipNumber = cmd.split("_")[1];
+              gotoSource(clipNumber);
+          } else if (cmd == "disableAutoplay") {
+              autoplayEnabled = false;
+          } else if (cmd == "enableAutoplay") {
+              autoplayEnabled = true;
+          } else if (cmd == "toggleAutoplay") {
+              autoplayEnabled = !autoplayEnabled;
+          } else {
+              console.log(`Command not recognized: ${cmd}`);
+          }
+        }
+      }
+      if ("id" in update) {
+        id = update["id"];
+      }
+      if ("type" in update) {
+        type = update["type"]
+      }
+      if (("server_ip_address" in update) && ("server_port" in update)) {
+        serverAddress = "http://" + update["server_ip_address"] + ":" + update["server_port"];
+      }
+      if ("contentPath" in update) {
+        contentPath = update["contentPath"];
+      }
+      if ("current_exhibit" in update) {
+        currentExhibit = update["current_exhibit"];
+      }
+      if ("synchornize_with" in update) {
+        askToSynchronize(update["synchornize_with"]);
+        waitingForSynchronization = true;
+      }
+
+      // This should be last to make sure the path has been updated
+      if ("content" in update) {
+        if (arraysEqual(sourceList, update["content"]) == false) {
+          updateClipList(update["content"]);
+          sourceList = update["content"];
+          gotoSource(0);
+        }
+      }
+    }
+
+    function arraysEqual(arr1, arr2) {
+
+      // Function to check if two arrays have the same elements in the same order
+
+      if (arr1.length != arr2.length) {
+        return false;
+      } else {
+        for (var i=0; i<arr1.length; i++) {
+          if (arr1[i] != arr2[i]) {
+            return false;
+          }
+        }
+        return true;
+      }
+    }
+
+    function askForDefaults() {
+
+      // Send a message to the local helper and ask for the latest configuration
+      // defaults, then use them.
+
+      var requestString = JSON.stringify({"action": "getDefaults"});
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+          readUpdate(this.responseText);
+        }
+    };
+      xhr.send(requestString);
+    }
+
+    function sendPing() {
+
+      // Contact the control server and ask for any updates
+
+      if (serverAddress != "") {
+        requestString = JSON.stringify({"class": "exhibitComponent",
+                                        "id": id,
+                                        "type": type,
+                                        "helperPort": helperAddress.split(":")[2]});
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", serverAddress, true);
+        xhr.timeout = 2000;
+        xhr.setRequestHeader('Content-Type', 'application/json');
+
+        xhr.onreadystatechange = function () {
+
+          if (this.readyState != 4) return;
+
+          if (this.status == 200) {
+            readUpdate(this.responseText);
+          }
+      };
+        xhr.send(requestString);
+      }
+    }
+
+    function checkForCommands() {
+
+      // Function to ask the helper for any new commands, like switching between
+      // media clips
+
+      var requestString = JSON.stringify({"action": "getCommands"});
+
+      var xhr = new XMLHttpRequest();
+      xhr.timeout = 50;
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+          readUpdate(this.responseText);
+        }
+    };
+      xhr.send(requestString);
+
+    }
+
+    function sendConfigUpdate(update) {
+
+      // Send a message to the helper with the latest configuration to set as
+      // the default
+
+      var requestDict = {"action": "updateDefaults"};
+
+      if ("content" in update) {
+        requestDict["content"] = update["content"];
+      }
+      if ("current_exhibit" in update) {
+        requestDict["current_exhibit"] = update["current_exhibit"];
+      }
+
+      var xhr = new XMLHttpRequest();
+      xhr.timeout = 1000;
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(JSON.stringify(requestDict));
+    }
+
+    function createCard(name, venue, text, cost, age, running_time, showtimes, icon) {
+
+      // Create a card that holds one dataset
+
+      var html = `
+        <div class='card col-12 mt-3 p-3 bg-dark text-white'>
+          <div class="row no-gutters">
+            <div class="col-3">
+              <img class='card-img-top bg-dark' src="thumbnails/${icon}"></img>
+            </div>
+            <div class="col-9">
+              <div class="card-body mr-3">
+                <center>
+                <h1 id="card${name}" class="card-title">${name}</h1>
+                <h4>${venue}</h4>
+                </center>
+
+                ${text}
+              </div>
+              <div class="card-footer">
+                <h5>${cost} | ${age} | ${running_time}</h5>
+                <hr class="bg-white">
+                <div class="row">
+      `;
+      // Add buttons for the times
+      for (var i=0; i<showtimes.length; i++) {
+        html += `
+                  <div class="col-3">
+                    <button class="btn btn-success btn-block mt-3">${showtimes[i]}</button>
+                  </div>
+        `
+      }
+
+      html += `
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `
+      $("#cardRow").append(html)
+    }
+
+    // These will be replaced by the values specified in defaults.ini, passed
+    // to this app by the helper server
+    var id = 'UNKNOWN';
+    var type = 'UNKNOWN';
+    var serverAddress = ""; // The address of the main control server
+
+    var activeIndex = 0; // Index of the file from the source list currently showing
+    var sourceList = [];
+    var sourceAdvanceTimer = null; // Will hold reference to a setTimeout instance to move to the next media.
+    var contentPath = "";
+    var currentExhibit = ""; // This will double as the root of the source path
+    var waitingForSynchronization = false;
+    var autoplayEnabled = true;
+
+    askForDefaults();
+    sendPing();
+    setInterval(sendPing, 5000);
+
+    createCard("One World, One Sky",
+      "Noble Planetarium",
+      "One World, One Sky is a brilliant spectacle of light and color as the furry friends watch the stars twinkle over Sesame Street. Children attending the show can interact as they watch, drawing constellations and counting the time it takes the sun to set. The show aims to nurture a child's natural sense of wonder about the night sky while forging cross-cultural connections, and bridging kids across nations through a common bond in learning about the sky together.",
+      "Free",
+      "Best for PK - 2nd grade",
+      "25 min",
+      ["11:30 AM", "1 PM", "3 PM"],
+      "owos_poster.jpg");
+
+    createCard("Stomp Rockets",
+      "STEAM Lab",
+      "Build your very own rocket and blast it off to space! In this activity, you will repurpose an old plastic bottle to create your very own propulsion system. And, of course, there will be plenty of time to decorate your rocket so that it's just as glorious as you are!",
+      "Free",
+      "Appropriate for all ages",
+      "30 min",
+      ["All day"],
+      "launcher-set-up.jpg");
+
+    createCard("9/11: Stories in Fragments",
+      "Energy Theater",
+      "How do you grasp an event as enormous as September 11? At the Smithsonian's National Museum of American History, you start small: A briefcase, a Blackberry, a victim's sweatshirt, and a hero's nametag. Simple objects that tell personal stories, recounted in the donors' own words. Stories from New York, the Pentagon and Shanksville, PA remind us that the legacy of 9/11 is not fear - it's friendship, courage, and ordinary people pushed by extraordinary circumstances. Their stories deserve to be remembered across decades and generations. By telling them, we triumph over tragedy.",
+      "Free",
+      "Ages 14+",
+      "51 min",
+      ["11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM"],
+      "9-11_stories_in_fragments.jpg");
+
+    // Hide the cursor
+    // document.body.style.cursor = 'none';
+
+  </script>
+
+  </body>
+
+</html>
