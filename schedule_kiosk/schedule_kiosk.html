@@ -59,6 +59,9 @@
       .trailer {
         width: 100%;
       }
+      .map {
+        width: 100%;
+      }
     </style>
   </head>
 
@@ -136,6 +139,18 @@
            `
         }
 
+        var mapButtonCode = "";
+        var mapCode = "";
+        if ("map" in this.details) {
+          mapButtonCode = `<button class="mapButton btn btn-info" onclick="showMap('${this.id}')">Map</button>`;
+          mapCode = `<div id="mapDiv${this.id}" class="mapDiv col-9">
+                                <center>
+                                  <img src="maps/${this.details['map']}" class="map pl-3 pr-3" id='map${this.id}' onclick="hideMap('${this.id}')"></img>
+                                </center>
+                               </div>
+           `
+        }
+
         var thumbnail = "default.png";
         if ("thumbnail" in this.details) {
           thumbnail = this.details["thumbnail"]
@@ -148,6 +163,7 @@
                 <img class='card-img-top bg-dark' src="thumbnails/${thumbnail}"></img>
               </div>
               ${trailerPlayerCode}
+              ${mapCode}
               <div id="cardBody${this.id}" class="col-9">
                 <div class="card-body ml-3">
                   <center>
@@ -157,8 +173,7 @@
                   ${this.details["description_"+lang]}
                 </div>
                 <div class="card-footer">
-                  <font size=4>${this.details["price_"+lang]} | ${this.details["ages_" + lang]} | ${this.details["length_" + lang]} ${trailerButtonCode}
-
+                  <font size=4>${this.details["price_"+lang]} | ${this.details["ages_" + lang]} | ${this.details["length_" + lang]} ${trailerButtonCode} ${mapButtonCode}
                   <div class="row">
         `;
         // Add buttons for the times
@@ -195,6 +210,7 @@
         `
         $("#cardRow").append(html);
         $(`#trailerDiv${this.id}`).hide();
+        $(`#mapDiv${this.id}`).hide();
       }
 
 
@@ -434,12 +450,14 @@
 
       if (currentLang == "en") {
         currentLang = "es";
-        $(".trailerButton").html("Ver el trailer")
-        $("#langToggleButton").html("English")
+        $(".trailerButton").html("Ver el trailer");
+        $(".mapButton").html("Mapa");
+        $("#langToggleButton").html("English");
       } else {
-        currentLang = "en"
-        $(".trailerButton").html("Watch trailer")
-        $("#langToggleButton").html("Español")
+        currentLang = "en";
+        $(".trailerButton").html("Watch trailer");
+        $(".mapButton").html("Map");
+        $("#langToggleButton").html("Español");
       }
 
       $("#cardRow").empty();
@@ -448,13 +466,38 @@
       }
     }
 
+    function showMap(id) {
+
+      // Show the map div for a given item.
+
+      // Hide any currently visible video or map
+      document.querySelectorAll('.trailer').forEach(vid => hideTrailer(vid.id));
+      document.querySelectorAll('.map').forEach(map => hideMap(map.id));
+
+      $("#cardBody"+id).hide();
+      $(".mapDiv").hide();
+      $(`#mapDiv${id}`).show();
+    }
+
+    function hideMap(id) {
+
+      // Hide the map and return the cardBody view
+
+      if (id.startsWith("map")) {
+        id = id.slice(3);
+      }
+
+      $(`#mapDiv${id}`).hide();
+      $("#cardBody"+id).show();
+    }
+
     function playTrailer(id) {
 
       // Play the trailer associated with a schedule item
 
-      // Pause all currently playing videos
+      // Hide any currently visible map or video
       document.querySelectorAll('.trailer').forEach(vid => hideTrailer(vid.id));
-
+      document.querySelectorAll('.map').forEach(map => hideMap(map.id));
 
       $("#cardBody"+id).hide();
       $(`#trailerDiv${id}`).show();
@@ -508,6 +551,7 @@
                   "length_es": "25 min",
 
                   "times": ["11:30 AM", "1 PM", "3 PM"],
+                  "map": "Noble_map.png",
                   "thumbnail": "owos_poster.jpg",
                   "trailer": "OWOS_trailer.mp4"});
 
@@ -525,6 +569,7 @@
                   "ages_es": "Apropiado para todas las edades",
                   "length_es": "30 min",
 
+                  "map": "STEAM_map.png",
                   "times": ["All Day"]});
 
 
@@ -544,6 +589,7 @@
                   "length_es": "51 min",
 
                   "times": ["11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM"],
+                  "map": "energy_map.png",
                   "thumbnail": "9-11_stories_in_fragments.jpg"});
 
 
@@ -563,6 +609,7 @@
 
                   "times": ["11 AM", "1 PM","3 PM"],
                   "thumbnail": "pandas.jpeg",
+                  "map": "Omni_map.png",
                   "trailer": "pandas.mp4"});
     // Hide the cursor
     // document.body.style.cursor = 'none';
