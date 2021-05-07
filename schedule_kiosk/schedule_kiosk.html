@@ -89,7 +89,7 @@
   <!-- Load js file with helperAddress -->
   <script src="config.js"></script>
 
-  <script type="text/javascript" src="js/jquery-3.5.1.slim.min.js"></script>
+  <script type="text/javascript" src="js/jquery-3.6.0.min.js"></script>
   <script type="text/javascript" src="js/popper.min.js"></script>
   <script type="text/javascript" src="js/bootstrap.min.js"></script>
   <script type="text/javascript" src="js/showdown.min.js"></script>
@@ -381,6 +381,7 @@
         requestString = JSON.stringify({"class": "exhibitComponent",
                                         "id": id,
                                         "type": type,
+                                        "currentInteraction": String(currentlyActive),
                                         "helperPort": helperAddress.split(":")[2]});
 
         var xhr = new XMLHttpRequest();
@@ -444,21 +445,39 @@
       xhr.send(JSON.stringify(requestDict));
     }
 
+    function setLang(lang) {
+
+      // Change the language between "en" and "es"
+
+      if (lang == "en") {
+        currentLang = "en";
+        $(".trailerButton").html("Watch trailer");
+        $(".mapButton").html("Map");
+        $("#langToggleButton").html("Español");
+      } else if (lang == "es") {
+        currentLang = "es";
+        $(".trailerButton").html("Ver el trailer");
+        $(".mapButton").html("Mapa");
+        $("#langToggleButton").html("English");
+      }
+
+      reloadCards();
+    }
+
     function toggleLang() {
 
       // Toggle the current language and rebuild the interface to match
 
       if (currentLang == "en") {
-        currentLang = "es";
-        $(".trailerButton").html("Ver el trailer");
-        $(".mapButton").html("Mapa");
-        $("#langToggleButton").html("English");
+        setLang("es");
       } else {
-        currentLang = "en";
-        $(".trailerButton").html("Watch trailer");
-        $(".mapButton").html("Map");
-        $("#langToggleButton").html("Español");
+        setLang("en");
       }
+    }
+
+    function reloadCards() {
+
+      // Erase and reload the item cards.
 
       $("#cardRow").empty();
       for (var i=0; i<itemList.length; i++) {
@@ -482,6 +501,8 @@
     function hideMap(id) {
 
       // Hide the map and return the cardBody view
+
+      resetInactivityTimer();
 
       if (id.startsWith("map")) {
         id = id.slice(3);
@@ -508,6 +529,8 @@
 
       // Stop the video and return the cardBody to view.
 
+      resetInactivityTimer();
+
       if (id.startsWith("trailerPlayer")) {
         id = id.slice(13);
       }
@@ -519,7 +542,41 @@
       video.currentTime = 0;
     }
 
+    function resetInactivityTimer() {
 
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(resetPage, 30000)
+
+    }
+
+    function resetPage() {
+
+      // Make sure all videos are paused
+      var counter = 0;
+      $(".trailer").each(
+        function(){
+          if ($(this).get(0).paused) {
+            counter += 1;
+          }
+        }
+      )
+      if (counter == $(".trailer").length) {
+        setLang("en");
+        // document.getElementById("cardRow").scrollTop = 0;
+        $("#cardRow").animate({scrollTop: "0px"});
+        currentlyActive = false;
+      } else {
+        // Trailer is playing
+        makeActive();
+      }
+
+      resetInactivityTimer();
+    }
+
+    function makeActive() {
+
+      currentlyActive = true;
+    }
 
     // These will be replaced by the values specified in defaults.ini, passed
     // to this app by the helper server
@@ -531,10 +588,18 @@
     var currentExhibit = ""; // This will double as the root of the source path
     var currentLang = "en";
     var itemList = [];
+    var currentlyActive = false; // Is someone currently interacting?
 
     askForDefaults();
     sendPing();
     setInterval(sendPing, 5000);
+
+    var inactivityTimer = null; // Will hold reference to setTimeout object
+    resetInactivityTimer();
+    $("#cardRow").scroll(resetInactivityTimer);
+    $("#cardRow").scroll(makeActive);
+    $("#cardRow").click(resetInactivityTimer);
+    $("#cardRow").click(makeActive);
 
     new scheduleItem({"name_en": "One World, One Sky",
                   "venue_en": "Noble Planetarium",
