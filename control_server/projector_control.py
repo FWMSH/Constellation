@@ -11,7 +11,8 @@ def serial_connect_with_url(ip, baudrate=9600, make=None, port=None, protocol='s
         raise Exception("Must specifiy either a port or a make")
     elif port is None:
 
-        port_dict = {"barco": 1025}
+        port_dict = {"barco": 1025,
+                     "viewsonic": 8899}
 
         if make.lower() in port_dict:
             port = port_dict[make.lower()]
@@ -62,15 +63,18 @@ def serial_send_command(connection, command, debug=False, make=None):
         },
         "power_off": {
             "barco": ":POWR0\r",
-            "optoma": "~0000 0\r"
+            "optoma": "~0000 0\r",
+            "viewsonic": "\x06\x14\x00\x04\x00\x34\x11\x01\x00\x5E"
         },
         "power_on": {
             "barco": ":POWR1\r",
-            "optoma": "~0000 1\r"
+            "optoma": "~0000 1\r",
+            "viewsonic": "\x06\x14\x00\x04\x00\x34\x11\x00\x00\x5D"
         },
         "power_state": {
             "barco": ":POST?\r",
-            "optoma": "~00124 1\r"
+            "optoma": "~00124 1\r",
+            "viewsonic": "\x07\x14\x00\x05\x00\x34\x00\x00\x11\x00\x5E"
         },
         "set_dvi_1": {
             "barco": ":IDVI1\r",
@@ -80,15 +84,19 @@ def serial_send_command(connection, command, debug=False, make=None):
         },
         "set_hdmi_1": {
             "barco": ":IHDM1\r",
+            "viewsonic": "\x06\x14\x00\x04\x00\x34\x13\x01\x03\x63",
         },
         "set_hdmi_2": {
             "barco": ":IHDM2\r",
+            "viewsonic": "\x06\x14\x00\x04\x00\x34\x13\x01\x07\x67",
         },
         "set_vga_1": {
             "barco": ":IVGA1\r",
+            "viewsonic": "\x06\x14\x00\x04\x00\x34\x13\x01\x00\x60",
         },
         "set_vga_2": {
             "barco": ":IVGA2\r",
+            "viewsonic": "\x06\x14\x00\x04\x00\x34\x13\x01\x08\x68",
         },
     }
 
@@ -101,6 +109,10 @@ def serial_send_command(connection, command, debug=False, make=None):
                 "%001 POST 000003": "on",
                 "%001 POST 000004": "powering_off",
                 "%001 POST 000008": "powering_off"
+            },
+            "viewsonic": {
+                '\x05\x14\x00\x03\x00\x00\x00\x00\x18': "on",
+                '\x05\x14\x00\x03\x00\x00\x00\x00\x17': "off",
             }
         }
     }
@@ -139,7 +151,8 @@ def serial_send_command(connection, command, debug=False, make=None):
                     if response in responses:
                         response = responses[response]
     else:
-        print(f"Command alias {command} not found for make {make}")
+        if debug:
+            print(f"Command alias {command} not found for make {make}")
         return("")
 
     return(response)
