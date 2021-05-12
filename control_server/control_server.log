@@ -266,3 +266,25 @@ INFO, 2021-05-11 15:25:10, Server started
 WARNING, 2021-05-11 15:25:38, there is no configuration available for component with id=LANT_KIOSK
 INFO, 2021-05-11 16:51:32, Server shutdown
 INFO, 2021-05-12 08:51:36, Server started
+ERROR, 2021-05-12 09:50:41, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 09:54:55, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 09:56:33, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-05-12 12:10:04, Server shutdown
+INFO, 2021-05-12 12:10:05, Server started
+ERROR, 2021-05-12 13:40:04, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:42:39, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:43:04, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:43:31, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:43:51, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:43:57, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:44:10, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:45:27, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:45:35, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:45:43, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:46:26, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:46:40, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:47:05, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:49:54, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:50:31, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:52:40, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-05-12 13:53:09, GET for unexpected file /js/popper.min.js.map

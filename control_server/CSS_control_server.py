@@ -45,16 +45,6 @@ class Projector:
 
         error = False
         try:
-            # projector = pypjlink.Projector.from_address(self.ip, timeout=2)
-            # projector.authenticate(password=self.password)
-            #
-            # if full:
-            #     self.state["model"] = projector.get_manufacturer() + " " + projector.get_product_name()
-            #
-            # self.state["power_state"] = projector.get_power()
-            # self.state["lamp_status"] = projector.get_lamps()
-            # self.state["error_status"] = projector.get_errors()
-
             if self.connection_type == 'pjlink':
                 connection = projector_control.pjlink_connect(self.ip, password=self.password)
                 if full:
@@ -104,15 +94,6 @@ class Projector:
         }
 
         try:
-            # with pypjlink.Projector.from_address(self.ip, timeout=10) as projector:
-            #     projector.authenticate(password=self.password)
-            #
-            #     if cmd == "wakeDisplay":
-            #         projector.set_power("on")
-            #         self.state["power_state"] = "on"
-            #     elif cmd == "sleepDisplay":
-            #         projector.set_power("off")
-            #         self.state["power_state"] = "off"
             if self.connection_type == "pjlink":
                 connection = projector_control.pjlink_connect(self.ip, password=self.password)
                 if cmd in cmd_dict:

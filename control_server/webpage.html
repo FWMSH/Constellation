@@ -230,6 +230,8 @@
             </div>
           </div>
 
+          <div class="row" id="errorDisplayRow">
+          </div>
           <div class="row" id="componentGroupsRow">
           </div>
         </div>
@@ -456,6 +458,12 @@
                 }
                 if ("error_status" in response) {
                   thisInstance.state["error_status"] = response["error_status"];
+                  Object.keys(response["error_status"]).forEach((item, i) => {
+                    if ((response["error_status"])[item] != "ok") {
+                      errorDict[thisInstance.id.toUpperCase() + ": " + item] = (response["error_status"])[item]
+                      rebuildErrorList();
+                    }
+                  });
                 }
               }
             }
@@ -610,6 +618,11 @@
         var obj = getExhibitComponent(id);
 
         if (obj.type == "PROJECTOR") {
+
+          // First, reset all the cell shadings
+          $("#projectorInfoLampState").parent().removeClass();
+          $("#projectorInfoFanState").parent().removeClass();
+
           $("#projectorInfoModalTitle").html(id.toUpperCase());
           if ("power_state" in obj.state) {
             $("#projectorInfoPowerState").html(obj.state["power_state"]);
@@ -619,11 +632,17 @@
           if (("error_status" in obj.state) && (obj.state["error_status"].constructor == Object)) {
             if ("lamp" in obj.state["error_status"]) {
               $("#projectorInfoLampState").html((obj.state["error_status"])["lamp"]);
+              if ((obj.state["error_status"])["lamp"] == "error") {
+                $("#projectorInfoLampState").parent().addClass("table-danger");
+              }
             } else {
               $("#projectorInfoLampState").html("-");
             }
             if ("fan" in obj.state["error_status"]) {
               $("#projectorInfoFanState").html((obj.state["error_status"])["fan"]);
+              if ((obj.state["error_status"])["fan"] == "error") {
+                $("#projectorInfoFanState").parent().addClass("table-danger");
+              }
             } else {
               $("#projectorInfoFanState").html("-");
             }
@@ -1270,6 +1289,25 @@
         }
       }
 
+      function rebuildErrorList() {
+
+        // Function to use the errorDict to build a set of buttons indicating
+        // that there is a problem with a component.
+
+        // Clear the existing buttons
+        $("#errorDisplayRow").empty();
+
+        Object.keys(errorDict).forEach((item, i) => {
+          var html = `
+            <div class="col-3 mt-3">
+              <button class='btn btn-danger btn-block'>${item + " " + errorDict[item]}</btn>
+            </div>
+          `
+          $("#errorDisplayRow").append(html);
+        });
+
+      }
+
       function askForUpdate() {
 
         requestDict = {"class": "webpage",
@@ -1368,6 +1406,7 @@
       var currentExhibit = "";
       var exhibitComponents = [];
       var componentGroups = [];
+      var errorDict = {}; // Will hold errors to display
       var markdownConverter = new showdown.Converter();
       markdownConverter.setFlavor('github');
 
