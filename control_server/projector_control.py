@@ -233,7 +233,7 @@ def pjlink_send_command(connection, command):
         connection.set_power("off")
         return("off")
     elif command == "power_on":
-        connectino.set_power("on")
+        connection.set_power("on")
         return("on")
     elif command == "power_state":
         return(connection.get_power())

@@ -271,6 +271,10 @@
 
       // Load the media file from the sourceList with the given index
 
+      if (debug) {
+        console.log("gotoSource", index)
+      }
+
       if (index < sourceList.length) {
         activeIndex = index;
         updateActiveClip(activeIndex);
@@ -282,6 +286,10 @@
 
       // Display the next file in sourceList, looping to the beginning if
       // necessary
+
+      if (debug) {
+        console.log("gotoNextSource")
+      }
 
       if (activeIndex + 1 >= sourceList.length) {
         activeIndex = 0;
@@ -296,6 +304,10 @@
 
       // Load and play a media file given in source
       // delayPlay and playOnly are used when synchronizing multiple displays
+
+      if (debug) {
+        console.log("changeMedia", source, delayPlay, playOnly)
+      }
 
       var video = document.getElementById("fullscreenVideo");
       var videoContainer = document.getElementById("videoOverlay");
@@ -451,6 +463,7 @@
     var currentExhibit = ""; // This will double as the root of the source path
     var waitingForSynchronization = false;
     var autoplayEnabled = true;
+    var debug = true;
 
     askForDefaults();
     sendPing();

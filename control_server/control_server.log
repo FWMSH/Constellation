@@ -261,3 +261,8 @@ INFO, 2021-05-07 12:01:49, Server shutdown
 INFO, 2021-05-07 12:01:51, Server started
 WARNING, 2021-05-07 12:02:11, there is no configuration available for component with id=LANT_KIOSK
 ERROR, 2021-05-07 12:02:34, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-05-11 15:25:06, Server shutdown
+INFO, 2021-05-11 15:25:10, Server started
+WARNING, 2021-05-11 15:25:38, there is no configuration available for component with id=LANT_KIOSK
+INFO, 2021-05-11 16:51:32, Server shutdown
+INFO, 2021-05-12 08:51:36, Server started
