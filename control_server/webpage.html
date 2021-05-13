@@ -1075,12 +1075,11 @@
         var result = componentGroups.find(obj => {
           return obj.type === type
         });
-
         return result;
       }
 
       function updateComponentFromServer(component) {
-
+        
         obj = getExhibitComponent(component["id"])
         if (obj != null) {
           // Update the object with the latest info from the server
@@ -1093,6 +1092,13 @@
           }
           if ("helperPort" in component) {
             obj.helperPort = component["helperPort"];
+          }
+          if ("error" in component) {
+            errorDict[obj.id + ": "] = component["error"];
+            rebuildErrorList();
+          } else if (obj.id + ": " in errorDict) {
+            delete errorDict[obj.id + ": "];
+            rebuildErrorList();
           }
         } else {
 

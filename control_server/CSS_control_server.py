@@ -213,6 +213,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
             dict["type"] = item.type
             if "content" in item.config:
                 dict["content"] = item.config["content"]
+            if "error" in item.config:
+                dict["error"] = item.config["error"]
             dict["class"] = "exhibitComponent"
             dict["status"] = item.currentStatus()
             dict["ip_address"] = item.ip
@@ -802,6 +804,10 @@ def updateExhibitComponentStatus(data, ip):
     if "currentInteraction" in data:
         if data["currentInteraction"].lower() == "true":
             component.updateLastInteractionDateTime()
+    if "error" in data:
+        component.config["error"] = data["error"]
+    else:
+        component.config.pop("error")
 
 def quit_handler(sig, frame):
     print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
