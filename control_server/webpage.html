@@ -462,6 +462,8 @@
                     if ((response["error_status"])[item] != "ok") {
                       errorDict[thisInstance.id.toUpperCase() + ": " + item] = (response["error_status"])[item]
                       rebuildErrorList();
+                    } else {
+                      delete errorDict[thisInstance.id.toUpperCase() + ": " + item];
                     }
                   });
                 }
