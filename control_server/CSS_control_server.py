@@ -807,7 +807,8 @@ def updateExhibitComponentStatus(data, ip):
     if "error" in data:
         component.config["error"] = data["error"]
     else:
-        component.config.pop("error")
+        if "error" in component.config:
+            component.config.pop("error")
 
 def quit_handler(sig, frame):
     print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
