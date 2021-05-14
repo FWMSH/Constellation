@@ -624,8 +624,16 @@
           // First, reset all the cell shadings
           $("#projectorInfoLampState").parent().removeClass();
           $("#projectorInfoFanState").parent().removeClass();
+          $("#projectorInfoFilterState").parent().removeClass();
+          $("#projectorInfoCoverState").parent().removeClass();
+          $("#projectorInfoOtherState").parent().removeClass();
+          $("#projectorInfoTempState").parent().removeClass();
 
+          // Set the title to the ID
           $("#projectorInfoModalTitle").html(id.toUpperCase());
+
+          // Then, go through and populate all the cells with as much information
+          // as we have. Shade cells red if an error is reported.
           if ("power_state" in obj.state) {
             $("#projectorInfoPowerState").html(obj.state["power_state"]);
           } else {
@@ -633,7 +641,9 @@
           }
           if (("error_status" in obj.state) && (obj.state["error_status"].constructor == Object)) {
             if ("lamp" in obj.state["error_status"]) {
+              // Populate cell
               $("#projectorInfoLampState").html((obj.state["error_status"])["lamp"]);
+              // Shade if error
               if ((obj.state["error_status"])["lamp"] == "error") {
                 $("#projectorInfoLampState").parent().addClass("table-danger");
               }
@@ -641,7 +651,9 @@
               $("#projectorInfoLampState").html("-");
             }
             if ("fan" in obj.state["error_status"]) {
+              // Populate cell
               $("#projectorInfoFanState").html((obj.state["error_status"])["fan"]);
+              // Shade if error
               if ((obj.state["error_status"])["fan"] == "error") {
                 $("#projectorInfoFanState").parent().addClass("table-danger");
               }
@@ -649,22 +661,40 @@
               $("#projectorInfoFanState").html("-");
             }
             if ("filter" in obj.state["error_status"]) {
+              // Populate cell
               $("#projectorInfoFilterState").html((obj.state["error_status"])["filter"]);
+              // Shade if error
+              if ((obj.state["error_status"])["filter"] == "error") {
+                $("#projectorInfoFilterState").parent().addClass("table-danger");
+              }
             } else {
               $("#projectorInfoFilterState").html("-");
             }
             if ("cover" in obj.state["error_status"]) {
+              // Populate cell
               $("#projectorInfoCoverState").html((obj.state["error_status"])["cover"]);
+              // Shade if error
+              if ((obj.state["error_status"])["cover"] == "error") {
+                $("#projectorInfoCoverState").parent().addClass("table-danger");
+              }
             } else {
               $("#projectorInfoCoverState").html("-");
             }
             if ("other" in obj.state["error_status"]) {
+              // Populate cell
               $("#projectorInfoOtherState").html((obj.state["error_status"])["other"]);
+              // Shade if error
+              if ((obj.state["error_status"])["other"] == "error") {
+                $("#projectorInfoOtherState").parent().addClass("table-danger");
             } else {
               $("#projectorInfoOtherState").html("-");
             }
             if ("temperature" in obj.state["error_status"]) {
+              // Populate cell
               $("#projectorInfoTempState").html((obj.state["error_status"])["temperature"]);
+              // Shade if error
+              if ((obj.state["error_status"])["temperature"] == "error") {
+                $("#projectorInfoTempState").parent().addClass("table-danger");
             } else {
               $("#projectorInfoTempState").html("-");
             }
@@ -1079,7 +1109,7 @@
       }
 
       function updateComponentFromServer(component) {
-        
+
         obj = getExhibitComponent(component["id"])
         if (obj != null) {
           // Update the object with the latest info from the server
