@@ -17,6 +17,14 @@
         font-family: Good-Times;
         src: url(good-times-rg.ttf);
       }
+      @font-face {
+        font-family: Gotham-Bold;
+        src: url(Gotham-Bold.otf);
+      }
+      @font-face {
+        font-family: Gotham-Book;
+        src: url(Gotham-Book.otf);
+      }
 
       html {
         touch-action: manipulation;
@@ -24,6 +32,13 @@
       }
       .container-fluid {
         touch-action: manipulation;
+      }
+      .label-text {
+        font-size: 25px;
+      }
+      .seek-button {
+        font-family: Gotham-Bold;
+        font-size: 50px;
       }
       #attractorOverlay {
         position: fixed;
@@ -60,7 +75,7 @@
     </div>
 
     <div class="container-fluid">
-      <div id='header' class="row sticky-top" style="z-index:1">
+      <div id='header' class="header row sticky-top" style="z-index:1">
         <div class="col bg-primary pt-1">
           <center>
             <H1>Types of Rockets</H1>
@@ -72,7 +87,19 @@
           <div id="cardRow" class="row">
           </div>
         </div>
+      </div>
+      <div class="row">
+        <div class="col-auto" style="height: 100px;"></div>
+      </div>
+
+      <div id='footer' class="footer row fixed-bottom bg-primary" style="z-index:1">
+        <div class="col-2 offset-4 pt-1">
+          <button id="videoSeekBackButton" class="btn btn-secondary seek-button btn-block"> < </button>
         </div>
+        <div class="col-2 pt-1">
+          <button id="videoSeekForwardButton" class="btn btn-secondary seek-button btn-block"> > </button>
+        </div>
+      </div>
 
     </div>
 
@@ -84,12 +111,65 @@
   <script src="config.js"></script>
   <script>
 
+    function startSeekBack() {
+
+      // Begin a timer that sends messages to the helper to ask the video player
+      // to seek backwards
+
+      seekDirection = "back";
+      stopSeek();
+      seekTimer = setInterval(askToSeek, 100);
+      askToSeek();
+
+    }
+
+    function startSeekForward() {
+
+      // Begin a timer that sends messages to the helper to ask the video player
+      // to seek backwards
+
+      seekDirection = "forward";
+      stopSeek();
+      seekTimer = setInterval(askToSeek, 100);
+      askToSeek();
+
+    }
+
+    function stopSeek() {
+
+      clearInterval(seekTimer);
+    }
+
+    function askToSeek() {
+
+      // Send a message to the helper, asking it to tell the video player to seek
+      // the video.
+
+      var requestDict = {"action": "seekVideo",
+                         "direction": seekDirection,
+                         "fraction": 0.01};
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperAddress, true);
+      xhr.timeout = 100; // ms
+      xhr.ontimeout = function() {console.log("timeout")}
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+        }
+    };
+      xhr.send(JSON.stringify(requestDict));
+    }
+
     function askForDefaults() {
 
       // Send a message to the local helper and ask for the latest configuration
       // defaults, then use them.
 
-      requestString = `action=getDefaults`;
+      var requestString = `action=getDefaults`;
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperAddress, true);
@@ -134,6 +214,7 @@
         requestString = `class=exhibitComponent&id=${id}&type=${type}`;
 
         var xhr = new XMLHttpRequest();
+        xhr.timeout = 1000;
         xhr.open("POST", serverAddress, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onerror = function() {
@@ -254,7 +335,7 @@
             <div class="card-body">
               <h3 class="card-title">${name}</h3>
             </div>
-            <div id="cardName${number}Label" class="card-footer rounded">
+            <div id="cardName${number}Label" class="label-text card-footer rounded">
             </div>
           </div>
         </div>
@@ -303,6 +384,7 @@
 
       // Make the attractor layer visible and start autorun
 
+      stopSeek();
       $("#attractorOverlay").show();
       setAutoplay("on");
 
@@ -326,11 +408,25 @@
     var blockTouches = false;
     //var labelCache = {}; // This will hold labels that we have received from the helper
 
+    var seekTimer = null; // Will hold setInterval reference for seeking the video
+    var seekDirection = "back"
+
     askForDefaults();
     // sendPing();
     // setInterval(sendPing, 5000);
     rebuildInterface();
-    inactivityTimer = setTimeout(showAttractor, 30000);
+    //inactivityTimer = setTimeout(showAttractor, 30000);
+
+    var seekBackButton = document.getElementById("videoSeekBackButton");
+    var seekForwardButton = document.getElementById("videoSeekForwardButton");
+    seekBackButton.addEventListener('touchstart', startSeekBack);
+    seekBackButton.addEventListener('touchend', stopSeek);
+    seekBackButton.addEventListener('mousedown', startSeekBack);
+    seekBackButton.addEventListener('mouseup', stopSeek);
+    seekForwardButton.addEventListener('touchstart', startSeekForward);
+    seekForwardButton.addEventListener('touchend', stopSeek);
+    seekForwardButton.addEventListener('mousedown', startSeekForward);
+    seekForwardButton.addEventListener('mouseup', stopSeek);
 
   </script>
 

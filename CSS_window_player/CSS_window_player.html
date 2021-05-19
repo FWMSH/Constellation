@@ -78,6 +78,7 @@
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperAddress, true);
+      xhr.timeout = 2000;
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.onreadystatechange = function () {
         if (this.readyState != 4) return;
@@ -98,6 +99,7 @@
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperAddress, true);
+      xhr.timeout = 2000;
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.onreadystatechange = function () {
         if (this.readyState != 4) return;
@@ -117,6 +119,7 @@
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperAddress, true);
+      xhr.timeout = 10000;
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.onreadystatechange = function () {
         if (this.readyState != 4) return;
@@ -180,6 +183,9 @@
           } else if (cmd.startsWith("gotoClip")) {
               var clipNumber = cmd.split("_")[1];
               gotoSource(clipNumber);
+          } else if (cmd.startsWith("seekVideo")) {
+              var seek = cmd.split("_");
+              seekVideoByFraction(seek[1], parseFloat(seek[2]))
           } else if (cmd == "disableAutoplay") {
               autoplayEnabled = false;
           } else if (cmd == "enableAutoplay") {
@@ -219,6 +225,27 @@
           gotoSource(0);
         }
       }
+    }
+
+    function seekVideoByFraction(direction, fraction) {
+
+      // Seek to a point in the video given by the options.
+
+      var video = document.getElementById("fullscreenVideo")
+
+      var timeToGoTo;
+      if (direction == "back") {
+        timeToGoTo = video.currentTime - fraction*video.duration;
+      } else if (direction == "forward") {
+        timeToGoTo = video.currentTime + fraction*video.duration;
+      }
+      // Handle boundaries
+      if (timeToGoTo < 0) {
+        timeToGoTo += video.duration;
+      } else if (timeToGoTo > video.duration) {
+        timeToGoTo -= video.duration;
+      }
+      video.currentTime = timeToGoTo;
     }
 
     function updateClipList(list) {

@@ -247,6 +247,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             commandList.append("disableAutoplay")
                         elif data["state"] == "toggle":
                             commandList.append("toggleAutoplay")
+                elif data["action"] == "seekVideo":
+                    if ("direction" in data) and ("fraction" in data):
+                        print("Seeking video", data["direction"], data["fraction"])
+                        commandList.append("seekVideo_"+data["direction"]+"_"+str(data["fraction"]))
                 elif data["action"] == 'getLabelText':
                     if "lang" in data:
                         lang = data["lang"]
