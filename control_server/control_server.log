@@ -305,3 +305,55 @@ ERROR, 2021-05-14 15:56:12, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-05-14 15:57:34, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-05-14 15:57:50, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-05-14 15:57:57, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-05-18 15:05:09, Server shutdown
+INFO, 2021-05-18 15:05:41, Server started
+INFO, 2021-05-18 15:53:36, Server shutdown
+INFO, 2021-05-18 15:54:53, Server started
+INFO, 2021-05-18 15:56:04, Server shutdown
+INFO, 2021-05-18 15:56:05, Server started
+INFO, 2021-05-18 15:56:31, Server shutdown
+INFO, 2021-05-18 15:56:51, Server started
+INFO, 2021-05-18 15:58:38, Server shutdown
+INFO, 2021-05-18 15:58:39, Server started
+INFO, 2021-05-18 15:59:26, Server shutdown
+INFO, 2021-05-18 15:59:27, Server started
+INFO, 2021-05-18 16:02:11, Server shutdown
+INFO, 2021-05-18 16:02:14, Server started
+INFO, 2021-05-18 16:03:24, Server shutdown
+INFO, 2021-05-18 16:03:25, Server started
+INFO, 2021-05-18 16:06:36, Server shutdown
+INFO, 2021-05-18 16:06:37, Server started
+INFO, 2021-05-18 16:07:22, Server shutdown
+INFO, 2021-05-18 16:07:23, Server started
+INFO, 2021-05-18 16:16:15, Server shutdown
+INFO, 2021-05-18 16:16:16, Server started
+INFO, 2021-05-18 16:17:41, Server shutdown
+INFO, 2021-05-18 16:17:42, Server started
+INFO, 2021-05-18 16:18:25, Server shutdown
+INFO, 2021-05-18 16:18:27, Server started
+INFO, 2021-05-18 16:18:59, Server shutdown
+INFO, 2021-05-18 16:19:01, Server started
+INFO, 2021-05-18 16:19:53, Server shutdown
+INFO, 2021-05-18 16:19:54, Server started
+INFO, 2021-05-18 16:35:23, Server shutdown
+INFO, 2021-05-18 16:35:25, Server started
+INFO, 2021-05-18 16:36:05, Server shutdown
+INFO, 2021-05-18 16:36:06, Server started
+INFO, 2021-05-18 16:39:19, Server shutdown
+INFO, 2021-05-18 16:39:21, Server started
+INFO, 2021-05-18 16:46:47, Server shutdown
+INFO, 2021-05-18 16:46:49, Server started
+ERROR, 2021-05-18 16:46:49, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 918, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 703, in loadDefaultConfiguration<newline>    current = config['CURRENT']<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 958, in __getitem__<newline>    raise KeyError(key)<newline>KeyError: 'CURRENT'<newline>"
+INFO, 2021-05-18 16:46:57, Server started
+ERROR, 2021-05-18 16:46:57, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 918, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 703, in loadDefaultConfiguration<newline>    current = config['CURRENT']<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 958, in __getitem__<newline>    raise KeyError(key)<newline>KeyError: 'CURRENT'<newline>"
+INFO, 2021-05-18 16:47:59, Server started
+INFO, 2021-05-18 16:48:28, Server shutdown
+INFO, 2021-05-18 16:48:30, Server started
+INFO, 2021-05-18 16:48:31, Server shutdown
+INFO, 2021-05-18 16:48:31, Server started
+INFO, 2021-05-18 16:48:32, Server shutdown
+INFO, 2021-05-18 16:56:19, Server started
+INFO, 2021-05-19 10:03:23, Server shutdown
+INFO, 2021-05-19 10:03:26, Server started
+ERROR, 2021-05-19 10:04:43, GET for unexpected file /player_kiosk.html
+ERROR, 2021-05-19 10:04:43, GET for unexpected file /favicon.ico

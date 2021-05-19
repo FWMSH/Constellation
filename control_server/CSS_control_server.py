@@ -1,4 +1,5 @@
 from http.server import HTTPServer, SimpleHTTPRequestHandler
+from socketserver import ThreadingMixIn
 import time
 import logging
 import datetime
@@ -181,13 +182,18 @@ class ExhibitComponent:
                     self.config[key] = fileConfig[key]
         except configparser.NoSectionError:
             print(f"Warning: there is no configuration available for component with id={self.id}")
-            logging.warning(f"there is no configuration available for component with id={self.id}")
+            with logLock:
+                logging.warning(f"there is no configuration available for component with id={self.id}")
         self.config["current_exhibit"] = currentExhibit[0:-8]
 
     def queueCommand(self, command):
 
         print(f"{self.id}: command queued: {command}")
         self.config["commands"].append(command)
+
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    # Stub which triggers dispatch of requests into individual threads.
+    daemon_threads = True
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
@@ -270,6 +276,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         # Receive a GET request and respond with a console webpage
 
+        # print("+++++++++++++++")
+        # print("BEGIN GET")
+        print(f"Active threads: {threading.active_count()}       ", end="\r", flush=True)
+
+        # print(f"  path = {self.path}")
+
         if self.path == "/":
 
             f = open("webpage.html","r")
@@ -286,6 +298,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
             self.wfile.write(bytes(page, encoding="UTF-8"))
 
             f.close()
+            # print("END GET")
+            # print("+++++++++++++++")
             return
 
         else:
@@ -299,13 +313,22 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(f.read())
                 f.close()
+                # print("END GET")
+                # print("+++++++++++++++")
                 return
             except IOError:
                 self.send_error(404, "File Not Found: %s" % self.path)
-                logging.error(f"GET for unexpected file {self.path}")
+                with logLock:
+                    logging.error(f"GET for unexpected file {self.path}")
+
+        # print("END GET")
+        # print("+++++++++++++++")
 
 
     def do_OPTIONS(self):
+
+        # print("---------------")
+        # print("BEGIN OPTIONS")
 
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -314,10 +337,19 @@ class RequestHandler(SimpleHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Credentials', 'true')
         self.end_headers()
 
+        # print("END OPTIONS")
+        # print("---------------")
+
+
     def do_POST(self):
 
         # Receives pings from client devices and respond with any updated
         # information
+
+        # print("===============")
+        # print("BEGIN POST")
+
+        print(f"Active threads: {threading.active_count()}      ", end="\r", flush=True)
 
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -331,10 +363,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
             ctype, pdict = cgi.parse_header(self.headers.get('content-type'))
         except:
             print("DO_POST: Error: Are we missing the Content-Type header?")
-            logging.warning("POST received without content-type header")
+            with logLock:
+                logging.warning("POST received without content-type header")
             print(self.headers)
 
         if (ctype == "application/json"):
+            # print("  application/json")
 
             # Unpack the data
             length = int(self.headers['Content-length'])
@@ -354,12 +388,18 @@ class RequestHandler(SimpleHTTPRequestHandler):
             except:
                 print("Error: ping received without class field")
                 return() # No id or type, so bail out
+
+            # print(f"  class = {pingClass}")
+
             if pingClass == "webpage":
                 try:
                     action = data["action"]
                 except:
                     print("Error: webpage ping received without action field")
+                    # print("END POST")
+                    # print("===============")
                     return() # No id or type, so bail out
+                # print(f"    action = {action}")
                 if action == "fetchUpdate":
                     self.sendWebpageUpdate()
                 elif action == "fetchProjectorUpdate":
@@ -405,11 +445,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             text = f.read()
                             self.wfile.write(bytes(text, encoding="UTF-8"))
                     except:
-                        logging.error("Unable to read README.md")
+                        with logLock:
+                            logging.error("Unable to read README.md")
 
             elif pingClass == "exhibitComponent":
                 if "action" in data: # not a ping
                     action = data["action"]
+                    # if "id" in data:
+                    #     print(f"    id = {data['id']}")
+                    # print(f"    action = {action}")
                     if action == "getUploadedFile":
                         if "id" in data:
                             component = getExhibitComponent(data["id"])
@@ -427,17 +471,28 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         type = data["type"]
                         if id == "UNKNOWN":
                             #print(f"Warning: exhibitComponent ping with id=UNKNOWN coming from {self.address_string()}")
+                            # print("END POST")
+                            # print("===============")
                             return()
                     except:
                         print("Error: exhibitComponent ping received without id or type field")
+                        # print("END POST")
+                        # print("===============")
                         return() # No id or type, so bail out
+
+                    # print(f"    id = {id}")
+                    # print("    action = ping")
 
                     # self.checkEventSchedule()
                     updateExhibitComponentStatus(data, self.address_string())
                     self.sendCurrentConfiguration(id)
             else:
                 print(f"Error: ping with unknown class '{pingClass}' received")
+                # print("END POST")
+                # print("===============")
                 return() # Bail out
+        # print("END POST")
+        # print("===============")
 
 def setComponentContent(id, contentList):
 
@@ -551,8 +606,9 @@ def updateSchedule(schedule):
             config.set("SCHEDULE", key, schedule_dict[key].strftime("%I:%M %p").lstrip("0"))
 
     # Write ini file back to disk
-    with open('currentExhibitConfiguration.ini', "w") as f:
-        config.write(f)
+    with currentExhibitConfigurationLock:
+        with open('currentExhibitConfiguration.ini', "w") as f:
+            config.write(f)
 
 def readSchedule(schedule):
 
@@ -573,7 +629,8 @@ def readSchedule(schedule):
                     pass
             else:
                 print("readSchedule: error: unable to parse time:", schedule[key])
-                logging.error(f'"readSchedule is unable to parse time: {schedule[key]}"')
+                with logLock:
+                    logging.error(f'"readSchedule is unable to parse time: {schedule[key]}"')
 
 
 def queueNextOnOffEvent():
@@ -747,8 +804,9 @@ def readExhibitConfiguration(name, updateDefault=False):
         config.read('currentExhibitConfiguration.ini')
         config.set("CURRENT", "current_exhibit", name)
 
-        with open('currentExhibitConfiguration.ini', "w") as f:
-            config.write(f)
+        with currentExhibitConfigurationLock:
+            with open('currentExhibitConfiguration.ini', "w") as f:
+                config.write(f)
 
 def getExhibitComponent(id):
 
@@ -780,7 +838,8 @@ def commandAllExhibitComponents(cmd):
     # Queue a command for every exhibit component
 
     print("Sending command to all components:", cmd)
-    logging.info(f"commandAllExhibitComponents: {cmd}")
+    with logLock:
+        logging.info(f"commandAllExhibitComponents: {cmd}")
 
     for component in componentList:
         component.queueCommand(cmd)
@@ -814,15 +873,19 @@ def quit_handler(sig, frame):
     print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
     for key in pollingThreadDict:
         pollingThreadDict[key].cancel()
-    logging.info("Server shutdown")
-    sys.exit(0)
+    with logLock:
+        logging.info("Server shutdown")
+
+    with currentExhibitConfigurationLock:
+        sys.exit(0)
 
 def error_handler(*exc_info):
 
     # Catch errors and log them to file
 
     text = "".join(traceback.format_exception(*exc_info)).replace('"', "'").replace("\n", "<newline>")
-    logging.error(f'"{text}"')
+    with logLock:
+        logging.error(f'"{text}"')
     print(f"Error: see control_server.log for more details ({datetime.datetime.now()})")
 
 
@@ -839,17 +902,24 @@ currentExhibitConfiguration = None # the configParser object holding the current
 schedule_dict = {} # Will hold a list of on/off times for every day of the week
 pollingThreadDict = {} # Holds references to the threads starting by various polling procedures
 
+# threading resources
+logLock = threading.Lock()
+currentExhibitConfigurationLock = threading.Lock()
+
+
 # Set up log file
 logging.basicConfig(datefmt='%Y-%m-%d %H:%M:%S', filename='control_server.log', format='%(levelname)s, %(asctime)s, %(message)s', level=logging.DEBUG)
 signal.signal(signal.SIGINT, quit_handler)
 sys.excepthook = error_handler
 
-logging.info("Server started")
+with logLock:
+    logging.info("Server started")
 
 checkAvailableExhibits()
 loadDefaultConfiguration()
 pollEventSchedule()
 pollProjectors()
 
-httpd = HTTPServer((ADDR, serverPort), RequestHandler)
+#httpd = HTTPServer((ADDR, serverPort), RequestHandler)
+httpd = ThreadedHTTPServer((ADDR, serverPort), RequestHandler)
 httpd.serve_forever()
