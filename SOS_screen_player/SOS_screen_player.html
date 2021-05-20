@@ -262,8 +262,8 @@
         if (this.status == 200) {
           if (this.response != currentObject) {
             var filename = "";
-            if (this.response.toLowerCase() in dictionary) {
-              filename = dictionary[this.response.toLowerCase()];
+            if (this.response in dictionary) {
+              filename = dictionary[this.response];
             } else {
               console.log(this.response)
               filename = dictionary["default"];
