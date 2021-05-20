@@ -447,7 +447,8 @@ def loadDictionary():
     # look for a file called dictionary.ini and load it if it exists
 
     if "dictionary.ini" in os.listdir():
-        parser = configparser.ConfigParser()
+        parser = configparser.ConfigParser(delimiters=("="))
+        parser.optionxform = str # Override the default, which is case-insensitive
         parser.read("dictionary.ini")
         return(parser)
     else:
