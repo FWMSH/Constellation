@@ -506,18 +506,20 @@ def setComponentContent(id, contentList):
             content += ', '
         content += contentList[i]
 
-    try:
-        currentExhibitConfiguration.set(id, "content", content)
-    except configparser.NoSectionError: # This exhibit does not have content for this component
-        currentExhibitConfiguration.add_section(id)
-        currentExhibitConfiguration.set(id, "content", content)
+    with currentExhibitConfigurationLock:
+        try:
+            currentExhibitConfiguration.set(id, "content", content)
+        except configparser.NoSectionError: # This exhibit does not have content for this component
+            currentExhibitConfiguration.add_section(id)
+            currentExhibitConfiguration.set(id, "content", content)
 
     # Update the component
     getExhibitComponent(id).updateConfiguration()
 
     # Write new configuration to file
-    with open(currentExhibit, 'w') as f:
-        currentExhibitConfiguration.write(f)
+    with currentExhibitConfigurationLock:
+        with open(currentExhibit, 'w') as f:
+            currentExhibitConfiguration.write(f)
 
 def updateSynchronizationList(id, other_ids):
 
@@ -598,15 +600,15 @@ def updateSchedule(schedule):
     queueNextOnOffEvent()
 
     config = configparser.ConfigParser()
-    config.read('currentExhibitConfiguration.ini')
-    config.remove_section("SCHEDULE")
-    config.add_section("SCHEDULE")
-    for key in schedule_dict:
-        if key != "Next event":
-            config.set("SCHEDULE", key, schedule_dict[key].strftime("%I:%M %p").lstrip("0"))
-
-    # Write ini file back to disk
     with currentExhibitConfigurationLock:
+        config.read('currentExhibitConfiguration.ini')
+        config.remove_section("SCHEDULE")
+        config.add_section("SCHEDULE")
+        for key in schedule_dict:
+            if key != "Next event":
+                config.set("SCHEDULE", key, schedule_dict[key].strftime("%I:%M %p").lstrip("0"))
+
+        # Write ini file back to disk
         with open('currentExhibitConfiguration.ini', "w") as f:
             config.write(f)
 
@@ -698,7 +700,8 @@ def loadDefaultConfiguration():
 
     # First, retrieve the config filename that defines the desired exhibit
     config = configparser.ConfigParser()
-    config.read('currentExhibitConfiguration.ini')
+    with currentExhibitConfigurationLock:
+        config.read('currentExhibitConfiguration.ini')
     current = config["CURRENT"]
     serverPort = current.getint("server_port", 8080)
     ip_address = current.get("server_ip_address", "localhost")
@@ -801,10 +804,9 @@ def readExhibitConfiguration(name, updateDefault=False):
 
     if updateDefault:
         config = configparser.ConfigParser()
-        config.read('currentExhibitConfiguration.ini')
-        config.set("CURRENT", "current_exhibit", name)
-
         with currentExhibitConfigurationLock:
+            config.read('currentExhibitConfiguration.ini')
+            config.set("CURRENT", "current_exhibit", name)
             with open('currentExhibitConfiguration.ini', "w") as f:
                 config.write(f)
 
