@@ -26,7 +26,6 @@ def trigger_show(connection, show_number, await_response=False):
     # given show.
 
     command = "X04" + hex(show_number)[2:].upper().rjust(2,'0')
-    print(command)
     connection.write(bytes(command, 'UTF-8'))
     if await_response:
         response = connection.readline().decode("UTF-8").strip()
