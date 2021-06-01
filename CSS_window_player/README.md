@@ -1,7 +1,7 @@
 # Media Player
 
 ## Introduction
-The media player displays images and videos using the browser as its rendering engine. The player and its optional kiosk are implemented in JavaScript
+The media player displays images and videos using the browser as its rendering engine. The player and its optional kiosk are implemented in JavaScript.
 
 ## Terminology
 * `collateral`: Material other than the `content`, such as thumbnails, label text, etc.
@@ -15,12 +15,32 @@ Every instance of the media player requires an instance of the `system helper`. 
 
 The media player is based on HTML 5 and JavaScript, so it should work on any modern browser; however, it has only been tested significantly on Chromium.
 
+### Configuration options
+* `allow_sleep` (default: `true`): Allow the `system helper` to put the display to sleep on command from the `control server`. This does not override any operating system settings, which may interfere with sleeping/waking the screen.
+* `id`: A unique name for communicating with the `control server`. Every media player must have an `id`.
+* `synchronize_with`: A list of other media player `id`s with which to synchronize playback.
+* `type`: A user-defined grouping name. Every media player must have a `type`.
+
+## Synchronizing with other media player instances
+
+The media player can perform a limited synchronization with other media players. **This synchronization only occurs when playback begins.** To synchronize, you must be running a `control server`. Steps to synchronize:
+
+1. Use the keyword `synchronize_with` in `defaults.ini` to list the `id` of each other media player with which you want to synchronize. Add this keyword into the `defaults.ini` for every media player, listing in each the other `id`s.
+2. Launch the `system helper` associated with each player.
+3. Launch the media player webpage for each player.
+4. As each player launches, it will contact the `control server` and indicate it is ready for synchronization. As the player waits, it will display a black screen.
+5. Once every player has checked in, the server will send the synchronization information. Synchronization will begin shortly.
+
+Synchronization can occur between players running on the same physical machine, or between players on separate machines. Regardless, a `control server` (local or remote) is required.
+
+Synchronization always begins with the first `content` item. **Players do not resynchronize when switching between files. Since file loading is not a constant time process, players will likely become desynchronized if multiple `content` playlists are used**
+
 ## Using the kiosk
 
 The media player includes an optional kiosk, `player_kiosk.html`, that allows a user to control the media player from an external device. The kiosk can also provide a label for each piece of `content`.
 
 ### Displaying the kiosk
-From a remote device, use a web browser to connect to the `system helper` with `player_kiosk.html` as the pathname. For example, `http://10.8.0.125:8082/player_kiosk.html`.
+From a remote device, use a web browser to connect to the `system helper` with `player_kiosk.html` as the pathname. For example, `http://10.8.0.125:8082/player_kiosk.html`. On iOS, the kiosk can be saved to the Home Screen and will display as a Progressive Web App, without any of the Safari interface.
 
 ### Configuring collateral
 Properly displaying the kiosk requires adding several pieces of `collateral`, which are described below.
@@ -91,6 +111,7 @@ media_player/
         mySecondImage.png
 
     config.js
+    defaults.ini
     dictionary.ini
 
     helper.py
