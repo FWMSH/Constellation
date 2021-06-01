@@ -171,7 +171,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     configToSend['content'] = [s.strip() for s in configToSend['content'].split(",")]
 
                     if dictionary is not None:
-                        configToSend["dictionary"] = dict(dictionary.items("DEFAULT"))
+                        # If there are multiple sections, build a meta-dictionary
+                        if len(dictionary.items()) > 1:
+                            meta_dict = {"meta": True}
+                            for item in dictionary.items():
+                                name = item[0]
+                                meta_dict[name] = dict(dictionary.items(name))
+                            configToSend["dictionary"] = meta_dict
+                        else:
+                            configToSend["dictionary"] = dict(dictionary.items("DEFAULT"))
                     configToSend["availableContent"] = {"current_exhibit": getDirectoryContents(config["current_exhibit"]),
                                                         "all_exhibits": getAllDirectoryContents()}
 
@@ -258,8 +266,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         lang = "en"
                     if "name" in data:
                         root = os.path.dirname(os.path.abspath(__file__))
-                        label_path = os.path.join(root, "labels", config["current_exhibit"], lang, data["name"] +'.txt')
-
+                        label_path = os.path.join(root, "labels", config["current_exhibit"], lang, data["name"])
                         try:
                             f = open(label_path,"r")
                             label = f.read()

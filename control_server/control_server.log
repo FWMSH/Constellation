@@ -358,3 +358,4 @@ INFO, 2021-05-19 10:03:26, Server started
 ERROR, 2021-05-19 10:04:43, GET for unexpected file /player_kiosk.html
 ERROR, 2021-05-19 10:04:43, GET for unexpected file /favicon.ico
 INFO, 2021-05-26 17:01:49, Server shutdown
+INFO, 2021-06-01 10:05:18, Server started

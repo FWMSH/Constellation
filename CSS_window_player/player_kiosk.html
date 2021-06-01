@@ -42,12 +42,13 @@
         touch-action: manipulation;
         overflow-y: hidden;
       }
-      .label-text {
-        font-size: 25px;
+      .mastheadText {
+        font-size: 50px;
       }
       .seek-button {
         font-family: Gotham-Bold;
         font-size: 50px;
+        height: 100%;
       }
       #attractorOverlay {
         position: fixed;
@@ -71,6 +72,9 @@
         overflow-x: hidden;
         z-index: 2;
       }
+      #cardRow::-webkit-scrollbar {
+        display: none;
+      }
       #footer {
         height: 11vh;
       }
@@ -80,15 +84,30 @@
       }
       #labelTextArea {
         font-family: Gotham-Book;
-        font-size: 35px;
         top: 10vh;
         height: 75vh;
         overflow-y: scroll;
         z-index: 2;
       }
+      #labelTextArea::-webkit-scrollbar {
+        display: none;
+      }
+      #langSwitchButton {
+        font-family: Gotham-Bold;
+        font-size: 35px;
+        height: 100%;
+      }
       #main-row {
         top: 10vh;
         z-index: 1;
+      }
+      #textSizeDownButton {
+        height: 100%;
+        font-size: 25px;
+      }
+      #textSizeUpButton {
+        height: 100%;
+        font-size: 50px;
       }
     </style>
 
@@ -101,8 +120,8 @@
     <div id="attractorOverlay" class="sticky-top" onclick="hideAttractor()">
       <div class="container">
         <center>
-          <div style="color: white; font-size: 3vw;">Touch to explore</div>
-          <div id="attractorDatasetName" style="color: white; font-size:15vw; font-family:Good-Times;">Types of Rockets</div>
+          <div id="TouchToExploreLabel" style="color: white;">Touch to explore</div>
+          <div id="attractorDatasetName" style="color: white; font-family:Good-Times;"></div>
         </center>
       </div>
     </div>
@@ -111,7 +130,7 @@
       <div id='header' class="header row sticky-top bg-primary" style="z-index:1">
         <div class="col pt-1">
           <center>
-            <H1>Types of Rockets</H1>
+            <div class='mastheadText'></div>
           </center>
         </div>
       </div>
@@ -131,11 +150,20 @@
       </div>
 
       <div id='footer' class="footer row fixed-bottom bg-primary" style="z-index:1">
-        <div class="col-2 offset-4 pt-1">
+        <div class="col-2 pt-1">
+          <button id="langSwitchButton" class="btn btn-secondary btn-block" onclick="switchLang()">Español</button>
+        </div>
+        <div class="col-2 offset-2 pt-1">
           <button id="videoSeekBackButton" class="btn btn-secondary seek-button btn-block"> < </button>
         </div>
         <div class="col-2 pt-1">
           <button id="videoSeekForwardButton" class="btn btn-secondary seek-button btn-block"> > </button>
+        </div>
+        <div class="col-1 pt-1 offset-2">
+          <button id="textSizeDownButton" class="btn btn-secondary btn-block" onclick="decreaseTextSize()"> A </button>
+        </div>
+        <div class="col-1 pt-1">
+          <button id="textSizeUpButton" class="btn btn-secondary btn-block" onclick="increaseTextSize()"> A </button>
         </div>
       </div>
 
@@ -175,6 +203,7 @@
 
     function stopSeek() {
 
+      resetAttractorTimer();
       clearInterval(seekTimer);
     }
 
@@ -218,9 +247,84 @@
 
         if (this.status == 200) {
           readUpdate(this.responseText);
+          rebuildInterface();
         }
     };
       xhr.send(requestString);
+    }
+
+    function switchLang() {
+
+      // Switch to the other language and start changing the content.
+
+      if (currentLang == "en") {
+        currentLang = "es";
+      } else {
+        currentLang = "en";
+      }
+      setLang(currentLang);
+    }
+
+    function setLang(lang) {
+
+      currentLang = lang;
+      if (currentLang == "es") {
+        $("#langSwitchButton").html("English");
+      } else {
+        $("#langSwitchButton").html("Español");
+      }
+      rebuildInterface();
+      highlightClip(activeClip);
+    }
+
+    function updateTextSize() {
+
+      // Read the current text size variables and update the appropriate elements
+
+      $("p").css('font-size', currentLabelTextSize);
+      $("H1").css('font-size', currentHeaderTextSize);
+      $("H3").css('font-size', currentButtonTextSize);
+
+      var attractorTextSize = Math.min(window.innerWidth/10, 100)
+      var attractorSubTextSize = Math.min(window.innerWidth/20, 50)
+      $("#attractorDatasetName").css('font-size', attractorTextSize);
+      $("#TouchToExploreLabel").css('font-size', attractorSubTextSize);
+    }
+
+    function resetTextSize() {
+
+      currentButtonTextSize = defaultButtonTextSize;
+      currentHeaderTextSize = defaultHeaderTextSize;
+      currentLabelTextSize = defaultLabelTextSize;
+
+      updateTextSize();
+    }
+
+    function increaseTextSize() {
+
+      resetAttractorTimer();
+      currentButtonTextSize += 2;
+      currentHeaderTextSize += 5;
+      currentLabelTextSize += 2;
+      updateTextSize();
+    }
+
+    function decreaseTextSize() {
+
+      resetAttractorTimer();
+      currentButtonTextSize -= 2;
+      currentHeaderTextSize -= 5;
+      currentLabelTextSize -= 2;
+      if (currentButtonTextSize < defaultButtonTextSize) {
+        currentButtonTextSize = defaultButtonTextSize;
+      }
+      if (currentLabelTextSize < defaultLabelTextSize) {
+        currentLabelTextSize = defaultLabelTextSize;
+      }
+      if (currentHeaderTextSize < defaultHeaderTextSize) {
+        currentHeaderTextSize = defaultHeaderTextSize;
+      }
+      updateTextSize();
     }
 
     function readUpdate(responseText) {
@@ -229,7 +333,7 @@
       // on the contents
 
       var update = JSON.parse(responseText);
-
+      current_config = update;
       if ("id" in update) {
         id = update["id"];
       }
@@ -269,23 +373,31 @@
       }
     }
 
+    function highlightClip(number) {
+
+      // Configure the interface to show the specified clip
+
+      $(".card-footer").hide();
+      $(".border.rounded.no-gutters").removeClass("bg-primary"); // Selects all the cards
+      $("#cardName" + number).addClass("bg-primary");
+      getLabelText($("#cardName" + number).data("name"), currentLang);
+      document.getElementById("labelTextArea").scrollTop = 0;
+
+    }
+
     function selectClip(number) {
 
       // Called when a user taps on one of the cards.
 
       if (blockTouches == false && activeClip != number) {
+        resetAttractorTimer();
         activeClip = number;
         blockTouches = true;
         setTimeout(function() {blockTouches = false;}, 1000);
 
         // Ask the helper to switch the clip
         gotoClip(number);
-
-        $(".card-footer").hide();
-        $(".border.rounded.no-gutters").removeClass("bg-primary"); // Selects all the cards
-        $("#cardName" + number).addClass("bg-primary");
-        getLabelText("testLabel", "en", number);
-        document.getElementById("labelTextArea").scrollTop = 0;
+        highlightClip(number);
       }
 
     }
@@ -321,58 +433,77 @@
       xhr.send(requestString);
     }
 
-    function getLabelText(name, lang, index) {
+    function getLabelText(name, lang) {
 
       // Ask the helper to retreive a label file for the specified object in
       // the specified language and send the text.
 
-      var requestDict = {"action": "getLabelText",
-                         "lang": "en",
-                         "name": name}
+      var labelKey = current_config["current_exhibit"] + "_" + lang + "_" + name;
+      if (labelKey in labelCache) {
+        $("#labelTextArea").html(labelCache[labelKey]);
+        updateTextSize();
+      } else {
+        var labelName = name.split(".").slice(0,-1).join(".")+".txt";
+        var requestDict = {"action": "getLabelText",
+                           "lang": lang,
+                           "name": labelName};
 
-      requestString = JSON.stringify(requestDict);
+        requestString = JSON.stringify(requestDict);
 
-      var xhr = new XMLHttpRequest();
-      xhr.timeout = 2000;
-      xhr.open("POST", helperAddress, true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.onreadystatechange = function () {
+        var xhr = new XMLHttpRequest();
+        xhr.timeout = 2000;
+        xhr.open("POST", helperAddress, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
 
-        if (this.readyState != 4) return;
+          if (this.readyState != 4) return;
 
-        if (this.status == 200) {
-          if (this.responseText != "") {
-            var formatted_text = markdownConverter.makeHtml(this.responseText);
-            $("#labelTextArea").html(formatted_text);
-          } else {
-
+          if (this.status == 200) {
+            if (this.responseText != "") {
+              var formatted_text = markdownConverter.makeHtml(this.responseText);
+              $("#labelTextArea").html(formatted_text);
+              // Add it to the cache.
+              labelCache[labelKey] = formatted_text;
+              updateTextSize();
+            } else {
+              $("#labelTextArea").html("");
+            }
           }
-        }
-      };
-      xhr.send(requestString);
-
+        };
+        xhr.send(requestString);
+      }
     }
 
-    function createCard(name, number, icon) {
+    function createCard(name, number) {
 
       // Create a card that holds one dataset
 
       // Try to look up a public-facing name for the dataset
+      var displayName = name;
       if (dictionary != null) {
-        if (name.toLowerCase() in dictionary) {
-          name = dictionary[name.toLowerCase()];
+        var dict = dictionary;
+        if ("meta" in dictionary) {
+          // We have a dictionary with a section for each language
+          if (currentLang.toUpperCase() in dictionary) {
+            dict = dictionary[currentLang.toUpperCase()]
+          }
+        }
+        var dictKey = name;
+        if (dictKey in dict) {
+          displayName = dict[dictKey];
         }
       }
+      var icon = name.split(".").slice(0,-1).join(".")+".png";
 
       var html = `
       <div class='col-12 m-1' onclick="selectClip(${number})">
-        <div id="cardName${number}" class="row no-gutters p-2 border border-primary rounded">
+        <div id="cardName${number}" data-name="${name}" class="row no-gutters p-2 border border-primary rounded">
           <div class="col-3">
-            <img class='card-img-top' src="thumbnails/${icon}"></img>
+            <img class='card-img-top' src="thumbnails/${icon}" onerror="this.src='thumbnails/default.svg'"></img>
           </div>
           <div class="col-9 pl-2">
             <div class="card-body">
-              <h3 class="card-title">${name}</h3>
+              <h3 class="card-title">${displayName}</h3>
             </div>
             </div>
           </div>
@@ -380,11 +511,32 @@
       </div>
       `
       $("#cardRow").append(html)
+      if (number == activeClip) {
+        highlightClip(number);
+      }
+      updateTextSize();
     }
 
     function rebuildInterface() {
 
       // Repopulate the clip buttons in response to a change in playlist
+      if (dictionary != null) {
+        var dict = dictionary;
+        if ("meta" in dictionary) {
+          // We have a dictionary with a section for each language
+          if (currentLang.toUpperCase() in dictionary) {
+            dict = dictionary[currentLang.toUpperCase()]
+          }
+        }
+        var dictKey = "kiosk_title";
+        if (dictKey in dict) {
+          var title = dict[dictKey];
+          $(".mastheadText").html(title);
+          if (currentLang == "en") {
+            $("#attractorDatasetName").html(title);
+          }
+        }
+      }
 
       // Retreive the new clip list
       requestString = `action=getClipList`;
@@ -402,14 +554,12 @@
         if (this.status == 200) {
           $("#cardRow").empty();
           var update = JSON.parse(this.responseText);
-          console.log("Update received:", update);
           if ("clipList" in update) {
             var clipList = update["clipList"];
-            activeClip = update["activeClip"];
+            activeClip = parseInt(update["activeClip"]);
             for (var i=0; i<clipList.length; i++) {
               clip = clipList[i];
-
-              createCard(clip, i, "default.svg");
+              createCard(clip, i);
             }
             $("#card"+activeClip).addClass("bg-primary");
           }
@@ -424,17 +574,25 @@
 
       stopSeek();
       $("#attractorOverlay").show();
+      setLang("en");
       setAutoplay("on");
-
+      resetTextSize();
     }
 
     function hideAttractor() {
 
       // Make the attractor layer invisible and start the autorun
 
+      rebuildInterface();
       $("#attractorOverlay").hide();
       setAutoplay("off");
+      resetAttractorTimer();
+    }
 
+    function resetAttractorTimer() {
+
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(showAttractor, 30000);
     }
 
     // These will be replaced by the values specified in defaults.ini
@@ -442,10 +600,19 @@
     var type = 'PLAYER_KIOSK';
     var serverAddress = ""; // The address of the main control server
     var dictionary = null;
+    var current_config = {}; // Will hold the defaults sent from the helper
     var markdownConverter = new showdown.Converter();
     var blockTouches = false;
     var activeClip = 0;
-    //var labelCache = {}; // This will hold labels that we have received from the helper
+    var labelCache = {}; // This will hold labels that we have received from the helper
+
+    var defaultButtonTextSize = 40;
+    var defaultHeaderTextSize = 55;
+    var defaultLabelTextSize = 25;
+    var currentButtonTextSize = defaultButtonTextSize;
+    var currentHeaderTextSize = defaultHeaderTextSize;
+    var currentLabelTextSize = defaultLabelTextSize;
+    var currentLang = "en";
 
     var seekTimer = null; // Will hold setInterval reference for seeking the video
     var seekDirection = "back"
@@ -453,8 +620,8 @@
     askForDefaults();
     // sendPing();
     // setInterval(sendPing, 5000);
-    rebuildInterface();
-    //inactivityTimer = setTimeout(showAttractor, 30000);
+    updateTextSize();
+    inactivityTimer = setTimeout(showAttractor, 30000);
 
     var seekBackButton = document.getElementById("videoSeekBackButton");
     var seekForwardButton = document.getElementById("videoSeekForwardButton");
