@@ -1,5 +1,5 @@
 sockio
 pyserial
 psutil
-dateutil
+python-dateutil
 requests

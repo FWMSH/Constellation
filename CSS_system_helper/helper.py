@@ -477,15 +477,16 @@ def queueNextScheduledEvent():
     global nextEvent
 
     nextEvent = None
+    
+    if schedule is not None:
+        sorted_sched = sorted(schedule)
+        now = datetime.now().time()
 
-    sorted_sched = sorted(schedule)
-    now = datetime.now().time()
-
-    for event in schedule:
-        time, content = event
-        if now < time:
-            nextEvent = event
-            break
+        for event in schedule:
+            time, content = event
+            if now < time:
+                nextEvent = event
+                break
 
 def checkEventSchedule():
 
