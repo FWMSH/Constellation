@@ -16,6 +16,8 @@ import shutil
 import psutil
 import mimetypes
 import socket
+import dateutil.parser
+import requests
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
@@ -179,7 +181,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                 meta_dict[name] = dict(dictionary.items(name))
                             configToSend["dictionary"] = meta_dict
                         else:
-                            configToSend["dictionary"] = dict(dictionary.items("DEFAULT"))
+                            configToSend["dictionary"] = dict(dictionary.items("CURRENT"))
                     configToSend["availableContent"] = {"current_exhibit": getDirectoryContents(config["current_exhibit"]),
                                                         "all_exhibits": getAllDirectoryContents()}
 
@@ -201,11 +203,11 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                 if i != 0:
                                     content += ', '
                                 content += file
-                        configFile.set("DEFAULT", "content", content)
+                        configFile.set("CURRENT", "content", content)
                         config["content"] = content
                         update_made = True
                     if "current_exhibit" in data:
-                        configFile.set("DEFAULT", "current_exhibit", data["current_exhibit"])
+                        configFile.set("CURRENT", "current_exhibit", data["current_exhibit"])
                         config["current_exhibit"] = data["current_exhibit"]
                         checkDirectoryStructure(config["current_exhibit"])
                         update_made = True
@@ -244,7 +246,13 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     if "clipNumber" in data:
                         commandList.append("gotoClip_"+str(data["clipNumber"]))
                 elif data["action"] == "getCommands":
-                    json_string = json.dumps({"commands": commandList})
+                    responseDict = {"commands": commandList}
+
+                    event_content = checkEventSchedule()
+                    if event_content is not None:
+                        responseDict["content"] = event_content
+
+                    json_string = json.dumps(responseDict)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                     commandList = []
                 elif data["action"] == "setAutoplay":
@@ -429,12 +437,80 @@ def getSystemStats():
 
     return(result)
 
+def performManualContentUpdate(content):
+
+    # Take the given list of content and update the control server
+
+    global config
+
+    # First, update the control server
+    requestDict = {"class": "webpage",
+                   "id": config["id"],
+                   "action": "setComponentContent",
+                   "content": content}
+
+    headers = {'Content-type': 'application/json'}
+    r = requests.post("http://" + config["server_ip_address"] + ":" + config["server_port"],
+                        headers=headers, json=requestDict)
+
+def readSchedule(schedule_input):
+
+    # Parse the configParser section provided in schedule and convert it for
+    # later use
+
+    global schedule
+
+    schedule = []
+
+    for key in schedule_input:
+        time = dateutil.parser.parse(key).time()
+        content = [s.strip() for s in schedule_input[key].split(",")]
+        schedule.append((time, content))
+
+    queueNextScheduledEvent()
+
+def queueNextScheduledEvent():
+
+    # Cycle through the schedule and queue the next event
+
+    global schedule
+    global nextEvent
+
+    nextEvent = None
+
+    sorted_sched = sorted(schedule)
+    now = datetime.now().time()
+
+    for event in schedule:
+        time, content = event
+        if now < time:
+            nextEvent = event
+            break
+
+def checkEventSchedule():
+
+    # Check the nextEvent and see if it is time. If so, set the content
+
+    global nextEvent
+
+    content_to_retrun = None
+    if nextEvent is not None:
+        time, content = nextEvent
+        if datetime.now().time() > time: # It is time for this event!
+            print("Scheduled event:", time, content)
+            performManualContentUpdate(content)
+            content_to_retrun = content
+            nextEvent = None
+
+    queueNextScheduledEvent()
+    return(content_to_retrun)
+
 def readDefaultConfiguration():
 
     # Read defaults.ini
-    config_object = configparser.ConfigParser()
+    config_object = configparser.ConfigParser(delimiters=("="))
     config_object.read('defaults.ini')
-    default = config_object["DEFAULT"]
+    default = config_object["CURRENT"]
     config_dict = dict(default.items())
 
     # Make sure we have the appropriate file system set up
@@ -442,6 +518,9 @@ def readDefaultConfiguration():
         checkDirectoryStructure(config_dict["current_exhibit"])
     except KeyError:
         print("Error: make sure current_exhibit is set in defaults.ini")
+
+    if "SCHEDULE" in config_object:
+        readSchedule(config_object["SCHEDULE"])
 
     return(config_object, config_dict)
 
@@ -463,6 +542,8 @@ def loadDictionary():
 
 signal.signal(signal.SIGINT, quit_handler)
 
+schedule = None # Will be filled in during readDefaultConfiguration() if needed
+nextEvent = None
 configFile, config = readDefaultConfiguration()
 
 # If it exists, load the dictionary that maps one value into another

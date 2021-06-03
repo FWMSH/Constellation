@@ -1,3 +1,5 @@
 sockio
 pyserial
 psutil
+dateutil
+requests

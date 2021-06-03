@@ -382,7 +382,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 for seg in split:
                     split2 = seg.split("=")
                     data[split2[0]] = split2[1]
-
+            
             try:
                 pingClass = data["class"]
             except:
