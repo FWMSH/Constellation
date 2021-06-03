@@ -30,8 +30,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
 
         # Receive a GET request and respond with a console webpage
-        print("do_GET: ENTER")
-        print("  ", self.path)
+        #print("do_GET: ENTER")
+        #print("  ", self.path)
         global config
         if self.path == "/":
             pass
@@ -42,7 +42,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
             except IOError:
                 self.send_error(404, "File Not Found: %s" % self.path)
                 print(f"GET for unexpected file {self.path}")
-                print("do_GET: EXIT")
+                #print("do_GET: EXIT")
                 return()
 
                 #logging.error(f"GET for unexpected file {self.path}")
@@ -62,7 +62,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
             self.wfile.write(bytes(page, encoding="UTF-8"))
 
             f.close()
-            print("do_GET: EXIT")
+            #print("do_GET: EXIT")
             return()
         else:
             # Open the file requested and send it
@@ -80,12 +80,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 #print(f"    Write complete")
                 f.close()
                 #print(f"  File closed")
-                print("do_GET: EXIT")
+                #print("do_GET: EXIT")
                 return
             except IOError:
                 self.send_error(404, "File Not Found: %s" % self.path)
                 #logging.error(f"GET for unexpected file {self.path}")
-        print("do_GET: EXIT")
+        #print("do_GET: EXIT")
 
     def do_OPTIONS(self):
         # print("do_OPTIONS: ENTER")
@@ -477,7 +477,7 @@ def queueNextScheduledEvent():
     global nextEvent
 
     nextEvent = None
-    
+
     if schedule is not None:
         sorted_sched = sorted(schedule)
         now = datetime.now().time()
