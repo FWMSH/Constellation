@@ -231,6 +231,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
             dict = {}
             dict["id"] = item.id
             dict["type"] = 'PROJECTOR'
+            dict["ip_address"] = item.ip
 
             dict["class"] = "exhibitComponent"
             dict["status"] = item.state["status"]

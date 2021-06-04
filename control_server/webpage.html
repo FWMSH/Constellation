@@ -66,8 +66,15 @@
           <div class="modal" tabindex="-1" role="dialog" id="componentInfoModal">
             <div class="modal-dialog modal-dialog-centered" role="document">
               <div class="modal-content">
-                <div class="modal-header">
-                  <h4 class="modal-title" id="componentInfoModalTitle"></h4>
+                <div class="modal-header w-100">
+                  <div class='row modal-title align-items-middle w-100'>
+                    <div class='col-8'>
+                      <h4 id="componentInfoModalTitle"></h4>
+                    </div>
+                    <div class='col-4'>
+                      <div id="componentInfoModalIPAddress" align="right"></div>
+                    </div>
+                  </div>
                 </div>
                 <div class="modal-body">
 
@@ -178,8 +185,15 @@
           <div class="modal" tabindex="-1" role="dialog" id="projectorInfoModal">
             <div class="modal-dialog modal-dialog-centered" role="document">
               <div class="modal-content">
-                <div class="modal-header">
-                  <h4 class="modal-title" id="projectorInfoModalTitle"></h4>
+                <div class="modal-header w-100">
+                  <div class='row modal-title align-items-middle w-100'>
+                    <div class='col-8'>
+                      <h4 id="projectorInfoModalTitle"></h4>
+                    </div>
+                    <div class='col-4'>
+                      <div id="projectorInfoModalIPAddress" align="right"></div>
+                    </div>
+                  </div>
                 </div>
                 <div class="modal-body">
                   <table class="table table-striped">
@@ -398,7 +412,7 @@
           this.id = id;
           this.type = type;
           this.content = null;
-          this.ip = "localhost"; // Default; will be replaced when componet pings in
+          this.ip = ""; // Default; will be replaced when componet pings in
           this.helperPort = 8000; // Default; will be replaced when componet pings in
           this.state = {};
           this.status = "OFFLINE";
@@ -631,6 +645,7 @@
 
           // Set the title to the ID
           $("#projectorInfoModalTitle").html(id.toUpperCase());
+          $("#projectorInfoModalIPAddress").html(obj.ip);
 
           // Then, go through and populate all the cells with as much information
           // as we have. Shade cells red if an error is reported.
@@ -738,6 +753,7 @@
         } else { // This is a normal ExhibitComponent
 
           $("#componentInfoModalTitle").html(id);
+          $("#componentInfoModalIPAddress").html(obj.ip);
           $("#componentAvailableContentList-thisExhibit").empty();
           $("#componentAvailableContentList-allExhibits").empty();
           $("#contentUploadSubmitButton").prop("disabled", false);

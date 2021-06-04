@@ -424,3 +424,21 @@ INFO, 2021-06-04 10:07:14, Server started
 INFO, 2021-06-04 10:09:02, Server shutdown
 INFO, 2021-06-04 10:09:02, Server started
 INFO, 2021-06-04 10:09:36, Server started
+INFO, 2021-06-04 10:27:43, Server started
+ERROR, 2021-06-04 10:36:12, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-04 10:36:30, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-04 10:36:41, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-04 10:37:09, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-04 10:37:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-04 10:40:16, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-04 10:40:58, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-04 10:42:06, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-04 10:43:33, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-04 10:43:57, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-04 10:44:15, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-04 10:45:29, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-04 10:50:04, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-06-04 10:53:07, Server shutdown
+INFO, 2021-06-04 10:53:08, Server started
+ERROR, 2021-06-04 10:53:27, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-04 10:53:28, GET for unexpected file /js/popper.min.js.map

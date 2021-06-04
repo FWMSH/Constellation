@@ -298,7 +298,7 @@ def reboot():
 
     if reboot_allowed:
         if sys.platform == "darwin": # MacOS
-            os.system(`osascript -e 'tell app "System Events" to restart'`)
+            os.system("osascript -e 'tell app \"System Events\" to restart'")
         elif sys.platform == "linux":
             os.system("systemctl reboot")
         elif sys.platform == "win32":
