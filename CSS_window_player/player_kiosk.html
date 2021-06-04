@@ -273,8 +273,7 @@
       } else {
         $("#langSwitchButton").html("Español");
       }
-      rebuildInterface();
-      highlightClip(activeClip);
+      localize();
     }
 
     function updateTextSize() {
@@ -481,13 +480,7 @@
       // Try to look up a public-facing name for the dataset
       var displayName = name;
       if (dictionary != null) {
-        var dict = dictionary;
-        if ("meta" in dictionary) {
-          // We have a dictionary with a section for each language
-          if (currentLang.toUpperCase() in dictionary) {
-            dict = dictionary[currentLang.toUpperCase()]
-          }
-        }
+        var dict = getDictionary();
         var dictKey = name;
         if (dictKey in dict) {
           displayName = dict[dictKey];
@@ -497,13 +490,13 @@
 
       var html = `
       <div class='col-12 m-1' onclick="selectClip(${number})">
-        <div id="cardName${number}" data-name="${name}" class="row no-gutters p-2 border border-primary rounded align-items-center">
+        <div id="cardName${number}" data-name="${name}" data-number="${number}" class="button-card row no-gutters p-2 border border-primary rounded align-items-center">
           <div class="col-3">
             <img class='card-img-top' src="thumbnails/${icon}" onerror="this.src='thumbnails/default.svg'"></img>
           </div>
           <div class="col-9 pl-2">
             <div class="card-body">
-              <h3 class="card-title">${displayName}</h3>
+              <h3 id="cardTitle${number}" class="card-title">${displayName}</h3>
             </div>
             </div>
           </div>
@@ -517,17 +510,43 @@
       updateTextSize();
     }
 
+    function localize() {
+
+      // Update elements to reflect the current language
+
+      if (dictionary != null) {
+        var dict = getDictionary();
+
+        // Update kiosk title
+        var dictKey = "kiosk_title";
+        if (dictKey in dict) {
+          var title = dict[dictKey];
+          $(".mastheadText").html(title);
+          if (currentLang == "en") {
+            $("#attractorDatasetName").html(title);
+          }
+        }
+
+        // Update button display names
+        var cards = $(".button-card");
+        cards.each(
+          function(){
+            var name = $(this).data("name");
+            var number = $(this).data("number");
+            console.log(name, number)
+            $("#cardTitle"+number).html(dict[name]);
+          }
+        );
+      }
+      highlightClip(activeClip);
+    }
+
     function rebuildInterface() {
 
       // Repopulate the clip buttons in response to a change in playlist
+
       if (dictionary != null) {
-        var dict = dictionary;
-        if ("meta" in dictionary) {
-          // We have a dictionary with a section for each language
-          if (currentLang.toUpperCase() in dictionary) {
-            dict = dictionary[currentLang.toUpperCase()]
-          }
-        }
+        var dict = getDictionary();
         var dictKey = "kiosk_title";
         if (dictKey in dict) {
           var title = dict[dictKey];
@@ -568,6 +587,26 @@
       xhr.send(requestString);
     }
 
+    function getDictionary() {
+
+      // Return the correct dictionary for the current language
+
+      if (dictionary != null) {
+        var dict = dictionary;
+        if ("meta" in dictionary) {
+          // We have a dictionary with a section for each language
+          if (currentLang.toUpperCase() in dictionary) {
+            dict = dictionary[currentLang.toUpperCase()];
+          }
+        }
+        return(dict);
+      } else {
+        console.log("Dictionary is not available!");
+        return(null);
+      }
+
+    }
+
     function showAttractor() {
 
       // Make the attractor layer visible and start autorun
@@ -583,7 +622,6 @@
 
       // Make the attractor layer invisible and start the autorun
 
-      rebuildInterface();
       $("#attractorOverlay").hide();
       setAutoplay("off");
       resetAttractorTimer();
