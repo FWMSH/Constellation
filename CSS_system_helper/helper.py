@@ -162,6 +162,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
             if "action" in data:
                 if data["action"] == "sleepDisplays":
                     sleepDisplays()
+                elif data["action"] == "reboot":
+                    reboot()
                 elif data["action"] == "wakeDisplays":
                     wakeDisplays()
                 elif data["action"] == "commandProjector":
@@ -265,7 +267,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             commandList.append("toggleAutoplay")
                 elif data["action"] == "seekVideo":
                     if ("direction" in data) and ("fraction" in data):
-                        print("Seeking video", data["direction"], data["fraction"])
                         commandList.append("seekVideo_"+data["direction"]+"_"+str(data["fraction"]))
                 elif data["action"] == 'getLabelText':
                     if "lang" in data:
@@ -289,6 +290,19 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     print("Error: unrecognized action:", data["action"])
         #print("do_POST: EXIT")
 
+def reboot():
+
+    # Send an OS-appropriate command to restart the computer
+
+    reboot_allowed = config.getboolean("allow_restart", True)
+
+    if reboot_allowed:
+        if sys.platform == "darwin": # MacOS
+            os.system(`osascript -e 'tell app "System Events" to restart'`)
+        elif sys.platform == "linux":
+            os.system("systemctl reboot")
+        elif sys.platform == "win32":
+            os.system("shutdown -t 0 -r -f")
 
 def sleepDisplays():
 

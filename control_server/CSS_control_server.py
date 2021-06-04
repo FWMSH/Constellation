@@ -13,7 +13,7 @@ import cgi
 import signal
 import sys
 import traceback
-import threading
+import threading, _thread
 import projector_control # Our file
 
 
@@ -382,7 +382,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 for seg in split:
                     split2 = seg.split("=")
                     data[split2[0]] = split2[1]
-            
+
             try:
                 pingClass = data["class"]
             except:
@@ -581,8 +581,11 @@ def pollProjectors():
 def checkEventSchedule():
 
     # Read the "Next event" tuple in schedule_dict and take action if necessary
+    # Also check if it's time to reboot the server
 
     global schedule_dict
+    global config
+    global rebooting
 
     nextEventDateTime, nextAction = schedule_dict["Next event"]
 
@@ -590,6 +593,13 @@ def checkEventSchedule():
         if datetime.datetime.now() > nextEventDateTime:
             commandAllExhibitComponents(nextAction)
             queueNextOnOffEvent()
+
+    # Check for server reboot time
+    if serverRebootTime is not None:
+        if datetime.datetime.now() > serverRebootTime:
+            rebooting = True
+            _thread.interrupt_main()
+
 
 def updateSchedule(schedule):
 
@@ -697,6 +707,7 @@ def loadDefaultConfiguration():
     global ip_address
     global gallery_name
     global projectorList
+    global serverRebootTime
 
     # First, retrieve the config filename that defines the desired exhibit
     config = configparser.ConfigParser()
@@ -782,6 +793,14 @@ def loadDefaultConfiguration():
                 break
             projectorList.append(newProj)
     print("Connecting to serial projectors... done                      ")
+
+    # Parse the reboot_time if necessary
+    if "reboot_time" in current:
+        reboot_time = dateutil.parser.parse(current["reboot_time"])
+        if reboot_time < datetime.datetime.now():
+            reboot_time += datetime.timedelta(days=1)
+        serverRebootTime = reboot_time
+        print("Server will reboot at:", serverRebootTime.isoformat())
 
     # Then, load the configuration for that exhibit
     readExhibitConfiguration(current["current_exhibit"])
@@ -871,15 +890,24 @@ def updateExhibitComponentStatus(data, ip):
         if "error" in component.config:
             component.config.pop("error")
 
+
 def quit_handler(sig, frame):
-    print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
+
+    # Function to handle cleaning shutting down the server
+
+    if rebooting == True:
+        print("\nRebooting server...")
+        exit_code = 1
+    else:
+        print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
+        exit_code = 0
+
     for key in pollingThreadDict:
         pollingThreadDict[key].cancel()
     with logLock:
         logging.info("Server shutdown")
-
     with currentExhibitConfigurationLock:
-        sys.exit(0)
+        sys.exit(exit_code)
 
 def error_handler(*exc_info):
 
@@ -902,6 +930,8 @@ currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
 exhibitList = []
 currentExhibitConfiguration = None # the configParser object holding the current config
 schedule_dict = {} # Will hold a list of on/off times for every day of the week
+serverRebootTime = None
+rebooting = False # This will be set to True from a background thread when it is time to reboot
 pollingThreadDict = {} # Holds references to the threads starting by various polling procedures
 
 # threading resources

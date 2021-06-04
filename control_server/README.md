@@ -48,6 +48,7 @@ The following keywords are required in your `currentExhibitConfiguration.ini`:
 The following keywords are optional:
 
 * `gallery_name`: The name of the physical space this control server corresponds to, such as "The Smith Dinosaur Hall."
+* `reboot_time`: A time (e.g., "3 AM", "23:59") at which the server will be automatically restarted every day. This helps prevent memory leaks and long-term instability, but is not strictly necessary.
 
 ##### Scheduling exhibit startup and shutdown
 
