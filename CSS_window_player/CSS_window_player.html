@@ -180,6 +180,8 @@
           } else if (cmd.startsWith("beginSynchronization")){
               var timeToPlay = cmd.split("_")[1];
               synchronize(timeToPlay);
+          } else if (cmd == "sendClipList") {
+            updateClipList(sourceList);
           } else if (cmd.startsWith("gotoClip")) {
               var clipNumber = cmd.split("_")[1];
               gotoSource(clipNumber);

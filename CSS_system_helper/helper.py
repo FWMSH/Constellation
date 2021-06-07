@@ -171,6 +171,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         commandProjector(data["command"])
                 elif data["action"] == "getDefaults":
                     configToSend = dict(config.items())
+
                     # Reformat this content list as an array
                     configToSend['content'] = [s.strip() for s in configToSend['content'].split(",")]
 
@@ -226,6 +227,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                     json_string = json.dumps(response)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                elif data["action"] == "getCurrentExhibit":
+                    self.wfile.write(bytes(config["current_exhibit"], encoding="UTF-8"))
                 elif data["action"] == "deleteFile":
                     if ("file" in data) and ("fromExhibit" in data):
                         deleteFile(data["file"], data["fromExhibit"])
@@ -239,11 +242,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     if "index" in data:
                         clipList["activeClip"] = data["index"]
                 elif data["action"] == "getClipList":
-                    responseList = []
-                    # for clip in clipList:
-                    #     temp = {"name": }
-                    json_string = json.dumps(clipList)
-                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
+
+                    # If we don't have a clip list, ask for one to be sent for
+                    # next time.
+                    if (len(clipList) == 0):
+                        commandList.append("sendClipList")
+                        self.wfile.write(bytes(json.dumps([]), encoding="UTF-8"))
+                    else:
+                        json_string = json.dumps(clipList)
+                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif data["action"] == 'gotoClip':
                     if "clipNumber" in data:
                         commandList.append("gotoClip_"+str(data["clipNumber"]))

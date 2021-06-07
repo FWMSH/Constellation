@@ -443,3 +443,27 @@ INFO, 2021-06-04 10:53:08, Server started
 ERROR, 2021-06-04 10:53:27, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-06-04 10:53:28, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-06-04 15:30:04, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-06-07 09:00:24, Server shutdown
+INFO, 2021-06-07 09:00:26, Server started
+ERROR, 2021-06-07 09:18:25, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-06-07 09:18:26, there is no configuration available for component with id=UNKNWON
+WARNING, 2021-06-07 09:36:36, there is no configuration available for component with id="W1_KIOSK"
+WARNING, 2021-06-07 09:37:42, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-06-07 09:37:58, Server shutdown
+INFO, 2021-06-07 09:37:59, Server started
+WARNING, 2021-06-07 09:38:23, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-06-07 09:38:35, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-07 09:43:24, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-07 09:45:27, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-06-07 09:45:29, there is no configuration available for component with id=W1_KIOSK
+WARNING, 2021-06-07 09:46:12, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-06-07 09:52:21, Server shutdown
+INFO, 2021-06-07 09:52:30, Server started
+WARNING, 2021-06-07 09:52:52, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-06-07 09:53:27, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-06-07 09:53:51, there is no configuration available for component with id=W1_KIOSK
+WARNING, 2021-06-07 09:55:15, there is no configuration available for component with id=W1_KIOSK
+WARNING, 2021-06-07 09:56:15, there is no configuration available for component with id=W1_KIOSK
+WARNING, 2021-06-07 10:05:18, there is no configuration available for component with id=W1_KIOSK
+WARNING, 2021-06-07 10:06:02, there is no configuration available for component with id=W1_KIOSK
+WARNING, 2021-06-07 10:08:00, there is no configuration available for component with id=W1_KIOSK

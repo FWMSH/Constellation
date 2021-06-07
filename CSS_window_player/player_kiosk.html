@@ -231,6 +231,30 @@
       xhr.send(JSON.stringify(requestDict));
     }
 
+    function getCurrentExhibit() {
+
+      // Ask the helper to send the current exhibit name and update as necessary
+
+      var requestDict = {"action": "getCurrentExhibit"};
+      var requestString = JSON.stringify(requestDict);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+          if (this.responseText != "") {
+            current_config["current_exhibit"] = this.responseText
+            localize();
+          }
+        }
+    };
+      xhr.send(requestString);
+    }
+
     function askForDefaults() {
 
       // Send a message to the local helper and ask for the latest configuration
@@ -246,6 +270,7 @@
         if (this.readyState != 4) return;
 
         if (this.status == 200) {
+          current_config = JSON.parse(this.responseText);
           readUpdate(this.responseText);
           rebuildInterface();
         }
@@ -332,12 +357,13 @@
       // on the contents
 
       var update = JSON.parse(responseText);
-      current_config = update;
-      if ("id" in update) {
-        id = update["id"];
+
+      //current_config = update;
+      if ("kiosk_id" in update) {
+        id = update["kiosk_id"];
       }
-      if ("type" in update) {
-        type = update["type"]
+      if ("kiosk_type" in update) {
+        type = update["kiosk_type"]
       }
       if (("server_ip_address" in update) && ("server_port" in update)) {
         serverAddress = "http://" + update["server_ip_address"] + ":" + update["server_port"];
@@ -352,7 +378,12 @@
       // Contact the control server and ask for any updates
 
       if (serverAddress != "") {
-        requestString = `class=exhibitComponent&id=${id}&type=${type}`;
+
+        var requestDict = {"class": "exhibitComponent",
+                           "id": id,
+                           "type": type,
+                           "currentInteraction": String(currentlyActive)};
+        var requestString = JSON.stringify(requestDict);
 
         var xhr = new XMLHttpRequest();
         xhr.timeout = 1000;
@@ -365,7 +396,9 @@
           if (this.readyState != 4) return;
 
           if (this.status == 200) {
-            readUpdate(this.responseText);
+            if (this.responseText != "") {
+              readUpdate(this.responseText);
+            }
           }
       };
         xhr.send(requestString);
@@ -437,6 +470,12 @@
       // Ask the helper to retreive a label file for the specified object in
       // the specified language and send the text.
 
+      if (name == null || lang == null) {
+        setLabelText("");
+        console.log("getLabelText: error: missing value for", name, lang)
+        return;
+      }
+
       var labelKey = current_config["current_exhibit"] + "_" + lang + "_" + name;
       if (labelKey in labelCache) {
         $("#labelTextArea").html(labelCache[labelKey]);
@@ -460,17 +499,24 @@
           if (this.status == 200) {
             if (this.responseText != "") {
               var formatted_text = markdownConverter.makeHtml(this.responseText);
-              $("#labelTextArea").html(formatted_text);
               // Add it to the cache.
               labelCache[labelKey] = formatted_text;
-              updateTextSize();
+              setLabelText(formatted_text);
             } else {
-              $("#labelTextArea").html("");
+              setLabelText("");
             }
           }
         };
         xhr.send(requestString);
       }
+    }
+
+    function setLabelText(formatted_text) {
+
+      // Take an HTML string and set put it in the label text div
+
+      $("#labelTextArea").html(formatted_text);
+      updateTextSize();
     }
 
     function createCard(name, number) {
@@ -480,7 +526,7 @@
       // Try to look up a public-facing name for the dataset
       var displayName = name;
       if (dictionary != null) {
-        var dict = getDictionary();
+        var dict = getDictionary(currentLang);
         var dictKey = name;
         if (dictKey in dict) {
           displayName = dict[dictKey];
@@ -515,10 +561,10 @@
       // Update elements to reflect the current language
 
       if (dictionary != null) {
-        var dict = getDictionary();
+        var dict = getDictionary(current_config["current_exhibit"]);
 
         // Update kiosk title
-        var dictKey = "kiosk_title";
+        var dictKey = "kiosk_title_" + currentLang;
         if (dictKey in dict) {
           var title = dict[dictKey];
           $(".mastheadText").html(title);
@@ -546,8 +592,8 @@
       // Repopulate the clip buttons in response to a change in playlist
 
       if (dictionary != null) {
-        var dict = getDictionary();
-        var dictKey = "kiosk_title";
+        var dict = getDictionary(current_config["current_exhibit"]);
+        var dictKey = "kiosk_title_" + currentLang;
         if (dictKey in dict) {
           var title = dict[dictKey];
           $(".mastheadText").html(title);
@@ -557,37 +603,19 @@
         }
       }
 
-      // Retreive the new clip list
-      requestString = `action=getClipList`;
+      // Remove the existing cards
+      $("#cardRow").empty();
 
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", helperAddress, true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.onerror = function() {
+      // Create new ones
+      for (var i=0; i<clipList.length; i++) {
+        clip = clipList[i];
+        createCard(clip, i);
       }
-      xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
-      xhr.onreadystatechange = function () {
 
-        if (this.readyState != 4) return;
-
-        if (this.status == 200) {
-          $("#cardRow").empty();
-          var update = JSON.parse(this.responseText);
-          if ("clipList" in update) {
-            var clipList = update["clipList"];
-            activeClip = parseInt(update["activeClip"]);
-            for (var i=0; i<clipList.length; i++) {
-              clip = clipList[i];
-              createCard(clip, i);
-            }
-            $("#card"+activeClip).addClass("bg-primary");
-          }
-        }
-    };
-      xhr.send(requestString);
+      $("#card"+activeClip).addClass("bg-primary");
     }
 
-    function getDictionary() {
+    function getDictionary(value) {
 
       // Return the correct dictionary for the current language
 
@@ -595,8 +623,8 @@
         var dict = dictionary;
         if ("meta" in dictionary) {
           // We have a dictionary with a section for each language
-          if (currentLang.toUpperCase() in dictionary) {
-            dict = dictionary[currentLang.toUpperCase()];
+          if (value.toUpperCase() in dictionary) {
+            dict = dictionary[value.toUpperCase()];
           }
         }
         return(dict);
@@ -604,7 +632,55 @@
         console.log("Dictionary is not available!");
         return(null);
       }
+    }
 
+    function getClipList() {
+
+      // Ask the helper for a list of the currently playing clips. If this is
+      // different than what we have, rebuild the interface to reflect that.
+
+      // Retreive the new clip list
+      var requestDict = {"action": "getClipList"};
+      var requestString = JSON.stringify(requestDict);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperAddress, true);
+      xhr.timeout = 1000;
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
+      xhr.onreadystatechange = function () {
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+          var update = JSON.parse(this.responseText);
+          if ("clipList" in update) {
+            var oldList = clipList;
+            clipList = update["clipList"];
+            activeClip = parseInt(update["activeClip"]);
+            if (arraysEqual(oldList, clipList) == false) {
+              rebuildInterface();
+              getCurrentExhibit(); // A changing clipList probably means a different exhibit.
+            }
+          }
+        }
+    };
+      xhr.send(requestString);
+    }
+
+    function arraysEqual(arr1, arr2) {
+
+      // Function to check if two arrays have the same elements in the same order
+
+      if (arr1.length != arr2.length) {
+        return false;
+      } else {
+        for (var i=0; i<arr1.length; i++) {
+          if (arr1[i] != arr2[i]) {
+            return false;
+          }
+        }
+        return true;
+      }
     }
 
     function showAttractor() {
@@ -616,6 +692,7 @@
       setLang("en");
       setAutoplay("on");
       resetTextSize();
+      currentlyActive = false;
     }
 
     function hideAttractor() {
@@ -625,6 +702,7 @@
       $("#attractorOverlay").hide();
       setAutoplay("off");
       resetAttractorTimer();
+      currentlyActive = true;
     }
 
     function resetAttractorTimer() {
@@ -641,6 +719,7 @@
     var current_config = {}; // Will hold the defaults sent from the helper
     var markdownConverter = new showdown.Converter();
     var blockTouches = false;
+    var clipList = [];
     var activeClip = 0;
     var labelCache = {}; // This will hold labels that we have received from the helper
 
@@ -651,13 +730,14 @@
     var currentHeaderTextSize = defaultHeaderTextSize;
     var currentLabelTextSize = defaultLabelTextSize;
     var currentLang = "en";
+    var currentlyActive = false;
 
     var seekTimer = null; // Will hold setInterval reference for seeking the video
     var seekDirection = "back"
 
     askForDefaults();
-    // sendPing();
-    // setInterval(sendPing, 5000);
+    setInterval(sendPing, 5000);
+    setInterval(getClipList, 5000); // Poll the helper for changes to the playing clips
     updateTextSize();
     inactivityTimer = setTimeout(showAttractor, 30000);
 
