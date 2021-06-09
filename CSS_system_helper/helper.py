@@ -518,8 +518,10 @@ def checkEventSchedule():
     content_to_retrun = None
     if nextEvent is not None:
         time, content = nextEvent
+        #print("Checking for scheduled event:", content)
+        #print(f"Now: {datetime.now().time()}, Event time: {time}, Time for event: {datetime.now().time() > time}")
         if datetime.now().time() > time: # It is time for this event!
-            print("Scheduled event:", time, content)
+            print("Scheduled event occured:", time, content)
             performManualContentUpdate(content)
             content_to_retrun = content
             nextEvent = None

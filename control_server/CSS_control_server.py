@@ -283,9 +283,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         # print(f"  path = {self.path}")
 
-        if self.path == "/":
+        if self.path.lower().endswith("html") or self.path == "/":
+            if self.path == "/":
+                f = open("webpage.html","r")
+            else:
+                f = open("." + self.path, "r")
 
-            f = open("webpage.html","r")
             page = str(f.read())
 
             # Build the address that the webpage should contact to reach this server
@@ -487,6 +490,17 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     # self.checkEventSchedule()
                     updateExhibitComponentStatus(data, self.address_string())
                     self.sendCurrentConfiguration(id)
+            elif pingClass == "tracker":
+                if "action" in data:
+                    action = data["action"]
+                    if action == "getLayoutDefinition":
+                        if "name" in data:
+                            layout = configparser.ConfigParser(delimiters=("="))
+                            layout.read("flexible-tracker/templates/" + data["name"] + ".ini")
+                            layoutDefinition = {s:dict(layout.items(s)) for s in layout.sections()}
+                            print(data["name"], layoutDefinition)
+                            json_string = json.dumps(layoutDefinition)
+                            self.wfile.write(bytes(json_string, encoding="UTF-8"))
             else:
                 print(f"Error: ping with unknown class '{pingClass}' received")
                 # print("END POST")

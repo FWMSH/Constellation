@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <meta name="description" content="A flexible tracker for collecting observational data">
+    <meta name="author" content="Morgan Rehnberg">
+
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+
+    <style>
+
+      @font-face {
+        font-family: Good-Times;
+        src: url(good-times-rg.ttf);
+      }
+      @font-face {
+        font-family: Gotham-Bold;
+        src: url(Gotham-Bold.otf);
+      }
+      @font-face {
+        font-family: Gotham-Book;
+        src: url(Gotham-Book.otf);
+      }
+
+      html {
+        touch-action: manipulation;
+        word-wrap: break-word;
+        font-size: 25px;
+      }
+      H1 {
+        font-size: 50px;
+      }
+      H2 {
+        font-size: 40px;
+      }
+      .container-fluid {
+        touch-action: manipulation;
+        overflow-y: hidden;
+      }
+      .mastheadText {
+        font-size: 50px;
+      }
+      .seek-button {
+        font-family: Gotham-Bold;
+        font-size: 50px;
+        height: 100%;
+      }
+    </style>
+
+    <title>Flexible Tracker</title>
+
+  </head>
+
+  <body>
+    <div class="container-fluid">
+      <div class="row mt-2">
+        <div class="col-12">
+          <H1>Flexible Tracker</H1>
+        </div>
+        <div class="col-12">
+          <div class="row">
+            <div class="col-2">
+              <button class="btn btn-block btn-success">Record</button>
+            </div>
+            <div class="col-2">
+              <button class="btn btn-block btn-danger">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="cardRow" class="row mt-4"></div>
+    </div>
+
+  <script type="text/javascript" src="js/jquery-3.5.1.slim.min.js"></script>
+  <script type="text/javascript" src="js/popper.min.js"></script>
+  <script type="text/javascript" src="js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="js/showdown.min.js"></script>
+
+  <script>
+
+    function buildLayout(definition) {
+
+      // Take a layout defition in the form of a dictionary of dictionaries and
+      // create cards for each element
+
+      // Loop the dictionaries in the definition and make a card for each
+      var keys = Object.keys(definition);
+      for (var i=0; i<keys.length; i++) {
+        var item = definition[keys[i]];
+        var item_id = keys[i].replace(/\s/g,'');
+
+        if (!("type" in item)) {
+          console.log(`buildLayout: Error: item ${keys[i]} does not have a type!`)
+          continue
+        }
+        // Start the card
+        var html = `
+        <div class='col-4 mt-2'>
+          <div data-name="${keys[i]}" class="card">
+              <div class="card-body">
+                <H2 class="card-title">${keys[i]}</H2>`
+
+        if ("label" in item) {
+          html += `<label for="${item_id}_input">${item["label"]}</label>`
+        }
+
+        html += `<div class="input-group mb-3">`
+
+        switch(item["type"]) {
+
+          case "dropdown":
+            if ("options" in item) {
+              var split = item["options"].split(",");
+
+              html += `<select id="${item_id}_input" name="${item_id}" class="form-select">`;
+              html += `<option value=""></option>`
+
+              for (var i=0; i<split.length; i++) {
+                var value = split[i].trim();
+                html += `<option value="${value}">${value}</option>`
+              }
+
+              html += "</select>";
+            }
+            break;
+
+          case "number":
+            html += `<input type="number" id="${item_id}_input" name="${item_id}">`;
+            break;
+
+          case "slider":
+            var min;
+            if ("min" in item) {
+              min = item["min"];
+            } else {
+              min = 0;
+            }
+            var max;
+            if ("max" in item) {
+              max = item["max"];
+            } else {
+              max = 100;
+            }
+            var step;
+            if ("step" in item) {
+              step = item["step"];
+            } else {
+              step = 1;
+            }
+
+            html += `
+                      <div class="row w-100">
+                        <div class="col-10">
+                          <input type="range" id="${item_id}_input" name="${item_id}" min="${min}" max="${max}" step="${step}" value=${min} oninput="updateValue('${item_id}_input', '${item_id}_input_label')" class="w-100">
+                        </div>
+                        <div class="col-2">
+                          <span id="${item_id}_input_label">${min}</span>
+                        </div>
+                    `;
+
+            break;
+
+          case "text":
+          html += `<input type="text" id="${item_id}_input" name="${item_id}" class="w-100">`;
+          break;
+
+        }
+
+        // End the card
+        html += `
+                </div>
+              </div>
+          </div>
+        </div>
+        `
+        $("#cardRow").append(html);
+      }
+    }
+
+    function getLayoutDefinition(name) {
+
+      // Ask the control server to send a JSON dict with the layout definition
+      // from the file with `name`
+
+      var requestDict = {"class": "tracker",
+                         "action": "getLayoutDefinition",
+                         "name": name};
+
+      var requestString = JSON.stringify(requestDict);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", serverIP, true);
+      xhr.timeout = 1000;
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
+      xhr.onreadystatechange = function () {
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+          var definition = JSON.parse(this.responseText);
+          buildLayout(definition);
+        }
+      };
+      xhr.send(requestString);
+    }
+
+    function updateValue(fromID, toID) {
+
+      // Read the value property from the element with ID fromID and put the
+      // value into the div with toID
+
+      var obj = document.getElementById(fromID);
+
+      document.getElementById(toID).innerHTML = obj.value;
+    }
+
+    var serverIP = INSERT_SERVERIP_HERE // This will be automatically inserted by the server before being sent to the client
+
+    getLayoutDefinition("test");
+
+  </script>
+
+  </body>
+
+</html>
