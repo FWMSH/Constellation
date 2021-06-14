@@ -501,6 +501,16 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             print(data["name"], layoutDefinition)
                             json_string = json.dumps(layoutDefinition)
                             self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                    elif action == "submitData":
+                        if "data" in data and "name" in data:
+                            with trackingDataWriteLock:
+                                with open(os.path.join("flexible-tracker", "data", data["name"]+".txt"), "a") as f:
+                                    try:
+                                        json_str = json.dumps(data["data"])
+                                    except:
+                                        print("flexible-tracker: submitData: error: Not valid JSON")
+
+                                    f.write(json_str + "\n")
             else:
                 print(f"Error: ping with unknown class '{pingClass}' received")
                 # print("END POST")
@@ -952,6 +962,7 @@ pollingThreadDict = {} # Holds references to the threads starting by various pol
 # threading resources
 logLock = threading.Lock()
 currentExhibitConfigurationLock = threading.Lock()
+trackingDataWriteLock = threading.Lock()
 
 
 # Set up log file
