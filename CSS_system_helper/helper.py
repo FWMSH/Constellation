@@ -157,7 +157,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 split = data_str.split("&")
                 for seg in split:
                     split2 = seg.split("=")
-                    data[split2[0]] = split2[1]
+                    if len(split2) > 1:
+                        data[split2[0]] = split2[1]
+                    else:
+                        print("Missing equal sign in argument:", seg)
 
             if "action" in data:
                 if data["action"] == "sleepDisplays":
@@ -262,7 +265,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         responseDict["content"] = event_content
 
                     json_string = json.dumps(responseDict)
-                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                    try:
+                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                    except socket.error as e:
+                        print("Socket error in getCommands:", e)
                     commandList = []
                 elif data["action"] == "setAutoplay":
                     if "state" in data:
