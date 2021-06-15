@@ -69,14 +69,6 @@
             <div class="col-2">
               <button class="btn btn-block btn-danger" onclick="clearInput()">Clear</button>
             </div>
-            <div class="col-2">
-              <div class="input-group">
-                Select Defintion:
-                <select id="definitionListDropdown" class="form-select" onchange="loadLayoutDefinition()">
-                  <option value=""></option>
-                </select>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -203,15 +195,12 @@
       // Take a layout defition in the form of a dictionary of dictionaries and
       // create cards for each element
 
-      // Clear the exisiting layout
-      $("#cardRow").empty();
-
       // Loop the dictionaries in the definition and make a card for each
       var keys = Object.keys(definition);
-
       for (var i=0; i<keys.length; i++) {
         var item = definition[keys[i]];
         var item_id = keys[i].replace(/\s/g,'');
+
         if (!("type" in item)) {
           console.log(`buildLayout: Error: item ${keys[i]} does not have a type!`)
           continue
@@ -238,8 +227,8 @@
               html += `<select id="${item_id}_input" data-name="${item_id}" class="form-select">`;
               html += `<option value=""></option>`
 
-              for (var j=0; j<split.length; j++) {
-                var value = split[j].trim();
+              for (var i=0; i<split.length; i++) {
+                var value = split[i].trim();
                 html += `<option value="${value}">${value}</option>`
               }
 
@@ -359,50 +348,10 @@
       });
     }
 
-    function getAvailableDefinitions() {
-
-      // Ask the control server to send a list of availble definition files
-
-      var requestDict = {"class": "tracker",
-                         "action": "getAvailableDefinitions"};
-
-      var requestString = JSON.stringify(requestDict);
-
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", serverIP, true);
-      xhr.timeout = 3000;
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
-      xhr.onreadystatechange = function () {
-        if (this.readyState != 4) return;
-
-        if (this.status == 200) {
-          var definitionList = JSON.parse(this.responseText);
-          definitionList.forEach(item => {
-            var name = item.split(".").slice(0, -1).join(".");
-            var html = `<option value="${name}">${name}</option>`;
-            $("#definitionListDropdown").append(html);
-          });
-
-
-        }
-      };
-      xhr.send(requestString);
-    }
-
-    function loadLayoutDefinition(name="") {
+    function getLayoutDefinition(name) {
 
       // Ask the control server to send a JSON dict with the layout definition
       // from the file with `name`
-
-      if (name == "") {
-        var dropdownName = document.getElementById("definitionListDropdown").value;
-        if (dropdownName == "") {
-          return;
-        } else {
-          name = dropdownName;
-        }
-      }
 
       var requestDict = {"class": "tracker",
                          "action": "getLayoutDefinition",
@@ -510,7 +459,7 @@
     var textList = [];
     var timerList = [];
 
-    getAvailableDefinitions();
+    getLayoutDefinition(configurationName);
 
   </script>
 

@@ -509,8 +509,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                         json_str = json.dumps(data["data"])
                                     except:
                                         print("flexible-tracker: submitData: error: Not valid JSON")
-
                                     f.write(json_str + "\n")
+                    elif action == "getAvailableDefinitions":
+                        definitionList = []
+
+                        for file in os.listdir(os.path.join("flexible-tracker", "templates")):
+                            if file.endswith(".ini"):
+                                definitionList.append(file)
+
+                        self.wfile.write(bytes(json.dumps(definitionList), encoding="UTF-8"))
             else:
                 print(f"Error: ping with unknown class '{pingClass}' received")
                 # print("END POST")
