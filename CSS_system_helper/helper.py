@@ -160,7 +160,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     if len(split2) > 1:
                         data[split2[0]] = split2[1]
                     else:
-                        print("Missing equal sign in argument:", seg)
+                        print("Missing equal sign in argument:", seg, "in", data_str)
 
             if "action" in data:
                 if data["action"] == "sleepDisplays":
@@ -395,7 +395,7 @@ def getDirectoryContents(path):
     root = os.path.dirname(os.path.abspath(__file__))
     content_path = os.path.join(root, "content")
     contents = os.listdir(os.path.join(content_path, path))
-    return([x for x in contents if x.find(".DS_Store") == -1])
+    return([x for x in contents if x[0] != "."]) # Don't return hidden files
 
 def checkDirectoryStructure(current_exhibit):
 
@@ -527,7 +527,7 @@ def checkEventSchedule():
         #print("Checking for scheduled event:", content)
         #print(f"Now: {datetime.now().time()}, Event time: {time}, Time for event: {datetime.now().time() > time}")
         if datetime.now().time() > time: # It is time for this event!
-            print("Scheduled event occured:", time, content)
+            print("Scheduled event occurred:", time, content)
             performManualContentUpdate(content)
             content_to_retrun = content
             nextEvent = None
