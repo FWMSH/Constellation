@@ -209,16 +209,22 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                 if i != 0:
                                     content += ', '
                                 content += file
-                        configFile.set("CURRENT", "content", content)
-                        config["content"] = content
-                        update_made = True
+
+                        # If content has changed, update our configuration
+                        if content != config["content"]:
+                            configFile.set("CURRENT", "content", content)
+                            config["content"] = content
+                            update_made = True
                     if "current_exhibit" in data:
-                        configFile.set("CURRENT", "current_exhibit", data["current_exhibit"])
-                        config["current_exhibit"] = data["current_exhibit"]
-                        checkDirectoryStructure(config["current_exhibit"])
-                        update_made = True
+                        if data["current_exhibit"] != config["current_exhibit"]:
+                            configFile.set("CURRENT", "current_exhibit", data["current_exhibit"])
+                            config["current_exhibit"] = data["current_exhibit"]
+                            checkDirectoryStructure(config["current_exhibit"])
+                            update_made = True
+
                     # Update file
                     if update_made:
+                        print("Configuration file updated")
                         with open('defaults.ini', 'w') as f:
                             configFile.write(f)
                 elif data["action"] == "getAvailableContent":
