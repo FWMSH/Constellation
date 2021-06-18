@@ -922,12 +922,17 @@
         if (warn == true) {
           $("#fileDeleteModalText").html(`Delete ${file} from ${id}?`);
           // Remove any previous event handler and then add one to actually do the deletion.
+          $("#fileDeleteConfirmationButton").show();
           $("#fileDeleteConfirmationButton").off();
           $("#fileDeleteConfirmationButton").on("click", function(){
             deleteRemoteFile(id, file, warn=false);
           });
           model.modal("show");
         } else {
+
+          $("#fileDeleteModalText").html(`Deleting ${file}...`);
+          $("#fileDeleteConfirmationButton").hide();
+
           var file_split = file.split(/[\\\/]/); // regex to split on forward and back slashes
           var exhibit;
           var file_to_delete;
@@ -949,9 +954,19 @@
           xhr.open("POST", `http://${obj.ip}:${obj.helperPort}`, true);
           xhr.setRequestHeader('Content-Type', 'application/json');
           xhr.send(requestString);
+          xhr.onreadystatechange = function () {
+            if (this.readyState != 4) return;
+            if (this.status == 200) {
+              var response = JSON.parse(this.responseText);
 
-          model.modal("hide");
-          showExhibitComponentInfo(id);
+              if ("success" in response) {
+                if (response["success"] == true) {
+                  model.modal("hide");
+                  showExhibitComponentInfo(id);
+                }
+              }
+            }
+          };
         }
 
       }

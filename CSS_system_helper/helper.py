@@ -241,9 +241,21 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 elif data["action"] == "deleteFile":
                     if ("file" in data) and ("fromExhibit" in data):
                         deleteFile(data["file"], data["fromExhibit"])
+                        response = {"success": True}
+                    else:
+                        response = {"success": False,
+                                    "reason": "Request missing necessary field"}
+                    json_string = json.dumps(response)
+                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif data["action"] == 'copyFile':
                     if ("file" in data) and ("fromExhibit" in data) and ("toExhibit" in data):
                         copyFile(data["file"], data["fromExhibit"], data["toExhibit"])
+                        response = {"success": True}
+                    else:
+                        response = {"success": False,
+                                    "reason": "Request missing necessary field"}
+                    json_string = json.dumps(response)
+                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif data["action"] == "updateClipList":
                     if "clipList" in data:
                         clipList["clipList"] = data["clipList"]

@@ -2,7 +2,7 @@ import serial
 import pypjlink
 import platform
 
-def serial_connect_with_url(ip, baudrate=9600, make=None, port=None, protocol='socket', timeout=2):
+def serial_connect_with_url(ip, baudrate=9600, make=None, port=None, protocol='socket', timeout=4):
 
     # Function to establish a serial connection over TCP/IP
 

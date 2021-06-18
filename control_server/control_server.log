@@ -708,3 +708,17 @@ ERROR, 2021-06-15 11:26:59, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-06-16 09:20:06, GET for unexpected file /js/popper.min.js.map
 INFO, 2021-06-17 13:26:33, Server shutdown
 INFO, 2021-06-18 13:25:37, Server started
+ERROR, 2021-06-18 14:33:01, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-18 14:33:25, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-18 14:33:46, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-18 14:33:54, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-18 14:34:27, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-18 14:34:39, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-18 14:34:49, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-18 14:35:35, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-18 14:35:55, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-18 14:45:15, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-18 14:45:17, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-18 14:45:24, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-18 14:46:39, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-06-18 14:46:43, GET for unexpected file /js/popper.min.js.map
