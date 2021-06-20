@@ -957,6 +957,7 @@
           xhr.onreadystatechange = function () {
             if (this.readyState != 4) return;
             if (this.status == 200) {
+              
               var response = JSON.parse(this.responseText);
 
               if ("success" in response) {
