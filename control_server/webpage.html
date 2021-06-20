@@ -531,8 +531,18 @@
             offCmdName = "Sleep display";
           }
 
+          // Change the amount of the Bootstrap grid being used depending on the
+          // number of components in this group. Larger groups get more horizontal
+          // space, so each component needs a smaller amount of grid.
+          var classString;
+          if (getExhibitComponentGroup(this.type).components.length > 7) {
+            classString = 'col-12 col-sm-6 col-md-3 mt-1';
+          } else {
+            classString = 'col-12 col-sm-6 mt-1';
+          }
+
           var html = `
-            <div class='col-md-12 col-lg-6 mt-1'>
+            <div class='${classString}'>
               <div class="btn-group btn-block">
                 <button type="button" class="btn btn-danger btn-block" id="${this.id}MainButton" onclick="showExhibitComponentInfo('${this.id}')"><H5>${displayName}</H5><div id="${this.id}StatusField">OFFLINE</div></button>
                 <button type="button" id="${this.id}DropdownButton" class="btn btn-danger dropdown-toggle dropdown-toggle-split"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -562,6 +572,12 @@
           this.components.push(component);
           this.sortComponentList();
 
+          // When we reach 8 components, rebuild the interface so that this group
+          // expands to double width
+          if (this.components.length == 8) {
+            rebuildComponentInterface();
+          }
+
         }
 
         sortComponentList() {
@@ -584,6 +600,12 @@
           // Remove a component based on its id
 
           this.components = $.grep(this.components, function(el, idx) {return el.id == id}, true);
+
+          // If the group now has seven components, make sure we're using the small
+          // size rendering now by rebuilding the interface
+          if (this.components.length == 7) {
+            rebuildComponentInterface();
+          }
         }
 
         buildHTML() {
@@ -601,8 +623,16 @@
             offCmdName = "Sleep all displays";
           }
 
+          // Allow groups with lots of components to display with double width
+          var classString;
+          if(this.components.length > 7) {
+            classString = 'col-12 col-xl-8 mt-4';
+          } else {
+            classString = 'col-md-6 col-lg-5 col-xl-4 mt-4';
+          }
+
           var html = `
-            <div class='col-md-6 col-lg-5 col-xl-4 mt-4'>
+            <div class= "${classString}">
               <div class="btn-group btn-block">
                 <button type="button" class="btn btn-secondary btn-block btn-lg">${this.type}</button>
                 <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -957,7 +987,7 @@
           xhr.onreadystatechange = function () {
             if (this.readyState != 4) return;
             if (this.status == 200) {
-              
+
               var response = JSON.parse(this.responseText);
 
               if ("success" in response) {

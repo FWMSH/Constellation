@@ -1,4 +1,4 @@
-# This application sets up a small server to communicate with user facing interfaces
+# This application sets up a small server to communicate with user-facing interfaces
 # and handle interacting with the system (since the browser cannot)
 
 from http.server import HTTPServer, SimpleHTTPRequestHandler
