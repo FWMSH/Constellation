@@ -470,6 +470,12 @@
       // Clear the inputs so that we can't double-submit data
       clearInput();
 
+      // Append the date and time of this recording
+      var tzoffset = (new Date()).getTimezoneOffset() * 60000; // Time zone offset in milliseconds
+      var date_str = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+      resultDict["Date"] = date_str;
+
+
       var requestDict = {"class": "tracker",
                          "action": "submitData",
                          "data": resultDict,
