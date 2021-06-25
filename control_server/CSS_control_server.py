@@ -498,7 +498,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             layout = configparser.ConfigParser(delimiters=("="))
                             layout.read("flexible-tracker/templates/" + data["name"] + ".ini")
                             layoutDefinition = {s:dict(layout.items(s)) for s in layout.sections()}
-                            print(data["name"], layoutDefinition)
                             json_string = json.dumps(layoutDefinition)
                             self.wfile.write(bytes(json_string, encoding="UTF-8"))
                     elif action == "submitData":
@@ -518,6 +517,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                 definitionList.append(file)
 
                         self.wfile.write(bytes(json.dumps(definitionList), encoding="UTF-8"))
+                    elif action == "checkConnection":
+                        self.wfile.write(bytes(json.dumps({"success": True}), encoding="UTF-8"))
             else:
                 print(f"Error: ping with unknown class '{pingClass}' received")
                 # print("END POST")
