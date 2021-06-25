@@ -506,9 +506,11 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                 with open(os.path.join("flexible-tracker", "data", data["name"]+".txt"), "a") as f:
                                     try:
                                         json_str = json.dumps(data["data"])
+                                        f.write(json_str + "\n")
+                                        self.wfile.write(bytes(json.dumps({"success": True}), encoding="UTF-8"))
                                     except:
                                         print("flexible-tracker: submitData: error: Not valid JSON")
-                                    f.write(json_str + "\n")
+                                        self.wfile.write(bytes(json.dumps({"success": False}), encoding="UTF-8"))
                     elif action == "getAvailableDefinitions":
                         definitionList = []
 

@@ -488,11 +488,12 @@
         }
 
         setStatus(status) {
+
           this.status = status;
           $("#" + this.id + "StatusField").html(status);
 
           var btnClass = this.getButtonColorClass();
-          // Strip all existing classes
+          // Strip all existing classes, then add the new one
           $("#" + this.id + "MainButton").removeClass("btn-primary btn-warning btn-danger btn-success btn-info").addClass(btnClass);
           $("#" + this.id + "DropdownButton").removeClass("btn-primary btn-warning btn-danger btn-success btn-info").addClass(btnClass);
         }
@@ -544,8 +545,8 @@
           var html = `
             <div class='${classString}'>
               <div class="btn-group btn-block">
-                <button type="button" class="btn btn-danger btn-block" id="${this.id}MainButton" onclick="showExhibitComponentInfo('${this.id}')"><H5>${displayName}</H5><div id="${this.id}StatusField">OFFLINE</div></button>
-                <button type="button" id="${this.id}DropdownButton" class="btn btn-danger dropdown-toggle dropdown-toggle-split"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button type="button" class="btn ${this.getButtonColorClass()} btn-block" id="${this.id}MainButton" onclick="showExhibitComponentInfo('${this.id}')"><H5>${displayName}</H5><div id="${this.id}StatusField">${this.status}</div></button>
+                <button type="button" id="${this.id}DropdownButton" class="btn ${this.getButtonColorClass()} dropdown-toggle dropdown-toggle-split"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <div class="dropdown-menu">
@@ -1212,7 +1213,7 @@
           // Add the component to the right group
           group.addComponent(newComponent);
 
-          newComponent.setStatus(component["status"]);
+          //newComponent.setStatus(component["status"]);
         }
       }
 
