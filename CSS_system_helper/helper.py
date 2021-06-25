@@ -3,7 +3,7 @@
 
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import time
-from datetime import datetime
+import datetime
 import configparser
 import json
 import sys
@@ -498,6 +498,44 @@ def performManualContentUpdate(content):
     r = requests.post("http://" + config["server_ip_address"] + ":" + config["server_port"],
                         headers=headers, json=requestDict)
 
+def retrieveSchedule():
+
+    # Function to search the schedules directory for an appropriate schedule
+
+    # Try several possible sources for the schedule with increasing generality
+    root = os.path.dirname(os.path.abspath(__file__))
+    sources_to_try = [config["current_exhibit"], "default"]
+    today_filename = datetime.datetime.now().date().isoformat() + ".ini" # eg. 2021-04-14.ini
+    today_day_filename = datetime.datetime.now().strftime("%A").lower() + ".ini" # eg. monday.ini
+    schedule_to_read = None
+
+    for source in sources_to_try:
+        sched_path = os.path.join(root, "schedules", source)
+        try:
+            schedules = os.listdir(sched_path)
+            if today_filename in schedules:
+                print("Found schedule", today_filename, "in", source)
+                schedule_to_read = os.path.join(sched_path, today_filename)
+                break
+            elif today_day_filename in schedules:
+                print("Found schedule", today_day_filename, "in", source)
+                schedule_to_read = os.path.join(sched_path, today_day_filename)
+                break
+            elif "default.ini" in schedules:
+                print("Found schedule default.ini in", source)
+                schedule_to_read = os.path.join(sched_path, "default.ini")
+                break
+        except FileNotFoundError:
+            pass
+
+    if schedule_to_read is not None:
+        parser = configparser.ConfigParser(delimiters=("="))
+        parser.read(schedule_to_read)
+        if "SCHEDULE" in parser:
+            readSchedule(parser["SCHEDULE"])
+        else:
+            print("retrieveSchedule: error: no INI section 'SCHEDULE' found!")
+
 def readSchedule(schedule_input):
 
     # Parse the configParser section provided in schedule and convert it for
@@ -512,6 +550,9 @@ def readSchedule(schedule_input):
         content = [s.strip() for s in schedule_input[key].split(",")]
         schedule.append((time, content))
 
+    # Add an event at 12:01 AM to retrieve the new schedule
+    schedule.append((datetime.time(0,1), "reload schedule"))
+
     queueNextScheduledEvent()
 
 def queueNextScheduledEvent():
@@ -525,9 +566,9 @@ def queueNextScheduledEvent():
 
     if schedule is not None:
         sorted_sched = sorted(schedule)
-        now = datetime.now().time()
+        now = datetime.datetime.now().time()
 
-        for event in schedule:
+        for event in sorted_sched:
             time, content = event
             if now < time:
                 nextEvent = event
@@ -544,10 +585,13 @@ def checkEventSchedule():
         time, content = nextEvent
         #print("Checking for scheduled event:", content)
         #print(f"Now: {datetime.now().time()}, Event time: {time}, Time for event: {datetime.now().time() > time}")
-        if datetime.now().time() > time: # It is time for this event!
+        if datetime.datetime.now().time() > time: # It is time for this event!
             print("Scheduled event occurred:", time, content)
-            performManualContentUpdate(content)
-            content_to_retrun = content
+            if content == "reload schedule":
+                retrieveSchedule()
+            else:
+                performManualContentUpdate(content)
+                content_to_retrun = content
             nextEvent = None
 
     queueNextScheduledEvent()
@@ -567,8 +611,8 @@ def readDefaultConfiguration():
     except KeyError:
         print("Error: make sure current_exhibit is set in defaults.ini")
 
-    if "SCHEDULE" in config_object:
-        readSchedule(config_object["SCHEDULE"])
+    # if "SCHEDULE" in config_object:
+    #     readSchedule(config_object["SCHEDULE"])
 
     return(config_object, config_dict)
 
@@ -596,6 +640,9 @@ configFile, config = readDefaultConfiguration()
 
 # If it exists, load the dictionary that maps one value into another
 dictionary = loadDictionary()
+
+# Look for an availble schedule and load it
+retrieveSchedule()
 
 # This is hold information about currently loaded media, e.g., for the player
 clipList = {}
