@@ -211,6 +211,13 @@
       // Clear the exisiting layout
       $("#cardRow").empty();
 
+      // Clear existing references to cards
+      dropdownList = [];
+      numberList = [];
+      sliderList = [];
+      textList = [];
+      timerList = [];
+
       // Loop the dictionaries in the definition and make a card for each
       var keys = Object.keys(definition);
 
