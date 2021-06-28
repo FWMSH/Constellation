@@ -174,7 +174,7 @@
   <script type="text/javascript" src="js/bootstrap.min.js"></script>
   <script type="text/javascript" src="js/showdown.min.js"></script>
   <!-- Load js file with helperAddress -->
-  <script src="config.js"></script>
+  <script src="kioskConfig.js"></script>
   <script>
 
     function startSeekBack() {
@@ -425,7 +425,7 @@
         resetAttractorTimer();
         activeClip = number;
         blockTouches = true;
-        setTimeout(function() {blockTouches = false;}, 1000);
+        setTimeout(function() {blockTouches = false;}, 500);
 
         // Ask the helper to switch the clip
         gotoClip(number);
@@ -443,7 +443,7 @@
                                       "clipNumber": number});
 
       var xhr = new XMLHttpRequest();
-      xhr.timeout = 2000;
+      xhr.timeout = 500;
       xhr.open("POST", helperAddress, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.ontimeout = function() {

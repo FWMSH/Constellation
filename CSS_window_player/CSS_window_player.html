@@ -300,8 +300,11 @@
 
       // Load the media file from the sourceList with the given index
 
+      // Make sure the index is an integer
+      index = parseInt(index);
+
       if (debug) {
-        console.log("gotoSource", index)
+        console.log("gotoSource", index);
       }
 
       if (index < sourceList.length) {
