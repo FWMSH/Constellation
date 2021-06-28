@@ -20,9 +20,15 @@
 
       html {
         touch-action: manipulation;
+        -webkit-user-select: none;  /* Chrome all / Safari all */
+        -moz-user-select: none;/* Firefox all */
+        -ms-user-select: none;
       }
       .container-fluid {
         touch-action: manipulation;
+      }
+      .rotation-button {
+        font-size: 65px;
       }
       #attractorOverlay {
         position: fixed;
@@ -45,6 +51,9 @@
       #scrollPad {
         width: 100%;
       }
+      #timeoutSecondsDisplay {
+        font-size: 100px;
+      }
     </style>
 
     <title>SOS Kiosk</title>
@@ -56,8 +65,8 @@
     <div id="attractorOverlay" class="sticky-top" onclick="hideAttractor()">
       <div class="container">
         <center>
-          <div style="color: white; font-size: 3vw;">Touch to explore</div>
-          <div id="attractorDatasetName" style="color: white; font-size:15vw; font-family:Good-Times;">The Moon</div>
+          <div style="color: white; font-size: 4vw;">Touch to explore</div>
+          <div id="attractorDatasetName" style="color: white; font-size:8vw; font-family:Good-Times;">The Moon</div>
         </center>
       </div>
     </div>
@@ -74,11 +83,36 @@
       <div class="row">
 
         <div class='col-4 col-md-3 mt-2' style="position: fixed;">
-          <H3><center>Drag your finger over the globe to rotate the sphere:</center></H3>
-          <img src="sphere.svg" id="scrollPad" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event)"></img>
+          <!-- <H3><center>Drag your finger over the globe to rotate the sphere:</center></H3>
+          <img src="sphere.svg" id="scrollPad" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event)"></img> -->
+          <H1 class="mt-1"><center>Rotate sphere:</center></H1>
+          <div class="row mt-4 mb-5">
+            <div class="col-6 offset-3">
+              <button id="rotateUpButton" class="rotation-button btn btn-secondary w-100">▲</button>
+            </div>
+          </div>
+          <div class='row mb-4 mt-4'>
+            <div class="col-6">
+              <button id="rotateBackButton" class="rotation-button btn btn-secondary w-100">◀</button>
+            </div>
+            <div class="col-6">
+              <button id="rotateForwardButton" class="rotation-button btn btn-secondary w-100">▶</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-6 offset-3">
+              <button id="rotateDownButton" class="rotation-button btn btn-secondary w-100">▼</button>
+            </div>
+          </div>
         </div>
         <div class='col-8 col-md-9 offset-4 offset-md-3'>
           <div id="cardRow" class="row">
+          </div>
+          <div id="timeoutMessage" style="margin-top: 30%;">
+            <center>
+              <H1>You may make a new selection in...</H1><br>
+              <div id="timeoutSecondsDisplay">10</div>
+            </center>
           </div>
         </div>
         </div>
@@ -103,8 +137,7 @@
       // Keep the page from scrolling when we're using the touchpad
       event.preventDefault();
 
-      clearTimeout(inactivityTimer);
-      inactivityTimer = setTimeout(showAttractor, 30000);
+      resetActivityTimer();
 
       var touchX = event.changedTouches[0].pageX;
       var touchY = event.changedTouches[0].pageY;
@@ -123,6 +156,99 @@
       }
       config["lastTouchX"] = touchX;
       config["lastTouchY"] = touchY;
+    }
+
+    function rotateSphereZ(increment) {
+
+      // Function to ask the helper to rotate the sphere by the given amount
+
+      resetActivityTimer();
+
+      // Send the movement to the server to pass on to SOS
+      requestString = `action=SOS_rotateZ&increment=${increment}`;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperIP, true);
+      xhr.timeout = 25;
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(requestString);
+    }
+
+    function rotateSphereY(increment) {
+
+      // Function to ask the helper to rotate the sphere by the given amount
+
+      resetActivityTimer();
+
+      // Send the movement to the server to pass on to SOS
+      requestString = `action=SOS_rotateY&increment=${increment}`;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperIP, true);
+      xhr.timeout = 25;
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(requestString);
+    }
+
+    function rotateForward() {
+
+      // Move the sphere about the Z axis a small amount.
+
+      rotateSphereZ(1);
+    }
+
+    function rotateBack() {
+
+      // Move the sphere about the Z axis a small amount.
+
+      rotateSphereZ(-1);
+    }
+
+    function rotateUp() {
+
+      // Move the sphere about the Z axis a small amount.
+
+      rotateSphereY(-1);
+    }
+
+    function rotateDown() {
+
+      // Move the sphere about the Z axis a small amount.
+
+      rotateSphereY(1);
+    }
+
+    function stopRotation() {
+
+      clearInterval(rotationTimer);
+    }
+
+    function startRotateForward() {
+
+      stopRotation();
+      rotateForward();
+      rotationTimer = setInterval(rotateForward, 15);
+    }
+
+    function startRotateBack() {
+
+      stopRotation();
+      rotateBack();
+      rotationTimer = setInterval(rotateBack, 15);
+    }
+
+    function startRotateUp() {
+
+      stopRotation();
+      rotateUp();
+      rotationTimer = setInterval(rotateUp, 15);
+    }
+
+    function startRotateDown() {
+
+      stopRotation();
+      rotateDown();
+      rotationTimer = setInterval(rotateDown, 15);
     }
 
     function askForDefaults() {
@@ -191,12 +317,59 @@
       }
     }
 
+    function showCardRow() {
+
+      $("#cardRow").show();
+      $("#timeoutMessage").hide();
+    }
+
+    function hideCardRow() {
+
+      $("#cardRow").hide();
+      $("#timeoutMessage").show();
+      updateTimeoutDisplay(selectionTimeoutLength, iterate=true);
+    }
+
+    function updateTimeoutDisplay(number, iterate=false) {
+
+      // Function to change the number displayed in the timeout
+
+      $("#timeoutSecondsDisplay").html(number);
+
+      if (iterate) {
+        if (number > 0) {
+          var temp = function() {
+            updateTimeoutDisplay(number-1, iterate=true);
+          }
+          setTimeout(temp, 1000);
+        } else {
+          showCardRow();
+        }
+      }
+    }
+
+    function selectClip(clipNumber) {
+
+      // Called when someone taps on a card on the interface. If the tap is valid
+      // and allowed, pass the request on to gotoClip
+
+      resetActivityTimer();
+
+      if (checkForSelectionTimeout()) {
+        gotoClip(clipNumber);
+        timeOfLastSelection = new Date();
+        hideCardRow();
+        setTimeout(showCardRow, selectionTimeoutLength*1000);
+      } else {
+        console.log("Please wait", secondsToSelectionTimeoutExpiration(),"more seconds to make a selection.")
+      }
+    }
+
     function gotoClip(clipNumber) {
 
       // Send a command to the helper to tell SOS to go to the specified clip.
 
-      clearTimeout(inactivityTimer);
-      inactivityTimer = setTimeout(showAttractor, 30000);
+      resetActivityTimer();
 
       if (config["block"] == false) {
         config["clip_number"] = clipNumber;
@@ -237,7 +410,7 @@
 
       var html = `
         <div class='col-12 col-md-6 col-lg-4 col-xl-3 mt-3'>
-          <div id="card${number}" class="card w-100 h-100" onclick="gotoClip(${number})">
+          <div id="card${number}" class="card w-100 h-100" onclick="selectClip(${number})">
               <img class='card-img-top' src="thumbnails/${icon}"></img>
               <div class="card-body">
                 <center><h3 id="cardName${number}" class="card-title">${name}</h3></center>
@@ -296,7 +469,7 @@
         if (this.status == 200) {
           var state_dict = JSON.parse(this.responseText);
           var keys = Object.keys(state_dict);
-          
+
           for (var i=0;i<keys.length;i++) {
             key = keys[i];
             if (key in config) {
@@ -332,6 +505,33 @@
       xhr.send(requestString);
     }
 
+    function checkForSelectionTimeout() {
+
+      // Check to see if enough time has passed to allow another selection to be made
+
+      var now = new Date();
+
+      if ((now - timeOfLastSelection)/1000 > selectionTimeoutLength){
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    function secondsToSelectionTimeoutExpiration() {
+
+      // Calculate how many seconds until we can make another selecetion
+
+      var now = new Date();
+      var seconds = selectionTimeoutLength - (now - timeOfLastSelection)/1000;
+
+      if (seconds <= 0) {
+        return 0;
+      } else {
+        return Math.round(seconds);
+      }
+    }
+
     function showAttractor() {
 
       // Make the attractor layer visible and start autorun
@@ -354,13 +554,21 @@
 
       $("#attractorOverlay").hide();
       clearTimeout(autorunScheduler);
-      inactivityTimer = setTimeout(showAttractor, 30000);
+      resetActivityTimer();
 
       requestString = `action=SOS_stopAutorun`;
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperIP, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.send(requestString);
+    }
+
+    function resetActivityTimer() {
+
+      // Cancel the existing activity timer and set a new one
+
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(showAttractor, 30000);
     }
 
     // These will be replaced by the values specified in defaults.ini
@@ -371,6 +579,36 @@
     var source = "";
     var dictionary = null;
     var autorunScheduler = null; // Will hold a reference to a setTimeout object that handles starting autorun gracefully.
+
+    var timeOfLastSelection = new Date('2020-01-01'); // Updated every time someone selects a new dataset
+    var selectionTimeoutLength = 10; // How many seconds must pass before someone can select a new dataset
+
+    // Event listeners for when the rotation buttons are pressed
+    var rotationTimer = null; // Will hold a reference to a setInterval
+    var forwardButton = document.getElementById("rotateForwardButton");
+    var backButton = document.getElementById("rotateBackButton");
+    var upButton = document.getElementById("rotateUpButton");
+    var downButton = document.getElementById("rotateDownButton");
+
+    forwardButton.addEventListener('touchstart', startRotateForward);
+    forwardButton.addEventListener('touchend', stopRotation);
+    forwardButton.addEventListener('mousedown', startRotateForward);
+    forwardButton.addEventListener('mouseup', stopRotation);
+
+    backButton.addEventListener('touchstart', startRotateBack);
+    backButton.addEventListener('touchend', stopRotation);
+    backButton.addEventListener('mousedown', startRotateBack);
+    backButton.addEventListener('mouseup', stopRotation);
+
+    upButton.addEventListener('touchstart', startRotateUp);
+    upButton.addEventListener('touchend', stopRotation);
+    upButton.addEventListener('mousedown', startRotateUp);
+    upButton.addEventListener('mouseup', stopRotation);
+
+    downButton.addEventListener('touchstart', startRotateDown);
+    downButton.addEventListener('touchend', stopRotation);
+    downButton.addEventListener('mousedown', startRotateDown);
+    downButton.addEventListener('mouseup', stopRotation);
 
     config = {'playlist_name': null,
               'clip_number': null,
@@ -383,7 +621,8 @@
     // sendPing();
     // setInterval(sendPing, 5000);
     rebuildInterface();
-    inactivityTimer = setTimeout(showAttractor, 30000);
+    var inactivityTimer = null;
+    resetActivityTimer();
     setInterval(getSOSState, 2000);
 
   </script>

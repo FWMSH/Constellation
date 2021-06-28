@@ -62,13 +62,16 @@ class RequestHandler(SimpleHTTPRequestHandler):
         # if sendReply == True
 
         # Open the static file requested and send it
-        mimetype = mimetypes.guess_type(self.path, strict=False)[0]
-        f = open('.' + self.path, 'rb')
-        self.send_response(200)
-        self.send_header('Content-type', mimetype)
-        self.end_headers()
-        self.wfile.write(f.read())
-        f.close()
+        try:
+            mimetype = mimetypes.guess_type(self.path, strict=False)[0]
+            f = open('.' + self.path, 'rb')
+            self.send_response(200)
+            self.send_header('Content-type', mimetype)
+            self.end_headers()
+            self.wfile.write(f.read())
+            f.close()
+        except FileNotFoundError:
+            print(f"Error: could not find file {self.path}")
         return
         # except IOError:
         #     self.send_error(404,'File Not Found: %s' % self.path)
@@ -221,10 +224,47 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     dLon = float(data["dLon"])
 
                     sendSOSCommand(f"set_tilt {tiltX} {tiltY + dLat/2} {tiltZ + dLon/2}")
+            elif data["action"] == "SOS_rotateX":
+                if "increment" in data:
+                    tilt = sendSOSCommand("get_tilt")
+                    split = tilt.split(' ')
+                    tiltX = float(split[0])
+                    tiltY = float(split[1])
+                    tiltZ = float(split[2])
+                    dX = float(data['increment'])
+
+                    sendSOSCommand(f"set_tilt {tiltX + dX} {tiltY} {tiltZ}")
+            elif data["action"] == "SOS_rotateY":
+                if "increment" in data:
+                    tilt = sendSOSCommand("get_tilt")
+                    split = tilt.split(' ')
+                    tiltX = float(split[0])
+                    tiltY = float(split[1])
+                    tiltZ = float(split[2])
+                    dY = float(data['increment'])
+
+                    sendSOSCommand(f"set_tilt {tiltX} {tiltY + dY} {tiltZ}")
+            elif data["action"] == "SOS_rotateZ":
+                if "increment" in data:
+                    tilt = sendSOSCommand("get_tilt")
+                    split = tilt.split(' ')
+                    tiltX = float(split[0])
+                    tiltY = float(split[1])
+                    tiltZ = float(split[2])
+                    dZ = float(data['increment'])
+
+                    sendSOSCommand(f"set_tilt {tiltX} {tiltY} {tiltZ + dZ}")
             elif data["action"] == "SOS_startAutorun":
                 sendSOSCommand("set_auto_presentation_mode 1")
             elif data["action"] == "SOS_stopAutorun":
                 sendSOSCommand("set_auto_presentation_mode 0")
+            elif data["action"] == "SOS_readPlaylist":
+                if "playlistName" in data:
+                    reply = sendSOSCommand(f"playlist_read {data['playlistName']}", multiline=True)
+
+                    self.wfile.write(bytes(reply, encoding="UTF-8"))
+            else:
+                print(f"Warning: action {data['action']} not recognized!")
 
 
 def sleepDisplays():
