@@ -32,6 +32,14 @@
         overflow-y: hidden;
         height: 100%;
         position: relative;
+
+        /* Disable text selection */
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
       }
       body {
         overflow-x: hidden;
@@ -46,7 +54,6 @@
         font-size: 50px;
       }
       .seek-button {
-        font-family: Gotham-Bold;
         font-size: 50px;
         height: 100%;
       }
@@ -154,10 +161,10 @@
           <button id="langSwitchButton" class="btn btn-secondary btn-block" onclick="switchLang()">Español</button>
         </div>
         <div class="col-2 offset-2 pt-1">
-          <button id="videoSeekBackButton" class="btn btn-secondary seek-button btn-block"> < </button>
+          <button id="videoSeekBackButton" class="btn btn-secondary seek-button btn-block"> ◀ </button>
         </div>
         <div class="col-2 pt-1">
-          <button id="videoSeekForwardButton" class="btn btn-secondary seek-button btn-block"> > </button>
+          <button id="videoSeekForwardButton" class="btn btn-secondary seek-button btn-block"> ▶ </button>
         </div>
         <div class="col-1 pt-1 offset-2">
           <button id="textSizeDownButton" class="btn btn-secondary btn-block" onclick="decreaseTextSize()"> A </button>
@@ -184,7 +191,7 @@
 
       seekDirection = "back";
       stopSeek();
-      seekTimer = setInterval(askToSeek, 100);
+      seekTimer = setInterval(askToSeek, 50);
       askToSeek();
 
     }
@@ -196,7 +203,7 @@
 
       seekDirection = "forward";
       stopSeek();
-      seekTimer = setInterval(askToSeek, 100);
+      seekTimer = setInterval(askToSeek, 50);
       askToSeek();
 
     }
@@ -205,6 +212,9 @@
 
       resetAttractorTimer();
       clearInterval(seekTimer);
+      // var temp = function() {setPlayPause("play");}
+      // setTimeout(temp, 2000);
+      setPlayPause("play");
     }
 
     function askToSeek() {
@@ -212,13 +222,15 @@
       // Send a message to the helper, asking it to tell the video player to seek
       // the video.
 
+      setPlayPause("pause");
+
       var requestDict = {"action": "seekVideo",
                          "direction": seekDirection,
                          "fraction": 0.01};
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperAddress, true);
-      xhr.timeout = 100; // ms
+      xhr.timeout = 50; // ms
       xhr.ontimeout = function() {console.log("timeout")}
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.onreadystatechange = function () {
@@ -227,7 +239,34 @@
 
         if (this.status == 200) {
         }
-    };
+      };
+      xhr.send(JSON.stringify(requestDict));
+    }
+
+    function setPlayPause(state) {
+
+      // Ask the helper to tell the player to play or pause the video
+
+      var requestDict = {};
+
+      if (state == "play") {
+        requestDict["action"] = 'playVideo';
+      } else if (state == "pause") {
+        requestDict["action"] = 'pauseVideo';
+      }
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperAddress, true);
+      xhr.timeout = 1000; // ms
+      xhr.ontimeout = function() {console.log("timeout")}
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+        }
+      };
       xhr.send(JSON.stringify(requestDict));
     }
 
@@ -744,6 +783,7 @@
     var currentlyActive = false;
 
     var seekTimer = null; // Will hold setInterval reference for seeking the video
+    // var playPauseTimer = null; // Will hold setTimeout reference for resuming video play after seeking
     var seekDirection = "back"
 
     askForDefaults();

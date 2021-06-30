@@ -188,6 +188,10 @@
           } else if (cmd.startsWith("seekVideo")) {
               var seek = cmd.split("_");
               seekVideoByFraction(seek[1], parseFloat(seek[2]))
+          } else if (cmd == "playVideo") {
+              document.getElementById("fullscreenVideo").play();
+          } else if (cmd == "pauseVideo") {
+              document.getElementById("fullscreenVideo").pause();
           } else if (cmd == "disableAutoplay") {
               autoplayEnabled = false;
           } else if (cmd == "enableAutoplay") {

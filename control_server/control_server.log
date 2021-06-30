@@ -850,3 +850,4 @@ ERROR, 2021-06-25 16:58:27, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-06-25 16:58:49, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-06-25 16:59:18, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-06-25 16:59:26, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-06-28 15:46:12, there is no configuration available for component with id=W1_KIOSK

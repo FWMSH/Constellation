@@ -299,6 +299,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 elif data["action"] == "seekVideo":
                     if ("direction" in data) and ("fraction" in data):
                         commandList.append("seekVideo_"+data["direction"]+"_"+str(data["fraction"]))
+                elif data["action"] == "pauseVideo":
+                    commandList.append("pauseVideo")
+                elif data["action"] == "playVideo":
+                    commandList.append("playVideo")
                 elif data["action"] == 'getLabelText':
                     if "lang" in data:
                         lang = data["lang"]
