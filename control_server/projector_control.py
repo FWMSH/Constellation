@@ -27,7 +27,7 @@ def serial_connect(baudrate=9600,
                    bytesize=serial.EIGHTBITS,
                    parity=serial.PARITY_NONE,
                    port=None,
-                   stopbit=serial.STOPBITS_ONE,
+                   stopbits=serial.STOPBITS_ONE,
                    timeout=2):
 
     # Connect to a serial device connected to the machine
