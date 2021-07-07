@@ -1484,6 +1484,8 @@
 
         $("#scheduleTargetSelector").hide();
         $("#scheduleTargetSelectorLabel").hide();
+        $("#scheduleEditModal").data("scheduleName", scheduleName);
+        $("#scheduleEditModal").data("isAddition", isAddition);
 
         // Set the modal title
         if (isAddition) {
@@ -1514,46 +1516,100 @@
             $("#scheduleTargetSelector").show();
             $("#scheduleTargetSelectorLabel").show();
           }
+        } else {
+          $("#scheduleActionTimeInput").val(null);
+          $("#scheduleActionSelector").val(null);
+          $("#scheduleTargetSelector").val(null);
         }
 
         $("#scheduleEditModal").modal("show");
       }
 
-      // function sendScheduleUpdate() {
-      //   var days = $('#daySelect').val();
-      //   var onTime = $('#onTimeEntry').val();
-      //   var offTime = $('#offTimeEntry').val();
-      //
-      //   if (days.length > 0) {
-      //
-      //     var requestDict;
-      //     for (var i=0; i<days.length; i++) {
-      //         day = days[i];
-      //         requestDict = {"class": "webpage",
-      //                        "action": "updateSchedule",
-      //                        "day": day,
-      //                        "onTime": onTime,
-      //                        "offTime": offTime};
-      //
-      //         var xhr = new XMLHttpRequest();
-      //         xhr.timeout = 2000;
-      //         xhr.open("POST", serverIP, true);
-      //         xhr.setRequestHeader('Content-Type', 'application/json');
-      //         xhr.send(JSON.stringify(requestDict));
-      //     }
-      //     document.getElementById("scheduleEditForm").reset();
-      //     $('#scheduleEditModal').modal('hide')
-      //     askForUpdate();
-      //   } else {
-      //     // We are missing the day field, so pop up a warning to help
-      //     $("#scheduleEditSubmitButton").popover({
-      //           placement: 'right',
-      //           trigger: 'focus',
-      //           content: "You must select at least one day to modify!"
-      //           });
-      //     $("#scheduleEditSubmitButton").popover('show');
-      //   }
-      // }
+      function sendScheduleUpdateFromModal() {
+
+        // Gather necessary info from the schedule editing modal and send a
+        // message to the control server asking to add the given action
+
+        var scheduleName = $("#scheduleEditModal").data("scheduleName");
+        var time = $("#scheduleActionTimeInput").val();
+        var action = $("#scheduleActionSelector").val();
+        var target = $("#scheduleTargetSelector").val();
+        var isAddition = $("#scheduleEditModal").data("isAddition");
+
+        console.log("Update action:", scheduleName, isAddition, time, action, target)
+
+        var requestDict = {"class": "webpage",
+                           "action": "updateSchedule",
+                           "name": scheduleName,
+                           "time": time,
+                           "actionToSet": action,
+                           "target": target,
+                           "isAddition": isAddition}
+
+        requestString = JSON.stringify(requestDict);
+
+        var xhr = new XMLHttpRequest();
+        xhr.timeout = 3000;
+        xhr.open("POST", serverIP, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.ontimeout = function() {
+        }
+        xhr.onreadystatechange = function () {
+
+          if (this.readyState != 4) return;
+
+          if (this.status == 200) {
+            if (this.responseText != "") {
+              var update = JSON.parse(this.responseText);
+              if (update["class"] == "schedule") {
+                $("#scheduleEditModal").modal("hide");
+                populateSchedule(update);
+              }
+            }
+          }
+        };
+        xhr.send(requestString);
+      }
+
+      function scheduleDeleteActionFromModal() {
+
+        // Gather necessary info from the schedule editing modal and send a
+        // message to the control server asking to delete the given action
+
+        var scheduleName = $("#scheduleEditModal").data("scheduleName");
+        var time = $("#scheduleActionTimeInput").val();
+
+        console.log("Delete:", scheduleName, time);
+
+        var requestDict = {"class": "webpage",
+                           "action": "deleteScheduleAction",
+                           "from": scheduleName,
+                           "time": time}
+
+        requestString = JSON.stringify(requestDict);
+
+        var xhr = new XMLHttpRequest();
+        xhr.timeout = 3000;
+        xhr.open("POST", serverIP, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.ontimeout = function() {
+        }
+        xhr.onreadystatechange = function () {
+
+          if (this.readyState != 4) return;
+
+          if (this.status == 200) {
+            if (this.responseText != "") {
+              var update = JSON.parse(this.responseText);
+              if (update["class"] == "schedule") {
+                $("#scheduleEditModal").modal("hide");
+                populateSchedule(update);
+              }
+            }
+          }
+        };
+        xhr.send(requestString);
+      }
 
       function rebuildErrorList() {
 

@@ -420,13 +420,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     getProjector(data["id"]).queueCommand(data["command"])
                     self.wfile.write(bytes("", encoding="UTF-8"))
                 elif action == "updateSchedule":
-                    print("Schedule update received:", data["day"], data["onTime"], data["offTime"])
-
-                    schedule = {}
-                    schedule[data["day"].lower()+'_on'] = data["onTime"]
-                    schedule[data["day"].lower()+'_off'] = data["offTime"]
-
-                    updateSchedule(schedule)
+                    pass
                 elif action == 'refreshSchedule':
                     # This command reloads the schedule from disk. Normal schedule
                     # changes are passed during fetchUpdate
@@ -469,7 +463,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             root = os.path.dirname(os.path.abspath(__file__))
                             sched_dir = os.path.join(root, "schedules")
                             os.remove(os.path.join(sched_dir, data["name"] + ".ini"))
-                            
+
                         # Reload the schedule from disk
                         retrieveSchedule()
 
@@ -483,6 +477,42 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                         json_string = json.dumps(dict, default=str)
                         self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                elif action == "deleteScheduleAction":
+                    if "from" in data and "time" in data:
+                        with scheduleLock:
+                            root = os.path.dirname(os.path.abspath(__file__))
+                            sched_dir = os.path.join(root, "schedules")
+                            outputText = ""
+                            time_to_delete = dateutil.parser.parse(data['time']).time()
+
+                            with open(os.path.join(sched_dir, data["from"] + ".ini"), 'r') as f:
+                                for line in f.readlines():
+                                    split = line.split("=")
+                                    if len(split) == 2:
+                                        # We have a valid ini line
+                                        time = dateutil.parser.parse(split[0]).time()
+                                        if time != time_to_delete:
+                                            # This line doesn't match, so add it for writing
+                                            outputText += line
+                                    else:
+                                        outputText += line
+
+                            with open(os.path.join(sched_dir, data["from"] + ".ini"), 'w') as f:
+                                f.write(outputText)
+
+                    # Reload the schedule from disk
+                    retrieveSchedule()
+
+                    # Send the updated schedule back
+                    with scheduleLock:
+                        dict = {}
+                        dict["class"] = "schedule"
+                        dict["updateTime"] = scheduleUpdateTime
+                        dict["schedule"] = scheduleList
+                        dict["nextEvent"] = nextEvent
+
+                    json_string = json.dumps(dict, default=str)
+                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif action == "setExhibit":
                     print("Changing exhibit to:", data["name"])
 
