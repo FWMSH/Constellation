@@ -26,6 +26,9 @@
       .handCursor {
         cursor: pointer;
       }
+      .schedule-date-specific {
+        background-color: rgba(91, 192, 222, 0.2);
+      }
       #componentAvailableContentList-thisExhibit {
         max-height: 25vh;
         min-height: 15vh;
@@ -302,60 +305,18 @@
           </div>
 
           <div class="row mt-4">
-            <div class='col'>
+            <div class='col-12'>
               <h4><b>Next scheduled action: </b><span id="Schedule_next_event"></span></h4>
             </div>
-          </div>
-          <div class='row mt-2'>
-            <div class="col-sm-10 col-md-7 col-lg-5 col-xl-5">
-              <table class="table table-striped">
-                <thead class="thead-dark">
-                  <tr>
-                    <th scope="col">Day</th>
-                    <th scope="col">Turn on time</th>
-                    <th scope="col">Turn off time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <th scope="row">Monday</th>
-                    <td><div id="Schedule_monday_on"></div></td>
-                    <td><div id="Schedule_monday_off"></div></td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Tuesday</th>
-                    <td><div id="Schedule_tuesday_on"></div></td>
-                    <td><div id="Schedule_tuesday_off"></div></td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Wednesday</th>
-                    <td><div id="Schedule_wednesday_on"></div></td>
-                    <td><div id="Schedule_wednesday_off"></div></td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Thursday</th>
-                    <td><div id="Schedule_thursday_on"></div></td>
-                    <td><div id="Schedule_thursday_off"></div></td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Friday</th>
-                    <td><div id="Schedule_friday_on"></div></td>
-                    <td><div id="Schedule_friday_off"></div></td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Saturday</th>
-                    <td><div id="Schedule_saturday_on"></div></td>
-                    <td><div id="Schedule_saturday_off"></div></td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Sunday</th>
-                    <td><div id="Schedule_sunday_on"></div></td>
-                    <td><div id="Schedule_sunday_off"></div></td>
-                  </tr>
-                </tbody>
-              </table>
-              <button class='btn btn-info' data-toggle="modal" data-target="#scheduleEditModal">Edit schedule  </button>
+            <div class='col-12 col-sm-6 col-md-4 col-lg-3 col-md-2 mb-2'>
+              <button id='refreshScheduleButton' class='btn btn-primary w-100' onclick='askForScheduleRefresh()'>Refresh schedule</button>
             </div>
+            <div id='dateSpecificScheduleAlert' class="col-12 col-sm-auto alert schedule-date-specific my-auto" role="alert">
+              Date-specific schedule
+            </div>
+          </div>
+
+          <div id='scheduleContainer' class='row mt-2'>
           </div>
         </div>
 
@@ -1330,30 +1291,102 @@
 
       function populateSchedule(schedule) {
 
-        var keys = ['monday_on', 'monday_off', 'tuesday_on', 'tuesday_off', 'wednesday_on', 'wednesday_off', 'thursday_on', 'thursday_off', 'friday_on', 'friday_off', 'saturday_on', 'saturday_off', 'sunday_on', 'sunday_off', ];
-        for (var i=0; i<keys.length; i++) {
-          var key = keys[i];
-          var item;
-          if (key in schedule) {
-            item = schedule[key];
-          } else item = ""
-          document.getElementById("Schedule_"+key).innerHTML = item;
-        }
+        document.getElementById('scheduleContainer').innerHTML = "";
+        $("#dateSpecificScheduleAlert").hide();
 
-          var action = "";
-          if (schedule["Next action"] == "sleepDisplay") {
-            action = "Turn exhibit off";
-          } else if (schedule["Next action"] == "wakeDisplay") {
-            action = "Turn exhibit on";
-          }
-          var value = ""
-          if (schedule["Next time"] != "None") {
-            value = `${action}—${schedule["Next time"]}`;
+        // Record the timestamp when this schedule was generated
+        scheduleUpdateTime = schedule['updateTime'];
+        var sched = schedule["schedule"];
+        console.log(schedule)
+        sched.forEach((day) => {
+          // Apply a background color to date-specific schedules so that we
+          // know that they are special
+          var scheduleClass;
+          var addItemText;
+          if (day['source'] == 'date-specific') {
+            scheduleClass = 'schedule-date-specific';
+            addItemText = 'Add date-specific action';
+            $("#dateSpecificScheduleAlert").show();
           } else {
-            value = `No actions scheduled`;
+            scheduleClass = '';
+            addItemText = 'Add recurring action';
           }
+            var html = `<div class="col-12 col-sm-6 col-lg-4 mt-3 pt-3 pb-3 ${scheduleClass}">`;
+            html += `
+                            <div class="row">
+                              <div class="col-6 col-sm-12 col-md-6">
+                                <span style="font-size: 35px;">${day["dayName"]}</span>
+                              </div>
+                              <div class="col-6 col-sm-12 col-md-6 my-auto" style="text-align: right;">
+                                <strong>${day["date"]}</strong>
+                              </div>
+                              <div class="col-12 mt-2">
+                                  <button class="btn btn-primary" type="button">${addItemText}</button>
+                              </div>
+                            </div>
+                          `;
 
-          document.getElementById("Schedule_next_event").innerHTML = value;
+            // Loop through the schedule elements and had a row for each
+            day['schedule'].forEach((item) => {
+
+              var description = null;
+              var action = null;
+              if (item[2].length == 1) {
+                action = (item[2])[0];
+                if (action == "power_off") {
+                  description = "Power off";
+                } else if (action == "power_on") {
+                  description = "Power on";
+                }
+              } else if (item[2].length == 2) {
+                action = (item[2])[0];
+                target = (item[2])[1];
+                if (action == "set_exhibit") {
+                  description = `Set exhibit: ${target}`
+                }
+              }
+
+              if (description != null) {
+                html += `
+                            <div class="row mt-2">
+                                <div class="col-12 btn-group" role="group">
+                                  <button type="button" class="btn btn-secondary">${item[1]}</button>
+                                  <button type="button" class="btn btn-secondary">${description}</button>
+                                  <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+                                  <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="#">Edit action</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item text-danger" href="#">Delete action</a>
+                                  </div>
+                                </div>
+                            </div>
+                `;
+              }
+
+            });
+            html += "</div>";
+            $("#scheduleContainer").append(html);
+        });
+
+        var nextEvent = schedule["nextEvent"];
+        var html = '';
+        if (nextEvent["action"].length == 1) {
+          var action = (nextEvent["action"])[0];
+          if (action == "reload schedule") {
+            html = "No more actions today";
+          } else if (action == "power_on") {
+            html = `Power on at ${nextEvent["time"]}`;
+          } else if (action == "power_off") {
+            html = `Power off at ${nextEvent["time"]}`;
+          }
+        } else if (nextEvent["action"].length == 2) {
+          var action = (nextEvent["action"])[0];
+          var target = (nextEvent["action"])[1];
+          if (action == 'set_exhibit') {
+            html = `Set exhibit to ${target} at ${nextEvent["time"]}`;
+          }
+        }
+        $("#Schedule_next_event").html(html);
       }
 
       function sendScheduleUpdate() {
@@ -1366,7 +1399,6 @@
           var requestDict;
           for (var i=0; i<days.length; i++) {
               day = days[i];
-              //requestString = `class=webpage&action=updateSchedule&day=${day}&onTime=${onTime}&offTime=${offTime}`;
               requestDict = {"class": "webpage",
                              "action": "updateSchedule",
                              "day": day,
@@ -1412,7 +1444,54 @@
 
       }
 
+      function askForScheduleRefresh() {
+
+        // Send a message to the control server asking it to reload the schedule
+        // from disk
+
+        $("#refreshScheduleButton").html("Refreshing...");
+
+        var requestDict = {"class": "webpage",
+                           "action": "refreshSchedule"}
+
+        requestString = JSON.stringify(requestDict);
+
+        var xhr = new XMLHttpRequest();
+        xhr.timeout = 3000;
+        xhr.open("POST", serverIP, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.ontimeout = function() {
+          $("#refreshScheduleButton").html("Timed out!");
+          var temp = function() {
+            $("#refreshScheduleButton").html("Refresh schedule")
+          }
+          setTimeout(temp, 2000);
+        }
+        xhr.onreadystatechange = function () {
+
+          if (this.readyState != 4) return;
+
+          if (this.status == 200) {
+            if (this.responseText != "") {
+              var update = JSON.parse(this.responseText);
+              if (update["class"] == "schedule") {
+                populateSchedule(update);
+              }
+              $("#refreshScheduleButton").html("Success!");
+              var temp = function() {
+                $("#refreshScheduleButton").html("Refresh schedule")
+              }
+              setTimeout(temp, 2000);
+            }
+          }
+        };
+        xhr.send(requestString);
+      }
+
       function askForUpdate() {
+
+        // Send a message to the control server asking for the latest component
+        // updates
 
         requestDict = {"class": "webpage",
                        "action": "fetchUpdate"};
@@ -1425,6 +1504,7 @@
           if (this.readyState != 4) return;
 
           if (this.status == 200) {
+            if (this.responseText != "") {
               var update = JSON.parse(this.responseText);
 
               var n_comps = 0;
@@ -1446,7 +1526,9 @@
                       document.title = component["galleryName"];
                     }
                   } else if (component["class"] == "schedule") {
-                    populateSchedule(component);
+                    if (scheduleUpdateTime != component['updateTime']) {
+                      populateSchedule(component);
+                    }
                   }
                 }
               }
@@ -1458,6 +1540,7 @@
               } else {
                 $("link[rel='icon']").attr("href", "icon/yellow.ico");
               }
+            }
           }
         };
         xhr.send(JSON.stringify(requestDict));
@@ -1513,6 +1596,7 @@
       var errorDict = {}; // Will hold errors to display
       var markdownConverter = new showdown.Converter();
       markdownConverter.setFlavor('github');
+      var scheduleUpdateTime = 0;
 
       askForUpdate();
       setInterval(askForUpdate, 5000);

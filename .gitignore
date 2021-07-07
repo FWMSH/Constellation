@@ -10,3 +10,6 @@ CSS_system_helper/content/space/ScienceStudio 2-3-21 D.jpg
 CSS_window_player/Gotham-Bold.otf
 CSS_window_player/Gotham-Book.otf
 CSS_system_helper/schedules/default/2021-06-21.ini
+control_server/schedules/*
+control_server/.DS_Store
+control_server/__pycache__/projector_control.cpython-37.pyc

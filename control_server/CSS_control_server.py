@@ -247,23 +247,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
         componentDictList.append(dict)
 
         # Also include an object containing the current schedule
-        dict = {}
-        dict["class"] = "schedule"
-        for key in schedule_dict:
-            if key != "Next event":
-                dict[key] = schedule_dict[key].strftime("%I:%M %p").lstrip("0")
-            else:
-                nextTime, nextAction = schedule_dict[key]
-                if nextTime is not None:
-                    dict["Next time"] = nextTime.strftime("%A, %I:%M %p").replace(" 0", " ")
-                    dict["Next action"] = nextAction
-                else:
-                    dict["Next time"] = "None"
-                    dict["Next action"] = "None"
-        componentDictList.append(dict)
+        with scheduleLock:
+            dict = {}
+            dict["class"] = "schedule"
+            dict["updateTime"] = scheduleUpdateTime
+            dict["schedule"] = scheduleList
+            dict["nextEvent"] = nextEvent
+            componentDictList.append(dict)
 
-
-        json_string = json.dumps(componentDictList)
+        json_string = json.dumps(componentDictList, default=str)
 
         self.wfile.write(bytes(json_string, encoding="UTF-8"))
 
@@ -434,6 +426,21 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     schedule[data["day"].lower()+'_off'] = data["offTime"]
 
                     updateSchedule(schedule)
+                elif action == 'refreshSchedule':
+                    # This command reloads the schedule from disk. Normal schedule
+                    # changes are passed during fetchUpdate
+                    retrieveSchedule()
+
+                    # Send the updated schedule back
+                    with scheduleLock:
+                        dict = {}
+                        dict["class"] = "schedule"
+                        dict["updateTime"] = scheduleUpdateTime
+                        dict["schedule"] = scheduleList
+                        dict["nextEvent"] = nextEvent
+
+                    json_string = json.dumps(dict, default=str)
+                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif action == "setExhibit":
                     print("Changing exhibit to:", data["name"])
 
@@ -451,6 +458,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     except:
                         with logLock:
                             logging.error("Unable to read README.md")
+                else:
+                    print(f"Error: Unknown webpage command received: {action}")
+                    with logLock:
+                        logging.error(f"Unknown webpage command received: {action}")
 
             elif pingClass == "exhibitComponent":
                 if "action" in data: # not a ping
@@ -618,15 +629,17 @@ def checkEventSchedule():
     # Read the "Next event" tuple in schedule_dict and take action if necessary
     # Also check if it's time to reboot the server
 
-    global schedule_dict
+    global nextEvent
     global config
     global rebooting
 
-    nextEventDateTime, nextAction = schedule_dict["Next event"]
-
-    if nextEventDateTime is not None:
-        if datetime.datetime.now() > nextEventDateTime:
-            commandAllExhibitComponents(nextAction)
+    if nextEvent["date"] is not None:
+        if datetime.datetime.now() > nextEvent["date"]:
+            if nextEvent["action"] == 'reload schedule':
+                retrieveSchedule()
+            else:
+                #commandAllExhibitComponents(nextEvent["action"])
+                print(f"DEBUG: Event executed: {nextEvent['action']} -- THIS EVENT WAS NOT RUN")
             queueNextOnOffEvent()
 
     # Check for server reboot time
@@ -641,51 +654,93 @@ def updateSchedule(schedule):
     # Take a dictionary of schedule changes, update the schedule_dict, and
     # write the changes to file in currentExhibitConfiguration.ini
 
-    readSchedule(schedule)
+    pass
+
+    #readSchedule(schedule)
+    # queueNextOnOffEvent()
+    #
+    # config = configparser.ConfigParser()
+    # with currentExhibitConfigurationLock:
+    #     config.read('currentExhibitConfiguration.ini')
+    #     config.remove_section("SCHEDULE")
+    #     config.add_section("SCHEDULE")
+    #     for key in schedule_dict:
+    #         if key != "Next event":
+    #             config.set("SCHEDULE", key, schedule_dict[key].strftime("%I:%M %p").lstrip("0"))
+    #
+    #     # Write ini file back to disk
+    #     with open('currentExhibitConfiguration.ini', "w") as f:
+    #         config.write(f)
+
+def retrieveSchedule():
+
+    # Function to build a schedule for the next seven days based on the available
+    # schedule files
+
+    global scheduleList
+    global scheduleUpdateTime
+
+    with scheduleLock:
+        scheduleUpdateTime = (datetime.datetime.now() - datetime.datetime.utcfromtimestamp(0)).total_seconds()
+        scheduleList = [] # Each entry is a dict for a day, in calendar order
+
+        today = datetime.datetime.today().date()
+        this_week = [today + datetime.timedelta(days=x) for x in range(7)]
+
+        for day in this_week:
+            day_dict = {}
+            day_dict["date"] = day.isoformat()
+            day_dict["dayName"] = day.strftime("%A")
+            day_dict["source"] = "none"
+            reload_datetime = datetime.datetime.combine(day, datetime.time(0,1))
+            day_schedule = [[reload_datetime, reload_datetime.strftime("%-I:%M %p"), ["reload schedule"]]]
+
+            date_specific_filename = day.isoformat() + ".ini" # e.g., 2021-04-14.ini
+            day_specific_filename = day.strftime("%A").lower() + ".ini" # e.g., monday.ini
+
+            root = os.path.dirname(os.path.abspath(__file__))
+            sources_to_try = [date_specific_filename, day_specific_filename, 'default.ini']
+            source_dir = os.listdir(os.path.join(root, "schedules"))
+            schedule_to_read = None
+
+            for source in sources_to_try:
+                sched_path = os.path.join(root, "schedules", source)
+                if source in source_dir:
+                    schedule_to_read = os.path.join(root, "schedules", source)
+                    if source == date_specific_filename:
+                        day_dict["source"] = 'date-specific'
+                    elif source == day_specific_filename:
+                        day_dict["source"] = 'day-specific'
+                    elif source == "default.ini":
+                        day_dict["source"] = 'default'
+                    break
+
+            if schedule_to_read is not None:
+                    parser = configparser.ConfigParser(delimiters=("="))
+                    try:
+                        parser.read(schedule_to_read)
+                    except configparser.DuplicateOptionError:
+                        print("Error: Schedule cannot contain two actions with identical times!")
+                    if "SCHEDULE" in parser:
+                        sched = parser["SCHEDULE"]
+                        for key in sched:
+                            time = dateutil.parser.parse(key).time()
+                            eventTime = datetime.datetime.combine(day, time)
+                            action = [s.strip() for s in sched[key].split(",")]
+                            day_schedule.append([eventTime, eventTime.strftime("%-I:%M %p"), action])
+                    else:
+                        print("retrieveSchedule: error: no INI section 'SCHEDULE' found!")
+            day_dict["schedule"] = sorted(day_schedule)
+            scheduleList.append(day_dict)
     queueNextOnOffEvent()
-
-    config = configparser.ConfigParser()
-    with currentExhibitConfigurationLock:
-        config.read('currentExhibitConfiguration.ini')
-        config.remove_section("SCHEDULE")
-        config.add_section("SCHEDULE")
-        for key in schedule_dict:
-            if key != "Next event":
-                config.set("SCHEDULE", key, schedule_dict[key].strftime("%I:%M %p").lstrip("0"))
-
-        # Write ini file back to disk
-        with open('currentExhibitConfiguration.ini', "w") as f:
-            config.write(f)
-
-def readSchedule(schedule):
-
-    # Take the schedule as a configparser section or dictionary and parse it to build
-    # the dictionary used to turn the components on/off
-
-    global schedule_dict
-
-    for key in schedule:
-        # Convert the time, e.g. "9 AM" into a datetime time
-        try:
-            schedule_dict[key] = dateutil.parser.parse(schedule[key]).time()
-        except ValueError:
-            if schedule[key] == "":
-                try:
-                    del schedule_dict[key]
-                except:
-                    pass
-            else:
-                print("readSchedule: error: unable to parse time:", schedule[key])
-                with logLock:
-                    logging.error(f'"readSchedule is unable to parse time: {schedule[key]}"')
-
 
 def queueNextOnOffEvent():
 
     # Function to consult schedule_dict and set the next datetime that we should
     # send an on or off command
 
-    global schedule_dict
+    global scheduleList
+    global nextEvent
 
     now = datetime.datetime.now() # Right now
     eventDate = datetime.datetime.now().date() # When the event is (start now and we will advance it)
@@ -693,32 +748,20 @@ def queueNextOnOffEvent():
     nextAction = None
     counter = 0
 
-    while nextEventDateTime is None:
-
-        if counter > 7: # There are going to be no matching dates
+    for day in scheduleList:
+        sched = day["schedule"]
+        for item in sched:
+            if item[0] > now:
+                nextEventDateTime = item[0]
+                nextAction = item[2]
+                break
+        if nextEventDateTime is not None:
             break
 
-        day_str = eventDate.strftime('%A').lower() # e.g., "monday"
-
-        if day_str+"_on" in schedule_dict:
-            on_time = datetime.datetime.combine(eventDate, schedule_dict[day_str+"_on"])
-            if now < on_time: # We are before today's on time
-                nextEventDateTime = on_time
-                nextAction = "wakeDisplay"
-                break
-        if day_str+"_off" in schedule_dict:
-            off_time = datetime.datetime.combine(eventDate, schedule_dict[day_str+"_off"])
-            if now < off_time: # We are before today's off time
-                nextEventDateTime = off_time
-                nextAction = "sleepDisplay"
-                break
-
-        # If we are neither before the on time or the off time, go to tomorrow and loop again
-        eventDate += datetime.timedelta(days=1)
-        counter += 1
-
-    schedule_dict["Next event"] = (nextEventDateTime, nextAction)
     if nextEventDateTime is not None:
+        nextEvent["date"] = nextEventDateTime
+        nextEvent["time"] = nextEventDateTime.strftime("%-I:%M %p")
+        nextEvent["action"] = nextAction
         print(f"New event queued: {nextAction}, {nextEventDateTime}")
     else:
         print("No events to queue right now")
@@ -753,11 +796,12 @@ def loadDefaultConfiguration():
     ip_address = current.get("server_ip_address", "localhost")
     gallery_name =  current.get("gallery_name", "Constellation")
 
-    try:
-        schedule = config["SCHEDULE"]
-        readSchedule(schedule)
-    except KeyError:
-        print("No on/off schedule to read")
+    # try:
+    #     schedule = config["SCHEDULE"]
+    #     readSchedule(schedule)
+    # except KeyError:
+    #     print("No on/off schedule to read")
+    retrieveSchedule()
 
     projectorList = []
 
@@ -841,7 +885,7 @@ def loadDefaultConfiguration():
     readExhibitConfiguration(current["current_exhibit"])
 
     # Queue the next on/off event
-    queueNextOnOffEvent()
+    #queueNextOnOffEvent()
 
     # Update the components that the configuration has changed
     for component in componentList:
@@ -964,7 +1008,9 @@ synchronizationList = [] # Holds sets of displays that are being synchronized
 currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
 exhibitList = []
 currentExhibitConfiguration = None # the configParser object holding the current config
-schedule_dict = {} # Will hold a list of on/off times for every day of the week
+nextEvent = {} # Will hold the datetime and action of the upcoming event
+scheduleList = [] # Will hold a list of scheduled actions in the next week
+scheduleUpdateTime = 0
 serverRebootTime = None
 rebooting = False # This will be set to True from a background thread when it is time to reboot
 pollingThreadDict = {} # Holds references to the threads starting by various polling procedures
@@ -973,7 +1019,7 @@ pollingThreadDict = {} # Holds references to the threads starting by various pol
 logLock = threading.Lock()
 currentExhibitConfigurationLock = threading.Lock()
 trackingDataWriteLock = threading.Lock()
-
+scheduleLock = threading.Lock()
 
 # Set up log file
 logging.basicConfig(datefmt='%Y-%m-%d %H:%M:%S', filename='control_server.log', format='%(levelname)s, %(asctime)s, %(message)s', level=logging.DEBUG)

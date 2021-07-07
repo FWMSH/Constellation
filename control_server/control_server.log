@@ -851,3 +851,317 @@ ERROR, 2021-06-25 16:58:49, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-06-25 16:59:18, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-06-25 16:59:26, GET for unexpected file /js/popper.min.js.map
 WARNING, 2021-06-28 15:46:12, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-06 14:04:43, Server shutdown
+INFO, 2021-07-06 14:04:46, Server started
+INFO, 2021-07-06 14:04:48, Server shutdown
+INFO, 2021-07-06 14:05:40, Server started
+INFO, 2021-07-06 14:05:45, Server shutdown
+INFO, 2021-07-06 14:06:50, Server started
+ERROR, 2021-07-06 14:06:50, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1036, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 809, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 669, in retrieveSchedule<newline>    filename = day.date().isoformat() + '.ini' # eg. 2021-04-14.ini<newline>AttributeError: 'datetime.date' object has no attribute 'date'<newline>"
+INFO, 2021-07-06 14:07:08, Server started
+INFO, 2021-07-06 14:07:11, Server shutdown
+INFO, 2021-07-06 14:15:38, Server started
+ERROR, 2021-07-06 14:15:38, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1061, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 834, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 673, in retrieveSchedule<newline>    source_dir = os.listdir(os.path.join(root, 'schedules'))<newline>NameError: name 'root' is not defined<newline>"
+INFO, 2021-07-06 14:16:07, Server started
+INFO, 2021-07-06 14:16:10, Server shutdown
+INFO, 2021-07-06 14:16:18, Server started
+INFO, 2021-07-06 14:16:21, Server shutdown
+INFO, 2021-07-06 14:16:30, Server started
+INFO, 2021-07-06 14:16:34, Server shutdown
+INFO, 2021-07-06 14:16:56, Server started
+INFO, 2021-07-06 14:16:57, Server shutdown
+INFO, 2021-07-06 14:17:30, Server started
+INFO, 2021-07-06 14:17:36, Server shutdown
+INFO, 2021-07-06 14:19:10, Server started
+INFO, 2021-07-06 14:19:12, Server shutdown
+INFO, 2021-07-06 14:23:32, Server started
+ERROR, 2021-07-06 14:23:32, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1077, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 850, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 690, in retrieveSchedule<newline>    action = [s.strip() for s in schedule_input[key].split(',')]<newline>NameError: name 'schedule_input' is not defined<newline>"
+INFO, 2021-07-06 14:24:15, Server started
+WARNING, 2021-07-06 14:24:40, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-06 14:29:44, Server shutdown
+INFO, 2021-07-06 14:29:45, Server started
+ERROR, 2021-07-06 14:29:45, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1087, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 860, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 699, in retrieveSchedule<newline>    day_dict['schedule'].append((time, content))<newline>NameError: name 'content' is not defined<newline>"
+INFO, 2021-07-06 14:30:06, Server started
+INFO, 2021-07-06 14:30:08, Server shutdown
+INFO, 2021-07-06 14:31:45, Server started
+WARNING, 2021-07-06 14:32:05, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-06 14:32:46, Server shutdown
+INFO, 2021-07-06 14:32:48, Server started
+INFO, 2021-07-06 14:33:15, Server shutdown
+INFO, 2021-07-06 14:33:16, Server started
+WARNING, 2021-07-06 14:33:36, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-06 14:37:24, Server shutdown
+INFO, 2021-07-06 14:37:25, Server started
+INFO, 2021-07-06 14:37:34, Server shutdown
+INFO, 2021-07-06 14:37:50, Server started
+INFO, 2021-07-06 14:38:10, Server shutdown
+INFO, 2021-07-06 14:38:12, Server started
+INFO, 2021-07-06 14:38:18, Server shutdown
+INFO, 2021-07-06 14:38:27, Server started
+INFO, 2021-07-06 14:38:33, Server shutdown
+INFO, 2021-07-06 14:40:07, Server started
+INFO, 2021-07-06 14:40:16, Server shutdown
+INFO, 2021-07-06 14:40:19, Server started
+WARNING, 2021-07-06 14:40:45, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-06 14:41:40, Server shutdown
+INFO, 2021-07-06 14:41:41, Server started
+INFO, 2021-07-06 14:42:02, Server shutdown
+INFO, 2021-07-06 14:42:21, Server started
+INFO, 2021-07-06 14:42:35, Server shutdown
+INFO, 2021-07-06 14:44:09, Server started
+ERROR, 2021-07-06 14:44:25, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1036, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 892, in loadDefaultConfiguration<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 750, in queueNextOnOffEvent<newline>    if day_str+'_on' in schedule_dict:<newline>NameError: name 'schedule_dict' is not defined<newline>"
+INFO, 2021-07-06 15:03:51, Server started
+ERROR, 2021-07-06 15:03:51, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1039, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 811, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 707, in retrieveSchedule<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 753, in queueNextOnOffEvent<newline>    if day_str+'_on' in schedule_dict:<newline>NameError: name 'schedule_dict' is not defined<newline>"
+INFO, 2021-07-06 15:07:54, Server started
+ERROR, 2021-07-06 15:07:54, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1044, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 816, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 677, in retrieveSchedule<newline>    day_fict['dayName'] = day.strftime('%A')<newline>NameError: name 'day_fict' is not defined<newline>"
+INFO, 2021-07-06 15:08:14, Server started
+ERROR, 2021-07-06 15:08:14, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1044, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 816, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 709, in retrieveSchedule<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 775, in queueNextOnOffEvent<newline>    schedule_dict['Next event'] = (nextEventDateTime, nextAction)<newline>NameError: name 'schedule_dict' is not defined<newline>"
+INFO, 2021-07-06 15:08:55, Server started
+ERROR, 2021-07-06 15:08:55, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1045, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 817, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 709, in retrieveSchedule<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 750, in queueNextOnOffEvent<newline>    print(schedule)<newline>NameError: name 'schedule' is not defined<newline>"
+INFO, 2021-07-06 15:09:14, Server started
+ERROR, 2021-07-06 15:09:14, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1045, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 817, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 709, in retrieveSchedule<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 776, in queueNextOnOffEvent<newline>    schedule_dict['Next event'] = (nextEventDateTime, nextAction)<newline>NameError: name 'schedule_dict' is not defined<newline>"
+INFO, 2021-07-06 15:09:26, Server started
+ERROR, 2021-07-06 15:09:26, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1046, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 818, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 709, in retrieveSchedule<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 777, in queueNextOnOffEvent<newline>    schedule_dict['Next event'] = (nextEventDateTime, nextAction)<newline>NameError: name 'schedule_dict' is not defined<newline>"
+INFO, 2021-07-06 15:10:00, Server started
+ERROR, 2021-07-06 15:10:00, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1047, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 819, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 709, in retrieveSchedule<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 778, in queueNextOnOffEvent<newline>    schedule_dict['Next event'] = (nextEventDateTime, nextAction)<newline>NameError: name 'schedule_dict' is not defined<newline>"
+INFO, 2021-07-06 15:10:57, Server started
+ERROR, 2021-07-06 15:10:57, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1048, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 820, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 709, in retrieveSchedule<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 752, in queueNextOnOffEvent<newline>    if item[0] > now:<newline>TypeError: '>' not supported between instances of 'datetime.time' and 'datetime.datetime'<newline>"
+INFO, 2021-07-06 15:11:18, Server started
+ERROR, 2021-07-06 15:11:18, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1049, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 821, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 709, in retrieveSchedule<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 753, in queueNextOnOffEvent<newline>    if item[0] > now:<newline>TypeError: '>' not supported between instances of 'datetime.time' and 'datetime.datetime'<newline>"
+INFO, 2021-07-06 15:13:21, Server started
+ERROR, 2021-07-06 15:13:21, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1049, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 821, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 706, in retrieveSchedule<newline>    day_dict['schedule'] = sorted(day_schedule)<newline>TypeError: '<' not supported between instances of 'datetime.datetime' and 'datetime.time'<newline>"
+INFO, 2021-07-06 15:13:33, Server started
+ERROR, 2021-07-06 15:13:33, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1049, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 821, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 706, in retrieveSchedule<newline>    day_dict['schedule'] = sorted(day_schedule)<newline>TypeError: '<' not supported between instances of 'datetime.datetime' and 'datetime.time'<newline>"
+INFO, 2021-07-06 15:16:35, Server started
+ERROR, 2021-07-06 15:16:35, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1050, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 822, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 707, in retrieveSchedule<newline>    day_dict['schedule'] = sorted(day_schedule)<newline>TypeError: '<' not supported between instances of 'datetime.datetime' and 'datetime.time'<newline>"
+INFO, 2021-07-06 15:19:36, Server started
+ERROR, 2021-07-06 15:19:36, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1051, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 823, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 711, in retrieveSchedule<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 782, in queueNextOnOffEvent<newline>    schedule_dict['Next event'] = (nextEventDateTime, nextAction)<newline>NameError: name 'schedule_dict' is not defined<newline>"
+INFO, 2021-07-06 15:20:16, Server started
+ERROR, 2021-07-06 15:20:16, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1050, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 822, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 711, in retrieveSchedule<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 781, in queueNextOnOffEvent<newline>    schedule_dict['Next event'] = (nextEventDateTime, nextAction)<newline>NameError: name 'schedule_dict' is not defined<newline>"
+INFO, 2021-07-06 15:20:28, Server started
+ERROR, 2021-07-06 15:20:28, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1051, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 823, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 711, in retrieveSchedule<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 782, in queueNextOnOffEvent<newline>    schedule_dict['Next event'] = (nextEventDateTime, nextAction)<newline>NameError: name 'schedule_dict' is not defined<newline>"
+INFO, 2021-07-06 15:20:40, Server started
+ERROR, 2021-07-06 15:20:40, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1051, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 823, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 711, in retrieveSchedule<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 782, in queueNextOnOffEvent<newline>    schedule_dict['Next event'] = (nextEventDateTime, nextAction)<newline>NameError: name 'schedule_dict' is not defined<newline>"
+INFO, 2021-07-06 15:25:40, Server started
+ERROR, 2021-07-06 15:25:40, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1052, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 824, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 711, in retrieveSchedule<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 783, in queueNextOnOffEvent<newline>    schedule_dict['Next event'] = (nextEventDateTime, nextAction)<newline>NameError: name 'schedule_dict' is not defined<newline>"
+INFO, 2021-07-06 15:26:30, Server started
+ERROR, 2021-07-06 15:26:30, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1056, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 828, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 711, in retrieveSchedule<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 787, in queueNextOnOffEvent<newline>    schedule_dict['Next event'] = (nextEventDateTime, nextAction)<newline>NameError: name 'schedule_dict' is not defined<newline>"
+INFO, 2021-07-06 15:26:45, Server started
+ERROR, 2021-07-06 15:26:45, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1056, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 828, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 711, in retrieveSchedule<newline>    queueNextOnOffEvent()<newline>  File 'CSS_control_server.py', line 787, in queueNextOnOffEvent<newline>    schedule_dict['Next event'] = (nextEventDateTime, nextAction)<newline>NameError: name 'schedule_dict' is not defined<newline>"
+INFO, 2021-07-06 15:28:21, Server started
+ERROR, 2021-07-06 15:28:37, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1062, in <module><newline>    pollEventSchedule()<newline>  File 'CSS_control_server.py', line 598, in pollEventSchedule<newline>    checkEventSchedule()<newline>  File 'CSS_control_server.py', line 625, in checkEventSchedule<newline>    nextEventDateTime, nextAction = schedule_dict['Next event']<newline>NameError: name 'schedule_dict' is not defined<newline>"
+INFO, 2021-07-06 15:28:45, Server started
+INFO, 2021-07-06 15:28:48, Server shutdown
+INFO, 2021-07-06 15:29:04, Server started
+ERROR, 2021-07-06 15:29:19, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1057, in <module><newline>    pollEventSchedule()<newline>  File 'CSS_control_server.py', line 598, in pollEventSchedule<newline>    checkEventSchedule()<newline>  File 'CSS_control_server.py', line 625, in checkEventSchedule<newline>    nextEventDateTime, nextAction = schedule_dict['Next event']<newline>NameError: name 'schedule_dict' is not defined<newline>"
+INFO, 2021-07-06 15:31:50, Server started
+INFO, 2021-07-06 15:31:57, Server shutdown
+INFO, 2021-07-06 15:32:27, Server started
+WARNING, 2021-07-06 15:32:50, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-06 15:33:39, Server shutdown
+INFO, 2021-07-06 15:33:40, Server started
+WARNING, 2021-07-06 15:34:05, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-06 15:36:44, Server shutdown
+INFO, 2021-07-06 15:36:46, Server started
+WARNING, 2021-07-06 15:37:05, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-06 15:37:48, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 15:38:44, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 15:39:17, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-06 15:39:22, Server shutdown
+INFO, 2021-07-06 15:39:23, Server started
+ERROR, 2021-07-06 15:39:43, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 15:39:44, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-07-06 15:39:45, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-06 15:39:58, Server shutdown
+INFO, 2021-07-06 15:41:43, Server started
+WARNING, 2021-07-06 15:42:05, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-06 15:42:06, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-06 15:47:47, Server shutdown
+INFO, 2021-07-06 15:47:48, Server started
+WARNING, 2021-07-06 15:48:10, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-06 15:48:11, Server shutdown
+INFO, 2021-07-06 15:48:12, Server started
+WARNING, 2021-07-06 15:48:35, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-06 15:51:45, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 15:52:04, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 15:53:10, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 15:53:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 15:54:33, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 15:55:06, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 15:55:55, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 15:56:05, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 15:56:40, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 15:57:20, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 15:57:53, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 15:58:00, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 15:58:16, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:10:55, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:11:03, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:14:05, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:16:07, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:17:23, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:18:09, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-06 16:24:35, Server shutdown
+INFO, 2021-07-06 16:24:36, Server started
+WARNING, 2021-07-06 16:24:56, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-06 16:24:56, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:24:57, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:25:21, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-06 16:27:46, Server shutdown
+INFO, 2021-07-06 16:27:47, Server started
+ERROR, 2021-07-06 16:28:10, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-07-06 16:28:10, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-06 16:32:04, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:32:19, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:32:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:32:34, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:33:18, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:33:33, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:35:06, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:36:01, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:36:08, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:37:51, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-06 16:37:52, Server shutdown
+INFO, 2021-07-06 16:37:54, Server started
+WARNING, 2021-07-06 16:38:15, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-06 16:38:15, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:39:44, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:44:06, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:44:20, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:45:15, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:46:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:49:12, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:50:00, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:50:11, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:50:18, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:53:21, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:54:26, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-06 16:55:11, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-07 09:59:59, Server shutdown
+INFO, 2021-07-07 10:00:01, Server started
+WARNING, 2021-07-07 10:00:47, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-07 10:01:20, Server shutdown
+INFO, 2021-07-07 10:01:21, Server started
+WARNING, 2021-07-07 10:02:47, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-07 10:04:09, Server shutdown
+INFO, 2021-07-07 10:04:10, Server started
+ERROR, 2021-07-07 10:04:10, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1045, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 816, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 685, in retrieveSchedule<newline>    da_dict['source'] = 'none'<newline>NameError: name 'da_dict' is not defined<newline>"
+INFO, 2021-07-07 10:04:43, Server started
+WARNING, 2021-07-07 10:05:48, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-07 10:16:18, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:17:40, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:17:54, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:18:05, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:18:22, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:18:51, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:19:11, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:20:22, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:20:47, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:21:18, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:21:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:21:41, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:21:53, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:22:00, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:22:12, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:22:56, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:23:08, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:23:12, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:23:15, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:25:31, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-07 10:25:53, Server shutdown
+INFO, 2021-07-07 10:25:54, Server started
+INFO, 2021-07-07 10:26:29, Server shutdown
+INFO, 2021-07-07 10:26:30, Server started
+WARNING, 2021-07-07 10:27:48, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-07 10:30:13, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:33:17, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:33:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:33:49, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:34:02, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:34:39, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:35:09, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:35:49, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:35:55, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:36:08, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:36:18, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:36:23, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:36:29, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:37:38, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:38:39, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:39:43, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:39:55, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:40:52, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:42:01, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:42:57, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:43:11, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:45:33, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:45:51, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:46:10, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:46:25, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:46:35, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:46:49, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:48:48, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:49:38, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:49:51, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:50:23, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:51:52, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:52:31, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 10:52:40, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-07 10:59:19, Server shutdown
+INFO, 2021-07-07 10:59:21, Server started
+ERROR, 2021-07-07 10:59:41, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-07-07 10:59:48, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-07 11:00:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 11:00:46, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-07 11:35:55, Server shutdown
+INFO, 2021-07-07 11:35:57, Server started
+ERROR, 2021-07-07 11:36:18, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-07-07 11:36:48, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-07 11:38:19, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-07 11:39:01, Server shutdown
+INFO, 2021-07-07 11:39:02, Server started
+WARNING, 2021-07-07 11:39:48, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-07 11:40:45, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 11:40:53, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 11:41:12, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 11:41:27, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 11:41:56, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 11:42:06, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 11:42:18, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 11:42:30, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 11:42:50, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 11:43:01, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 11:52:37, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 11:52:48, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 11:53:20, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 11:53:26, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-07 11:54:42, Server shutdown
+INFO, 2021-07-07 11:54:43, Server started
+WARNING, 2021-07-07 11:55:48, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-07 11:57:59, Server shutdown
+INFO, 2021-07-07 11:58:00, Server started
+INFO, 2021-07-07 11:58:48, Server shutdown
+INFO, 2021-07-07 11:58:49, Server started
+WARNING, 2021-07-07 11:59:48, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-07 12:00:33, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 12:01:33, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 12:01:40, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 12:02:14, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 12:02:23, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 12:02:37, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 12:03:23, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 12:03:46, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 12:03:51, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 12:04:25, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 12:04:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 12:04:30, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 12:04:41, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-07 12:08:24, Server shutdown
+INFO, 2021-07-07 12:08:26, Server started
+ERROR, 2021-07-07 12:08:26, "Traceback (most recent call last):<newline>  File 'CSS_control_server.py', line 1033, in <module><newline>    loadDefaultConfiguration()<newline>  File 'CSS_control_server.py', line 804, in loadDefaultConfiguration<newline>    retrieveSchedule()<newline>  File 'CSS_control_server.py', line 729, in retrieveSchedule<newline>    action = [s.strip() for s in sched[key].split(',')]<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 1252, in __getitem__<newline>    return self._parser.get(self._name, key)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 799, in get<newline>    d)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 394, in before_get<newline>    self._interpolate_some(parser, option, L, value, section, defaults, 1)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 411, in _interpolate_some<newline>    p = rest.find('%')<newline>AttributeError: 'list' object has no attribute 'find'<newline>"
+INFO, 2021-07-07 12:08:55, Server started
+WARNING, 2021-07-07 12:09:48, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-07 12:14:24, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 12:14:53, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 12:19:11, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-07 12:19:32, GET for unexpected file /js/popper.min.js.map
