@@ -12,6 +12,7 @@ import mimetypes
 import cgi
 import signal
 import sys
+import shutil
 import traceback
 import threading, _thread
 import projector_control # Our file
@@ -441,6 +442,47 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                     json_string = json.dumps(dict, default=str)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                elif action == "convertSchedule":
+                    if "date" in data and "from" in data:
+                        with scheduleLock:
+                            root = os.path.dirname(os.path.abspath(__file__))
+                            sched_dir = os.path.join(root, "schedules")
+                            shutil.copy(os.path.join(sched_dir, data["from"].lower() + ".ini"),
+                                        os.path.join(sched_dir, data["date"] + ".ini"))
+
+                        # Reload the schedule from disk
+                        retrieveSchedule()
+
+                        # Send the updated schedule back
+                        with scheduleLock:
+                            dict = {}
+                            dict["class"] = "schedule"
+                            dict["updateTime"] = scheduleUpdateTime
+                            dict["schedule"] = scheduleList
+                            dict["nextEvent"] = nextEvent
+
+                        json_string = json.dumps(dict, default=str)
+                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                elif action == "deleteSchedule":
+                    if "name" in data:
+                        with scheduleLock:
+                            root = os.path.dirname(os.path.abspath(__file__))
+                            sched_dir = os.path.join(root, "schedules")
+                            os.remove(os.path.join(sched_dir, data["name"] + ".ini"))
+                            
+                        # Reload the schedule from disk
+                        retrieveSchedule()
+
+                        # Send the updated schedule back
+                        with scheduleLock:
+                            dict = {}
+                            dict["class"] = "schedule"
+                            dict["updateTime"] = scheduleUpdateTime
+                            dict["schedule"] = scheduleList
+                            dict["nextEvent"] = nextEvent
+
+                        json_string = json.dumps(dict, default=str)
+                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif action == "setExhibit":
                     print("Changing exhibit to:", data["name"])
 
@@ -986,7 +1028,8 @@ def quit_handler(sig, frame):
     with logLock:
         logging.info("Server shutdown")
     with currentExhibitConfigurationLock:
-        sys.exit(exit_code)
+        with scheduleLock:
+            sys.exit(exit_code)
 
 def error_handler(*exc_info):
 

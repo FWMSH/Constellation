@@ -259,45 +259,43 @@
             <div class="modal-dialog modal-dialog-centered" role="document">
               <div class="modal-content">
                 <div class="modal-header">
-                  <h5 class="modal-title">Edit schedule</h5>
+                  <h5 id="scheduleEditModalTitle" class="modal-title">Edit action</h5>
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                   </button>
                 </div>
                 <div class="modal-body">
+                  <div id="scheduleEditScopeAlert" class="alert bg-info text-light">This change will affect all Wednesdays</div>
                   <form id="scheduleEditForm">
                     <div class="form-group">
-                      <label for="daySelect">Select day(s)</label>
-                      <select multiple class="form-control" id="daySelect">
-                        <option>Monday</option>
-                        <option>Tuesday</option>
-                        <option>Wednesday</option>
-                        <option>Thursday</option>
-                        <option>Friday</option>
-                        <option>Saturday</option>
-                        <option>Sunday</option>
-                      </select>
-
-                    </div>
-                    <div class="form-group">
                       <div class="row">
-                        <div class="col-6">
-                          <label for="onTimeEntry">Turn on time</label>
-                          <input type="text" class="form-control" id="onTimeEntry" placeholder="e.g., 9:30 AM">
+                        <div class="col-4">
+                          <label for="scheduleActionTimeInput">Time</label>
+                          <input type="text" class="form-control" id="scheduleActionTimeInput" placeholder="e.g., 9:30 AM">
                         </div>
-                        <div class="col-6">
-                          <label for="offTimeEntry">Turn off time</label>
-                          <input type="text" class="form-control" id="offTimeEntry" placeholder="e.g., 5:30 PM">
+                        <div class="col-4">
+                          <label for="scheduleActionSelector">Action</label>
+                          <select class="form-control" id="scheduleActionSelector">
+                            <option value="power_on">Power on</option>
+                            <option value="power_off">Power off</option>
+                            <option value="set_exhibit">Set exhibit</option>
+                          </select>
                         </div>
-                        <div class='col mt-2'>
-                          <p>To remove a scheduled action, leave the field blank.</p>
+                        <div class="col-4">
+                          <label id="scheduleTargetSelectorLabel" for="scheduleTargetSelector">Action</label>
+                          <select class="form-control" id="scheduleTargetSelector">
+                            <option>Power on</option>
+                            <option>Power off</option>
+                            <option>Set exhibit</option>
+                          </select>
                         </div>
                       </div>
                     </div>
                   </form>
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-primary" onclick="sendScheduleUpdate()" id="scheduleEditSubmitButton">Save changes</button>
+                  <button type="button" class="btn btn-danger" mr-auto onclick="scheduleDeleteActionFromModal()" id="scheduleEditDeleteActionButton">Delete action</button>
+                  <button type="button" class="btn btn-primary ml-auto" onclick="sendScheduleUpdateFromModal()" id="scheduleEditSubmitButton">Save changes</button>
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 </div>
               </div>
@@ -1289,6 +1287,74 @@
         }
       }
 
+      function deleteSchedule(name) {
+
+        // Send a message to the control server asking to delete the schedule
+        // file with the given name. The name should not include ".ini"
+
+        var requestDict = {"class": "webpage",
+                           "action": "deleteSchedule",
+                           "name": name}
+
+        requestString = JSON.stringify(requestDict);
+
+        var xhr = new XMLHttpRequest();
+        xhr.timeout = 3000;
+        xhr.open("POST", serverIP, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.ontimeout = function() {
+        }
+        xhr.onreadystatechange = function () {
+
+          if (this.readyState != 4) return;
+
+          if (this.status == 200) {
+            if (this.responseText != "") {
+              var update = JSON.parse(this.responseText);
+              if (update["class"] == "schedule") {
+                populateSchedule(update);
+              }
+            }
+          }
+        };
+        xhr.send(requestString);
+
+      }
+
+      function scheduleConvertToDateSpecific(date, dayName) {
+
+        // Send a message to the control server, asking to create a date-specific
+        // schedule out of the given day name
+
+        var requestDict = {"class": "webpage",
+                           "action": "convertSchedule",
+                           "date": date,
+                           "from": dayName}
+
+        requestString = JSON.stringify(requestDict);
+
+        var xhr = new XMLHttpRequest();
+        xhr.timeout = 3000;
+        xhr.open("POST", serverIP, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.ontimeout = function() {
+        }
+        xhr.onreadystatechange = function () {
+
+          if (this.readyState != 4) return;
+
+          if (this.status == 200) {
+            if (this.responseText != "") {
+              var update = JSON.parse(this.responseText);
+              if (update["class"] == "schedule") {
+                populateSchedule(update);
+              }
+            }
+          }
+        };
+        xhr.send(requestString);
+      }
+
       function populateSchedule(schedule) {
 
         document.getElementById('scheduleContainer').innerHTML = "";
@@ -1303,13 +1369,22 @@
           // know that they are special
           var scheduleClass;
           var addItemText;
+          var convertState;
+          var deleteState;
+          var scheduleName;
           if (day['source'] == 'date-specific') {
             scheduleClass = 'schedule-date-specific';
             addItemText = 'Add date-specific action';
             $("#dateSpecificScheduleAlert").show();
+            convertState = "none";
+            deleteState = "block";
+            scheduleName = day["date"];
           } else {
             scheduleClass = '';
             addItemText = 'Add recurring action';
+            convertState = "block";
+            deleteState = "none";
+            scheduleName = day["dayName"].toLowerCase();
           }
             var html = `<div class="col-12 col-sm-6 col-lg-4 mt-3 pt-3 pb-3 ${scheduleClass}">`;
             html += `
@@ -1320,8 +1395,14 @@
                               <div class="col-6 col-sm-12 col-md-6 my-auto" style="text-align: right;">
                                 <strong>${day["date"]}</strong>
                               </div>
-                              <div class="col-12 mt-2">
-                                  <button class="btn btn-primary" type="button">${addItemText}</button>
+                              <div class="col-12 col-lg-6 mt-2">
+                                  <button class="btn btn-primary w-100" type="button" onclick="scheduleConfigureEditModal('${scheduleName}', '${day["source"]}')">${addItemText}</button>
+                              </div>
+                              <div class="col-12 col-lg-6 mt-2" style="display: ${convertState};">
+                                  <button class="btn btn-warning w-100" type="button" onclick="scheduleConvertToDateSpecific('${day["date"]}', '${day["dayName"]}')">Convert to date-specific schedule</button>
+                              </div>
+                              <div class="col-12 col-lg-6 mt-2" style="display: ${deleteState};">
+                                  <button class="btn btn-danger w-100" type="button" onclick="deleteSchedule('${day["date"]}')">Delete date-specific schedule</button>
                               </div>
                             </div>
                           `;
@@ -1333,6 +1414,7 @@
               var action = null;
               if (item[2].length == 1) {
                 action = (item[2])[0];
+                target = null;
                 if (action == "power_off") {
                   description = "Power off";
                 } else if (action == "power_on") {
@@ -1349,15 +1431,14 @@
               if (description != null) {
                 html += `
                             <div class="row mt-2">
-                                <div class="col-12 btn-group" role="group">
-                                  <button type="button" class="btn btn-secondary">${item[1]}</button>
-                                  <button type="button" class="btn btn-secondary">${description}</button>
-                                  <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
-                                  <div class="dropdown-menu">
-                                    <a class="dropdown-item" href="#">Edit action</a>
-                                    <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item text-danger" href="#">Delete action</a>
-                                  </div>
+                                <div class='col-4 mr-0 pr-0'>
+                                  <div class="rounded-left text-light bg-secondary w-100 h-100 justify-content-center d-flex py-1 pl-1"><div class="align-self-center justify-content-center">${item[1]}</div></div>
+                                </div>
+                                <div class="col-5 ml-0 pl-0">
+                                  <div class="rounded-right text-light bg-secondary w-100 h-100 justify-content-center d-flex py-1 pr-1"><div class="align-self-center justify-content-center text-wrap"><center>${description}</center></div></div>
+                                </div>
+                                <div class="col-3">
+                                  <button type="button" class="btn btn-info w-100 h-100" onclick="scheduleConfigureEditModal('${scheduleName}', '${day["source"]}', false, '${item[1]}', '${action}', '${target}')">Edit</button>
                                 </div>
                             </div>
                 `;
@@ -1389,41 +1470,90 @@
         $("#Schedule_next_event").html(html);
       }
 
-      function sendScheduleUpdate() {
-        var days = $('#daySelect').val();
-        var onTime = $('#onTimeEntry').val();
-        var offTime = $('#offTimeEntry').val();
+      function scheduleConfigureEditModal(scheduleName,
+                                          type,
+                                          isAddition=true,
+                                          currentTime=null,
+                                          currentAction=null,
+                                          currentTarget=null) {
 
-        if (days.length > 0) {
+        // Function to set up and then show the modal that enables editing a
+        // scheduled action or adding a new one
 
-          var requestDict;
-          for (var i=0; i<days.length; i++) {
-              day = days[i];
-              requestDict = {"class": "webpage",
-                             "action": "updateSchedule",
-                             "day": day,
-                             "onTime": onTime,
-                             "offTime": offTime};
+        console.log(scheduleName, type, isAddition, currentTime, currentAction, currentTarget)
 
-              var xhr = new XMLHttpRequest();
-              xhr.timeout = 2000;
-              xhr.open("POST", serverIP, true);
-              xhr.setRequestHeader('Content-Type', 'application/json');
-              xhr.send(JSON.stringify(requestDict));
-          }
-          document.getElementById("scheduleEditForm").reset();
-          $('#scheduleEditModal').modal('hide')
-          askForUpdate();
+        $("#scheduleTargetSelector").hide();
+        $("#scheduleTargetSelectorLabel").hide();
+
+        // Set the modal title
+        if (isAddition) {
+          $("#scheduleEditModalTitle").html("Add action");
         } else {
-          // We are missing the day field, so pop up a warning to help
-          $("#scheduleEditSubmitButton").popover({
-                placement: 'right',
-                trigger: 'focus',
-                content: "You must select at least one day to modify!"
-                });
-          $("#scheduleEditSubmitButton").popover('show');
+          $("#scheduleEditModalTitle").html("Edit action");
         }
+
+        // Set the scope notice so that users know what their change will affect
+        switch (type) {
+          case "date-specific":
+            $("#scheduleEditScopeAlert").html(`This change will only affect ${scheduleName}`)
+            break;
+          case "day-specific":
+            $("#scheduleEditScopeAlert").html(`This change will affect all ${scheduleName.charAt(0).toUpperCase() + scheduleName.slice(1)}s`)
+            break;
+          default:
+            break;
+        }
+
+        // If we're editing an existing action, pre-fill the current options
+        if (isAddition == false) {
+          $("#scheduleActionTimeInput").val(currentTime);
+          $("#scheduleActionSelector").val(currentAction);
+          $("#scheduleTargetSelector").val(currentTarget);
+
+          if (currentAction == 'set_exhibit') {
+            $("#scheduleTargetSelector").show();
+            $("#scheduleTargetSelectorLabel").show();
+          }
+        }
+
+        $("#scheduleEditModal").modal("show");
       }
+
+      // function sendScheduleUpdate() {
+      //   var days = $('#daySelect').val();
+      //   var onTime = $('#onTimeEntry').val();
+      //   var offTime = $('#offTimeEntry').val();
+      //
+      //   if (days.length > 0) {
+      //
+      //     var requestDict;
+      //     for (var i=0; i<days.length; i++) {
+      //         day = days[i];
+      //         requestDict = {"class": "webpage",
+      //                        "action": "updateSchedule",
+      //                        "day": day,
+      //                        "onTime": onTime,
+      //                        "offTime": offTime};
+      //
+      //         var xhr = new XMLHttpRequest();
+      //         xhr.timeout = 2000;
+      //         xhr.open("POST", serverIP, true);
+      //         xhr.setRequestHeader('Content-Type', 'application/json');
+      //         xhr.send(JSON.stringify(requestDict));
+      //     }
+      //     document.getElementById("scheduleEditForm").reset();
+      //     $('#scheduleEditModal').modal('hide')
+      //     askForUpdate();
+      //   } else {
+      //     // We are missing the day field, so pop up a warning to help
+      //     $("#scheduleEditSubmitButton").popover({
+      //           placement: 'right',
+      //           trigger: 'focus',
+      //           content: "You must select at least one day to modify!"
+      //           });
+      //     $("#scheduleEditSubmitButton").popover('show');
+      //   }
+      // }
 
       function rebuildErrorList() {
 
