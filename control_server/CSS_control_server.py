@@ -420,7 +420,87 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     getProjector(data["id"]).queueCommand(data["command"])
                     self.wfile.write(bytes("", encoding="UTF-8"))
                 elif action == "updateSchedule":
-                    pass
+                    # This command handles both adding a new scheduled action
+                    # and editing an existing action
+                    error = False
+                    error_message = ""
+
+                    if "name" in data and "timeToSet" in data and "actionToSet" in data and "targetToSet" in data and "isAddition" in data:
+                        line_to_set = f"{data['timeToSet']} = {data['actionToSet']}"
+                        if data["targetToSet"] is None:
+                            line_to_set += "\n"
+                        else:
+                            line_to_set += f", {data['targetToSet']}\n"
+
+                        if (data["isAddition"]):
+                            with scheduleLock:
+                                root = os.path.dirname(os.path.abspath(__file__))
+                                sched_dir = os.path.join(root, "schedules")
+
+                                # Iterate through the existing schedule to make sure that we aren't
+                                # adding a time that already exists
+                                time_to_set = dateutil.parser.parse(data['timeToSet']).time()
+                                with open(os.path.join(sched_dir, data["name"] + ".ini"), 'r') as f:
+                                    for line in f.readlines():
+                                        split = line.split("=")
+                                        if len(split) == 2:
+                                            # We have a valid ini line
+                                            time = dateutil.parser.parse(split[0]).time()
+                                            if time == time_to_set:
+                                                error = True
+                                                error_message = "An action with this time already exists"
+                                if not error:
+                                    with open(os.path.join(sched_dir, data["name"] + ".ini"), 'a') as f:
+                                        f.write(line_to_set)
+                        else:
+                            if "timeToReplace" in data:
+                                with scheduleLock:
+                                    root = os.path.dirname(os.path.abspath(__file__))
+                                    sched_dir = os.path.join(root, "schedules")
+                                    outputText = ""
+                                    time_to_replace = dateutil.parser.parse(data['timeToReplace']).time()
+
+                                    with open(os.path.join(sched_dir, data["name"] + ".ini"), 'r') as f:
+                                        for line in f.readlines():
+                                            split = line.split("=")
+                                            if len(split) == 2:
+                                                # We have a valid ini line
+                                                time = dateutil.parser.parse(split[0]).time()
+                                                if time != time_to_replace:
+                                                    # This line doesn't match, so add it for writing
+                                                    outputText += line
+                                                else:
+                                                    outputText += line_to_set
+                                            else:
+                                                outputText += line
+
+                                    with open(os.path.join(sched_dir, data["name"] + ".ini"), 'w') as f:
+                                        f.write(outputText)
+
+                    else:
+                        error = True
+                        error_message = "Missing one or more required keys"
+
+                    if not error:
+                        # Reload the schedule from disk
+                        retrieveSchedule()
+
+                        # Send the updated schedule back
+                        with scheduleLock:
+                            dict = {}
+                            dict["class"] = "schedule"
+                            dict["updateTime"] = scheduleUpdateTime
+                            dict["schedule"] = scheduleList
+                            dict["nextEvent"] = nextEvent
+                            dict["success"] = True
+
+                        json_string = json.dumps(dict, default=str)
+                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                    else:
+                        dict = {"success": False,
+                                "reason": error_message}
+                        json_string = json.dumps(dict, default=str)
+                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif action == 'refreshSchedule':
                     # This command reloads the schedule from disk. Normal schedule
                     # changes are passed during fetchUpdate
@@ -705,13 +785,15 @@ def checkEventSchedule():
     global config
     global rebooting
 
+
+
     if nextEvent["date"] is not None:
         if datetime.datetime.now() > nextEvent["date"]:
             if nextEvent["action"] == 'reload schedule':
                 retrieveSchedule()
             else:
-                #commandAllExhibitComponents(nextEvent["action"])
-                print(f"DEBUG: Event executed: {nextEvent['action']} -- THIS EVENT WAS NOT RUN")
+                commandAllExhibitComponents(nextEvent["action"])
+                #print(f"DEBUG: Event executed: {nextEvent['action']} -- THIS EVENT WAS NOT RUN")
             queueNextOnOffEvent()
 
     # Check for server reboot time

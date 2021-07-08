@@ -171,9 +171,9 @@
         for (var i=0; i<update["commands"].length; i++) {
           var cmd = (update["commands"])[i];
 
-          if (cmd == "sleepDisplay") {
+          if (cmd == "power_off") {
               sleepDisplays();
-          } else if (cmd == "wakeDisplay") {
+          } else if (cmd == "power_on") {
               wakeDisplays();
           } else if (cmd == "reloadDefaults"){
               askForDefaults();
