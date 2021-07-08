@@ -1178,7 +1178,12 @@
         currentExhibit = name;
         document.getElementById("exhibitNameField").innerHTML = name;
         updateAvailableExhibits([name]);
-        $("#exhibitSelect").val(name);
+        // Don't change the value of the exhibit selector if we're currently
+        // looking at the change confirmation modal, as this will result in
+        // submitting the incorrect value
+        if ($('#changeExhibitModal').hasClass('show') == false) {
+          $("#exhibitSelect").val(name);
+        }
       }
 
       function getCurrentExhibitName() {

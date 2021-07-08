@@ -719,7 +719,7 @@ def setComponentContent(id, contentList):
 
     # Write new configuration to file
     with currentExhibitConfigurationLock:
-        with open(currentExhibit, 'w') as f:
+        with open(os.path.join("exhibits", currentExhibit), 'w') as f:
             currentExhibitConfiguration.write(f)
 
 def updateSynchronizationList(id, other_ids):
@@ -824,30 +824,6 @@ def checkEventSchedule():
             rebooting = True
             _thread.interrupt_main()
 
-
-def updateSchedule(schedule):
-
-    # Take a dictionary of schedule changes, update the schedule_dict, and
-    # write the changes to file in currentExhibitConfiguration.ini
-
-    pass
-
-    #readSchedule(schedule)
-    # queueNextOnOffEvent()
-    #
-    # config = configparser.ConfigParser()
-    # with currentExhibitConfigurationLock:
-    #     config.read('currentExhibitConfiguration.ini')
-    #     config.remove_section("SCHEDULE")
-    #     config.add_section("SCHEDULE")
-    #     for key in schedule_dict:
-    #         if key != "Next event":
-    #             config.set("SCHEDULE", key, schedule_dict[key].strftime("%I:%M %p").lstrip("0"))
-    #
-    #     # Write ini file back to disk
-    #     with open('currentExhibitConfiguration.ini', "w") as f:
-    #         config.write(f)
-
 def retrieveSchedule():
 
     # Function to build a schedule for the next seven days based on the available
@@ -948,7 +924,7 @@ def checkAvailableExhibits():
 
     global exhibitList
 
-    for file in os.listdir("."):
+    for file in os.listdir("exhibits"):
         if file.endswith(".exhibit"):
             exhibitList.append(file)
 
@@ -1069,9 +1045,30 @@ def readExhibitConfiguration(name, updateDefault=False):
     global currentExhibitConfiguration
     global currentExhibit
 
+    # We want the format of name to be "XXXX.exhibit", but it might be
+    # "exhibits/XXXX.exhibit"
+    error = False
+    split_path = os.path.split(name)
+    if len(split_path) == 2:
+        if split_path[0] == "exhibits":
+            name = split_path[1]
+        elif split_path[0] == "":
+            pass
+        else:
+            error = True
+    else:
+        error = True
+
+    if error:
+        # Something bad has happened. Display an error and bail out
+        print(f"Error: exhibit definition with name {name} does not appear to be properly formatted. This file should be located in the exhibits directory.")
+        with logLock:
+            logging.error(f'Bad exhibit definition fileanme: {name}')
+        return()
+
     currentExhibit = name
     currentExhibitConfiguration = configparser.ConfigParser()
-    currentExhibitConfiguration.read(name)
+    currentExhibitConfiguration.read(os.path.join("exhibits", name))
 
     if updateDefault:
         config = configparser.ConfigParser()
