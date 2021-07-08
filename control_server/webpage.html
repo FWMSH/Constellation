@@ -266,7 +266,7 @@
                 </div>
                 <div class="modal-body">
                   <div id="scheduleEditScopeAlert" class="alert bg-info text-light">This change will affect all Wednesdays</div>
-                  <form id="scheduleEditForm">
+                  <form id="scheduleEditForm" onsubmit="event.preventDefault();">
                     <div class="form-group">
                       <div class="row">
                         <div class="col-4">
@@ -1178,6 +1178,7 @@
         currentExhibit = name;
         document.getElementById("exhibitNameField").innerHTML = name;
         updateAvailableExhibits([name]);
+        $("#exhibitSelect").val(name);
       }
 
       function getCurrentExhibitName() {
@@ -1451,7 +1452,7 @@
         var html = '';
         if (nextEvent["action"].length == 1) {
           var action = (nextEvent["action"])[0];
-          if (action == "reload schedule") {
+          if (action == "reload_schedule") {
             html = "No more actions today";
           } else if (action == "power_on") {
             html = `Power on at ${nextEvent["time"]}`;

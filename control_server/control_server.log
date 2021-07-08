@@ -1437,3 +1437,52 @@ WARNING, 2021-07-08 10:27:50, there is no configuration available for component 
 ERROR, 2021-07-08 10:30:27, GET for unexpected file /js/popper.min.js.map
 INFO, 2021-07-08 11:10:37, Server shutdown
 INFO, 2021-07-08 11:10:39, Server started
+WARNING, 2021-07-08 11:11:50, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-08 11:46:02, commandAllExhibitComponents: ['power_off']
+INFO, 2021-07-08 11:48:02, commandAllExhibitComponents: ['power_off']
+INFO, 2021-07-08 11:50:14, Server shutdown
+INFO, 2021-07-08 11:50:16, Server started
+INFO, 2021-07-08 11:50:43, Server shutdown
+INFO, 2021-07-08 11:50:44, Server started
+WARNING, 2021-07-08 11:51:50, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-08 11:52:07, commandAllExhibitComponents: ['power_on']
+INFO, 2021-07-08 11:54:20, Server shutdown
+INFO, 2021-07-08 11:54:22, Server started
+WARNING, 2021-07-08 11:54:50, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-08 11:56:04, commandAllExhibitComponents: power_on
+INFO, 2021-07-08 11:56:52, Server shutdown
+INFO, 2021-07-08 11:56:59, Server started
+INFO, 2021-07-08 11:57:37, Server shutdown
+INFO, 2021-07-08 12:00:07, Server started
+INFO, 2021-07-08 12:00:28, Server shutdown
+INFO, 2021-07-08 12:00:35, Server started
+WARNING, 2021-07-08 12:01:50, there is no configuration available for component with id=W1_KIOSK
+WARNING, 2021-07-08 12:03:00, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-08 12:03:19, GET for unexpected file /?
+ERROR, 2021-07-08 12:03:20, GET for unexpected file /favicon.ico
+ERROR, 2021-07-08 12:03:24, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-07-08 12:04:30, there is no configuration available for component with id=W1_KIOSK
+WARNING, 2021-07-08 12:06:16, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-08 12:08:53, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-08 12:08:57, GET for unexpected file /?
+ERROR, 2021-07-08 12:09:02, GET for unexpected file /?
+ERROR, 2021-07-08 12:09:04, GET for unexpected file /?
+ERROR, 2021-07-08 12:09:06, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-08 12:09:10, GET for unexpected file /?
+ERROR, 2021-07-08 12:09:14, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-08 12:09:21, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-08 12:09:24, GET for unexpected file /?
+ERROR, 2021-07-08 12:09:37, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-08 12:10:42, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-08 12:12:44, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-08 12:12:45, Server shutdown
+INFO, 2021-07-08 12:12:46, Server started
+ERROR, 2021-07-08 12:13:17, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-07-08 12:13:50, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-08 12:45:42, Server shutdown
+INFO, 2021-07-08 12:46:32, Server started
+ERROR, 2021-07-08 12:47:06, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-07-08 12:47:50, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-08 12:49:15, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-07-08 12:50:06, there is no configuration available for component with id=W1_KIOSK
+WARNING, 2021-07-08 12:50:19, there is no configuration available for component with id=W1_KIOSK

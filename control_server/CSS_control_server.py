@@ -597,7 +597,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     print("Changing exhibit to:", data["name"])
 
                     readExhibitConfiguration(data["name"], updateDefault=True)
-                    loadDefaultConfiguration()
+
+                    # Update the components that the configuration has changed
+                    for component in componentList:
+                        component.updateConfiguration()
                 elif action == "setComponentContent":
                     if ("id" in data) and ("content" in data):
                         print(f"Changing content for {data['id']}:", data['content'])
@@ -785,14 +788,33 @@ def checkEventSchedule():
     global config
     global rebooting
 
-
-
     if nextEvent["date"] is not None:
         if datetime.datetime.now() > nextEvent["date"]:
-            if nextEvent["action"] == 'reload schedule':
+            action = nextEvent["action"]
+            target = None
+            if isinstance(action, list):
+                if len(action) == 1:
+                    action = action[0]
+                elif len(action) == 2:
+                    target = action[1]
+                    action = action[0]
+                else:
+                    print(f"Error: unrecofnized event format: {action}")
+                    with logLock:
+                        logging.error(f"Unrecofnized event format: {action}")
+                    queueNextOnOffEvent()
+                    return
+            if action == 'reload_schedule':
                 retrieveSchedule()
+            elif action == 'set_exhibit' and target is not None:
+                print("Changing exhibit to:", target)
+                readExhibitConfiguration(target, updateDefault=True)
+
+                # Update the components that the configuration has changed
+                for component in componentList:
+                    component.updateConfiguration()
             else:
-                commandAllExhibitComponents(nextEvent["action"])
+                commandAllExhibitComponents(action)
                 #print(f"DEBUG: Event executed: {nextEvent['action']} -- THIS EVENT WAS NOT RUN")
             queueNextOnOffEvent()
 
@@ -847,7 +869,7 @@ def retrieveSchedule():
             day_dict["dayName"] = day.strftime("%A")
             day_dict["source"] = "none"
             reload_datetime = datetime.datetime.combine(day, datetime.time(0,1))
-            day_schedule = [[reload_datetime, reload_datetime.strftime("%-I:%M %p"), ["reload schedule"]]]
+            day_schedule = [[reload_datetime, reload_datetime.strftime("%-I:%M %p"), ["reload_schedule"]]]
 
             date_specific_filename = day.isoformat() + ".ini" # e.g., 2021-04-14.ini
             day_specific_filename = day.strftime("%A").lower() + ".ini" # e.g., monday.ini
@@ -1037,9 +1059,6 @@ def loadDefaultConfiguration():
 
     # Then, load the configuration for that exhibit
     readExhibitConfiguration(current["current_exhibit"])
-
-    # Queue the next on/off event
-    #queueNextOnOffEvent()
 
     # Update the components that the configuration has changed
     for component in componentList:
