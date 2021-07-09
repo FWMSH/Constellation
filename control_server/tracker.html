@@ -41,6 +41,9 @@
         touch-action: manipulation;
         overflow-y: hidden;
       }
+      .counter-button {
+        font-size: 60px;
+      }
       .mastheadText {
         font-size: 50px;
       }
@@ -244,7 +247,22 @@
         switch(item["type"]) {
 
           case "counter":
-            
+            html += `
+                      <div class='row w-100'>
+                        <div class="col-4">
+                        <button class='counter-button btn btn-danger w-100' onclick="incrementCounter('${item_id}', -1)">–</button>
+                        </div>
+                        <div class="col-4">
+                          <div class="w-100 h-100 justify-content-center d-flex">
+                            <span id="${item_id}_counter" data-name="${item_id}" class="align-self-center justify-content-center" style="font-size:50px;">0</span>
+                          </div>
+                        </div>
+                        <div class="col-4">
+                        <button class='counter-button btn btn-success w-100' onclick="incrementCounter('${item_id}', 1)">+</button>
+                        </div>
+                      </div>
+            `;
+            break;
 
           case "dropdown":
             if ("options" in item) {
@@ -329,6 +347,9 @@
         // Store a reference to the appropriate object
         switch (item["type"]) {
 
+          case "counter":
+            counterList.push(document.getElementById(item_id + "_counter"));
+            break;
           case "dropdown":
             dropdownList.push(document.getElementById(item_id + "_input"))
             break;
@@ -386,6 +407,9 @@
 
       // Reset all cards back to their initial state
 
+      counterList.forEach(item => {
+        item.innerHTML = "0";
+      });
       dropdownList.forEach(item => {
         item.value = "";
       });
@@ -437,6 +461,14 @@
         }
       };
       xhr.send(requestString);
+    }
+
+    function incrementCounter(id, value_to_add) {
+
+      // Function to add the given number to the counter with the specified id
+
+      var cur_value = parseInt($('#'+id+"_counter").html());
+      $('#'+id+"_counter").html(cur_value + value_to_add);
     }
 
     function loadLayoutDefinition(name="") {
@@ -500,6 +532,9 @@
         resultDict[item.name] = item.elapsedTime/1000;
       });
 
+      counterList.forEach(item => {
+        resultDict[$(item).data("name")] = parseInt(item.innerHTML);
+      });
       dropdownList.forEach(item => {
         resultDict[$(item).data("name")] = item.value;
       });
@@ -564,6 +599,7 @@
     var configurationName = "test";
 
     // initialize arrays to hold references to each of our types of cards
+    var counterList = [];
     var dropdownList = [];
     var numberList = [];
     var sliderList = [];

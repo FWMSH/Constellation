@@ -1512,3 +1512,41 @@ ERROR, 2021-07-09 15:21:02, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-07-09 15:21:12, GET for unexpected file /js/popper.min.js.map
 INFO, 2021-07-09 15:26:26, Server shutdown
 INFO, 2021-07-09 15:26:28, Server started
+ERROR, 2021-07-09 15:27:15, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:27:25, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-07-09 15:27:53, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-09 15:43:17, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:43:34, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:43:43, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:43:59, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:44:12, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:44:25, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:44:50, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:45:09, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:45:50, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:46:21, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:48:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:48:54, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:49:22, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:53:15, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:56:06, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:56:25, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:56:37, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:56:48, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:57:04, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:57:19, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:57:42, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:57:52, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:58:09, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 16:00:29, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 16:00:46, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 16:02:58, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 16:03:36, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 16:03:44, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 16:04:13, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 16:04:30, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 16:04:38, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 16:05:29, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 16:05:35, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 16:06:00, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 16:06:03, GET for unexpected file /js/popper.min.js.map
