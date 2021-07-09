@@ -1506,3 +1506,9 @@ WARNING, 2021-07-08 16:49:55, there is no configuration available for component 
 WARNING, 2021-07-08 16:49:59, there is no configuration available for component with id=W1_KIOSK
 WARNING, 2021-07-08 16:50:06, there is no configuration available for component with id=W1_KIOSK
 WARNING, 2021-07-08 16:50:12, there is no configuration available for component with id=W1_KIOSK
+WARNING, 2021-07-09 14:45:08, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-09 15:00:09, commandAllExhibitComponents: power_on
+ERROR, 2021-07-09 15:21:02, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-09 15:21:12, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-09 15:26:26, Server shutdown
+INFO, 2021-07-09 15:26:28, Server started

@@ -215,46 +215,46 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         componentDictList = []
         for item in componentList:
-            dict = {}
-            dict["id"] = item.id
-            dict["type"] = item.type
+            temp = {}
+            temp["id"] = item.id
+            temp["type"] = item.type
             if "content" in item.config:
-                dict["content"] = item.config["content"]
+                temp["content"] = item.config["content"]
             if "error" in item.config:
-                dict["error"] = item.config["error"]
-            dict["class"] = "exhibitComponent"
-            dict["status"] = item.currentStatus()
-            dict["ip_address"] = item.ip
-            dict["helperPort"] = item.helperPort
-            componentDictList.append(dict)
+                temp["error"] = item.config["error"]
+            temp["class"] = "exhibitComponent"
+            temp["status"] = item.currentStatus()
+            temp["ip_address"] = item.ip
+            temp["helperPort"] = item.helperPort
+            componentDictList.append(temp)
 
         for item in projectorList:
-            dict = {}
-            dict["id"] = item.id
-            dict["type"] = 'PROJECTOR'
-            dict["ip_address"] = item.ip
+            temp = {}
+            temp["id"] = item.id
+            temp["type"] = 'PROJECTOR'
+            temp["ip_address"] = item.ip
 
-            dict["class"] = "exhibitComponent"
-            dict["status"] = item.state["status"]
-            componentDictList.append(dict)
+            temp["class"] = "exhibitComponent"
+            temp["status"] = item.state["status"]
+            componentDictList.append(temp)
 
         # Also include an object with the status of the overall gallery
-        dict = {}
-        dict["class"] = "gallery"
-        dict["currentExhibit"] = currentExhibit
-        dict["availableExhibits"] = exhibitList
-        dict["galleryName"] = gallery_name
+        temp = {}
+        temp["class"] = "gallery"
+        temp["currentExhibit"] = currentExhibit
+        temp["availableExhibits"] = exhibitList
+        temp["galleryName"] = gallery_name
 
-        componentDictList.append(dict)
+        componentDictList.append(temp)
 
         # Also include an object containing the current schedule
         with scheduleLock:
-            dict = {}
-            dict["class"] = "schedule"
-            dict["updateTime"] = scheduleUpdateTime
-            dict["schedule"] = scheduleList
-            dict["nextEvent"] = nextEvent
-            componentDictList.append(dict)
+            temp = {}
+            temp["class"] = "schedule"
+            temp["updateTime"] = scheduleUpdateTime
+            temp["schedule"] = scheduleList
+            temp["nextEvent"] = nextEvent
+            componentDictList.append(temp)
 
         json_string = json.dumps(componentDictList, default=str)
 
@@ -487,19 +487,19 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                         # Send the updated schedule back
                         with scheduleLock:
-                            dict = {}
-                            dict["class"] = "schedule"
-                            dict["updateTime"] = scheduleUpdateTime
-                            dict["schedule"] = scheduleList
-                            dict["nextEvent"] = nextEvent
-                            dict["success"] = True
+                            response_dict = {}
+                            response_dict["class"] = "schedule"
+                            response_dict["updateTime"] = scheduleUpdateTime
+                            response_dict["schedule"] = scheduleList
+                            response_dict["nextEvent"] = nextEvent
+                            response_dict["success"] = True
 
-                        json_string = json.dumps(dict, default=str)
+                        json_string = json.dumps(response_dict, default=str)
                         self.wfile.write(bytes(json_string, encoding="UTF-8"))
                     else:
-                        dict = {"success": False,
+                        response_dict = {"success": False,
                                 "reason": error_message}
-                        json_string = json.dumps(dict, default=str)
+                        json_string = json.dumps(response_dict, default=str)
                         self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif action == 'refreshSchedule':
                     # This command reloads the schedule from disk. Normal schedule
@@ -508,13 +508,13 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                     # Send the updated schedule back
                     with scheduleLock:
-                        dict = {}
-                        dict["class"] = "schedule"
-                        dict["updateTime"] = scheduleUpdateTime
-                        dict["schedule"] = scheduleList
-                        dict["nextEvent"] = nextEvent
+                        response_dict = {}
+                        response_dict["class"] = "schedule"
+                        response_dict["updateTime"] = scheduleUpdateTime
+                        response_dict["schedule"] = scheduleList
+                        response_dict["nextEvent"] = nextEvent
 
-                    json_string = json.dumps(dict, default=str)
+                    json_string = json.dumps(response_dict, default=str)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif action == "convertSchedule":
                     if "date" in data and "from" in data:
@@ -529,13 +529,13 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                         # Send the updated schedule back
                         with scheduleLock:
-                            dict = {}
-                            dict["class"] = "schedule"
-                            dict["updateTime"] = scheduleUpdateTime
-                            dict["schedule"] = scheduleList
-                            dict["nextEvent"] = nextEvent
+                            response_dict = {}
+                            response_dict["class"] = "schedule"
+                            response_dict["updateTime"] = scheduleUpdateTime
+                            response_dict["schedule"] = scheduleList
+                            response_dict["nextEvent"] = nextEvent
 
-                        json_string = json.dumps(dict, default=str)
+                        json_string = json.dumps(response_dict, default=str)
                         self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif action == "deleteSchedule":
                     if "name" in data:
@@ -549,13 +549,13 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                         # Send the updated schedule back
                         with scheduleLock:
-                            dict = {}
-                            dict["class"] = "schedule"
-                            dict["updateTime"] = scheduleUpdateTime
-                            dict["schedule"] = scheduleList
-                            dict["nextEvent"] = nextEvent
+                            response_dict = {}
+                            response_dict["class"] = "schedule"
+                            response_dict["updateTime"] = scheduleUpdateTime
+                            response_dict["schedule"] = scheduleList
+                            response_dict["nextEvent"] = nextEvent
 
-                        json_string = json.dumps(dict, default=str)
+                        json_string = json.dumps(response_dict, default=str)
                         self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif action == "deleteScheduleAction":
                     if "from" in data and "time" in data:
@@ -585,13 +585,13 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                     # Send the updated schedule back
                     with scheduleLock:
-                        dict = {}
-                        dict["class"] = "schedule"
-                        dict["updateTime"] = scheduleUpdateTime
-                        dict["schedule"] = scheduleList
-                        dict["nextEvent"] = nextEvent
+                        response_dict = {}
+                        response_dict["class"] = "schedule"
+                        response_dict["updateTime"] = scheduleUpdateTime
+                        response_dict["schedule"] = scheduleList
+                        response_dict["nextEvent"] = nextEvent
 
-                    json_string = json.dumps(dict, default=str)
+                    json_string = json.dumps(response_dict, default=str)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif action == "setExhibit":
                     print("Changing exhibit to:", data["name"])
