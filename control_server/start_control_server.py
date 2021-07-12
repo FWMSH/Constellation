@@ -8,7 +8,7 @@ def quit_handler(sig, frame):
 
 signal.signal(signal.SIGINT, quit_handler)
 
-filename = 'CSS_control_server.py'
+filename = 'control_server.py'
 while True:
     p = subprocess.run(["python3", filename])
 
