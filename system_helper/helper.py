@@ -493,6 +493,8 @@ def retrieveSchedule():
 
     # Function to search the schedules directory for an appropriate schedule
 
+    global schedule
+
     # Try several possible sources for the schedule with increasing generality
     root = os.path.dirname(os.path.abspath(__file__))
     sources_to_try = [config["current_exhibit"], "default"]
@@ -526,6 +528,12 @@ def retrieveSchedule():
             readSchedule(parser["SCHEDULE"])
         else:
             print("retrieveSchedule: error: no INI section 'SCHEDULE' found!")
+    else:
+        # Check again tomorrow
+        schedule = []
+        schedule.append((datetime.time(0,1), "reload_schedule"))
+        print("No schedule for today. Checking again tomorrow...")
+
 
 def readSchedule(schedule_input):
 
