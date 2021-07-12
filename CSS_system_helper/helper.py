@@ -532,6 +532,7 @@ def retrieveSchedule():
         # Check again tomorrow
         schedule = []
         schedule.append((datetime.time(0,1), "reload_schedule"))
+        print("No schedule for today. Checking again tomorrow...")
 
 
 def readSchedule(schedule_input):
