@@ -1139,6 +1139,38 @@ def updateExhibitComponentStatus(data, ip):
         if "error" in component.config:
             component.config.pop("error")
 
+def checkFileStructure():
+
+    # Check to make sure we have the appropriate file structure set up
+
+    root = os.path.dirname(os.path.abspath(__file__))
+    schedules_dir = os.path.join(root, "schedules")
+    exhibits_dir = os.path.join(root, "exhibits")
+
+    try:
+        os.listdir(schedules_dir)
+    except FileNotFoundError:
+        print("Missing schedules directory. Creating now...")
+        try:
+            os.mkdir(schedules_dir)
+            default_schedule_list = ["monday.ini", "tuesday.ini", "wednesday.ini", "thursday.ini", "friday.ini", "saturday.ini", "sunday.ini"]
+
+            for file in default_schedule_list:
+                with open(os.path.join(schedules_dir, file), 'w') as f:
+                    f.write("[SCHEDULE]\n")
+        except:
+            print("Error: unable to create 'schedules' directory. Do you have write permission?")
+
+    try:
+        os.listdir(exhibits_dir)
+    except FileNotFoundError:
+        print("Missing exhibits directory. Creating now...")
+        try:
+            os.mkdir(exhibits_dir)
+            with open(os.path.join(exhibits_dir, "default.exhibit"), 'w') as f:
+                f.write("")
+        except:
+            print("Error: unable to create 'exhibits' directory. Do you have write permission?")
 
 def quit_handler(sig, frame):
 
@@ -1200,6 +1232,7 @@ sys.excepthook = error_handler
 with logLock:
     logging.info("Server started")
 
+checkFileStructure()
 checkAvailableExhibits()
 loadDefaultConfiguration()
 pollEventSchedule()

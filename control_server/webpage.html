@@ -29,12 +29,8 @@
       .schedule-date-specific {
         background-color: rgba(91, 192, 222, 0.2);
       }
-      #componentAvailableContentList-thisExhibit {
-        max-height: 25vh;
-        min-height: 15vh;
-        overflow-y: scroll;
-      }
-      #componentAvailableContentList-allExhibits {
+
+      #componentAvailableContentList {
         max-height: 25vh;
         min-height: 15vh;
         overflow-y: scroll;
@@ -119,19 +115,13 @@
                   </div>
 
                   <div id="componentAvailableContentRow" class="row">
-                    <H5 class="col-12 mt-3">Available content</H5>
-                    <nav class="col-12">
-                      <div class="nav nav-tabs" id="componentAvailableContentList-tabs" role="tablist">
-                        <a class="nav-item nav-link active" id="componentAvailableContentList-thisExhibitTab" data-toggle="tab" href="#componentAvailableContentList-thisExhibit" role="tab" aria-controls="componentAvailableContentList-thisExhibit" aria-selected="true">This exhibit</a>
-                        <a class="nav-item nav-link" id="componentAvailableContentList-allExhibitsTab" data-toggle="tab" href="#componentAvailableContentList-allExhibits" role="tab" aria-controls="componentAvailableContentList-allExhibits" aria-selected="false">All exhibits</a>
-                      </div>
-                    </nav>
-                    <div class="tab-content col-12 mt-2" id="componentAvailableContentList">
-                      <div class="tab-pane fade show active col-12" id="componentAvailableContentList-thisExhibit" role="tabpanel" aria-labelledby="componentAvailableContentList-thisExhibitTab">
-                      </div>
-                      <div class="tab-pane fade col-12" id="componentAvailableContentList-allExhibits" role="tabpanel" aria-labelledby="componentAvailableContentList-allExhibitsTab">
-                      </div>
+                    <div class="col-12 mt-3">
+                      <H5>Available content</H5>
                     </div>
+                    <div class="col-12 w-100">
+                      <div id="componentAvailableContentList"></div>
+                    </div>
+
                   </div>
 
                   <div id="componentcontentUploadInterface" class="form-group mt-3">
@@ -742,8 +732,7 @@
 
           $("#componentInfoModalTitle").html(id);
           $("#componentInfoModalIPAddress").html(obj.ip);
-          $("#componentAvailableContentList-thisExhibit").empty();
-          $("#componentAvailableContentList-allExhibits").empty();
+          $("#componentAvailableContentList").empty();
           $("#contentUploadSubmitButton").prop("disabled", false);
           $("#contentUploadSubmitButton").html("Upload");
           $("#componentContentUploadfilename").html("Choose file")
@@ -870,10 +859,10 @@
               }
 
               // Build buttons for each file in the current exhibit
-              populateContent('current_exhibit', id, "componentAvailableContentList-thisExhibit")
+              //populateContent('current_exhibit', id, "componentAvailableContentList-thisExhibit")
 
               // Build buttons for each file in all exhibits
-              populateContent('all_exhibits', id, "componentAvailableContentList-allExhibits")
+              populateContent('all_exhibits', id, "componentAvailableContentList")
 
               // Attach an event handler to change the button's color when clicked
               $(".componentContentButton").on("click", function(e){
@@ -1684,7 +1673,7 @@
 
         Object.keys(errorDict).forEach((item, i) => {
           var html = `
-            <div class="col-12 col-lg-3 mt-3">
+            <div class="col-auto mt-3">
               <button class='btn btn-danger btn-block'>${item + " " + errorDict[item]}</btn>
             </div>
           `

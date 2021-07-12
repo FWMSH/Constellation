@@ -222,6 +222,9 @@
         askToSynchronize(update["synchornize_with"]);
         waitingForSynchronization = true;
       }
+      if ("missingContentWarnings" in update) {
+        errorDict["missingContentWarnings"] = update["missingContentWarnings"];
+      }
 
       // This should be last to make sure the path has been updated
       if ("content" in update) {
@@ -314,7 +317,7 @@
       if (index < sourceList.length) {
         activeIndex = index;
         updateActiveClip(activeIndex);
-        changeMedia(contentPath + '/' + currentExhibit + '/' + sourceList[index], waitingForSynchronization, false);
+        changeMedia(contentPath + '/'  + sourceList[index], waitingForSynchronization, false);
       }
     }
 
@@ -420,10 +423,23 @@
       // Contact the control server and ask for any updates
 
       if (serverAddress != "") {
-        requestString = JSON.stringify({"class": "exhibitComponent",
-                                        "id": id,
-                                        "type": type,
-                                        "helperPort": helperAddress.split(":")[2]});
+        requestDict = {"class": "exhibitComponent",
+                       "id": id,
+                       "type": type,
+                       "helperPort": helperAddress.split(":")[2]};
+        // See if there is an error to report
+        var errorKeys = Object.keys(errorDict);
+        var errorString = "";
+        for (i=0; i< errorKeys.length; i++) {
+          if (errorDict[errorKeys[i]].length > 0) {
+            errorString += `${errorKeys[i]}: ${errorDict[errorKeys[i]]}`;
+          }
+        }
+        if (errorString != "") {
+          requestDict["error"] = errorString;
+        }
+        console.log(requestDict);
+        requestString = JSON.stringify(requestDict);
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", serverAddress, true);
@@ -442,12 +458,12 @@
       }
     }
 
-    function checkForCommands() {
+    function checkForHelperUpdates() {
 
-      // Function to ask the helper for any new commands, like switching between
+      // Function to ask the helper for any new updates, like switching between
       // media clips
 
-      var requestString = JSON.stringify({"action": "getCommands"});
+      var requestString = JSON.stringify({"action": "getUpdate"});
 
       var xhr = new XMLHttpRequest();
       xhr.timeout = 50;
@@ -499,12 +515,14 @@
     var currentExhibit = ""; // This will double as the root of the source path
     var waitingForSynchronization = false;
     var autoplayEnabled = true;
+
+    var errorDict = {};
     var debug = true;
 
     askForDefaults();
     sendPing();
     setInterval(sendPing, 5000);
-    setInterval(checkForCommands, 100);
+    setInterval(checkForHelperUpdates, 100);
 
     // Hide the cursor
     document.body.style.cursor = 'none';

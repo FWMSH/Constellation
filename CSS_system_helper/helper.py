@@ -188,8 +188,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             configToSend["dictionary"] = meta_dict
                         else:
                             configToSend["dictionary"] = dict(dictionary.items("CURRENT"))
-                    configToSend["availableContent"] = {"current_exhibit": getDirectoryContents(config["current_exhibit"]),
-                                                        "all_exhibits": getAllDirectoryContents()}
+                    configToSend["availableContent"] = {"all_exhibits": getAllDirectoryContents()}
 
                     root = os.path.dirname(os.path.abspath(__file__))
                     content_path = os.path.join(root, "content")
@@ -219,7 +218,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         if data["current_exhibit"] != config["current_exhibit"]:
                             configFile.set("CURRENT", "current_exhibit", data["current_exhibit"])
                             config["current_exhibit"] = data["current_exhibit"]
-                            checkDirectoryStructure(config["current_exhibit"])
                             update_made = True
 
                     # Update file
@@ -229,8 +227,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             configFile.write(f)
                 elif data["action"] == "getAvailableContent":
                     active_content = [s.strip() for s in config["content"].split(",")]
-                    response = {"current_exhibit": getDirectoryContents(config["current_exhibit"]),
-                                "all_exhibits": getAllDirectoryContents(),
+                    response = {"all_exhibits": getAllDirectoryContents(),
                                 "active_content": active_content,
                                 "system_stats": getSystemStats()}
 
@@ -275,8 +272,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 elif data["action"] == 'gotoClip':
                     if "clipNumber" in data:
                         commandList.append("gotoClip_"+str(data["clipNumber"]))
-                elif data["action"] == "getCommands":
-                    responseDict = {"commands": commandList}
+                elif data["action"] == "getUpdate":
+                    responseDict = {"commands": commandList,
+                                    "missingContentWarnings": missingContentWarningList}
 
                     event_content = checkEventSchedule()
                     if event_content is not None:
@@ -286,7 +284,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     try:
                         self.wfile.write(bytes(json_string, encoding="UTF-8"))
                     except socket.error as e:
-                        print("Socket error in getCommands:", e)
+                        print("Socket error in getUpdate:", e)
                     commandList = []
                 elif data["action"] == "setAutoplay":
                     if "state" in data:
@@ -419,7 +417,7 @@ def getDirectoryContents(path):
     contents = os.listdir(os.path.join(content_path, path))
     return([x for x in contents if x[0] != "."]) # Don't return hidden files
 
-def checkDirectoryStructure(current_exhibit):
+def checkDirectoryStructure():
 
     # Function that makes sure the appropriate content directories are present
     # and creates them if they are not.
@@ -433,17 +431,6 @@ def checkDirectoryStructure(current_exhibit):
 
         try:
             os.mkdir(content_path)
-        except:
-            print("Error: unable to create directory. Do you have write permission?")
-
-    exhibit_path = os.path.join(content_path, current_exhibit)
-    try:
-        os.listdir(exhibit_path)
-    except FileNotFoundError:
-        print("Warning: exhibit content directory not found. Creating it...")
-
-        try:
-            os.mkdir(exhibit_path)
         except:
             print("Error: unable to create directory. Do you have write permission?")
 
@@ -546,16 +533,26 @@ def readSchedule(schedule_input):
     # later use
 
     global schedule
+    global missingContentWarningList
 
     schedule = []
+    missingContentWarningList = []
+
+    root = os.path.dirname(os.path.abspath(__file__))
+    content_path = os.path.join(root, "content")
 
     for key in schedule_input:
         time = dateutil.parser.parse(key).time()
         content = [s.strip() for s in schedule_input[key].split(",")]
+        # Check to make sure that every file in the schedule actually exists.
+        # Otherwise, add it to the warning list to be passed to the control server
+        for item in content:
+            if not os.path.isfile(os.path.join(content_path, item)):
+                missingContentWarningList.append(item)
         schedule.append((time, content))
 
     # Add an event at 12:01 AM to retrieve the new schedule
-    schedule.append((datetime.time(0,1), "reload schedule"))
+    schedule.append((datetime.time(0,1), "reload_schedule"))
 
     queueNextScheduledEvent()
 
@@ -565,6 +562,7 @@ def queueNextScheduledEvent():
 
     global schedule
     global nextEvent
+    global missingContentWarningList
 
     nextEvent = None
 
@@ -572,8 +570,18 @@ def queueNextScheduledEvent():
         sorted_sched = sorted(schedule)
         now = datetime.datetime.now().time()
 
+        root = os.path.dirname(os.path.abspath(__file__))
+        content_path = os.path.join(root, "content")
+
         for event in sorted_sched:
             time, content = event
+            # If the content was previously missing, see if it is still missing
+            # (the user may have fixed the problem)
+            for item in content:
+                if item in missingContentWarningList:
+                    if  os.path.isfile(os.path.join(content_path, item)):
+                        # It now exists; remove it from the warning list
+                        missingContentWarningList = [ x for x in missingContentWarningList if x != item]
             if now < time:
                 nextEvent = event
                 break
@@ -591,7 +599,7 @@ def checkEventSchedule():
         #print(f"Now: {datetime.now().time()}, Event time: {time}, Time for event: {datetime.now().time() > time}")
         if datetime.datetime.now().time() > time: # It is time for this event!
             print("Scheduled event occurred:", time, content)
-            if content == "reload schedule":
+            if content == "reload_schedule":
                 retrieveSchedule()
             else:
                 performManualContentUpdate(content)
@@ -610,13 +618,7 @@ def readDefaultConfiguration():
     config_dict = dict(default.items())
 
     # Make sure we have the appropriate file system set up
-    try:
-        checkDirectoryStructure(config_dict["current_exhibit"])
-    except KeyError:
-        print("Error: make sure current_exhibit is set in defaults.ini")
-
-    # if "SCHEDULE" in config_object:
-    #     readSchedule(config_object["SCHEDULE"])
+    checkDirectoryStructure()
 
     return(config_object, config_dict)
 
@@ -640,6 +642,7 @@ signal.signal(signal.SIGINT, quit_handler)
 
 schedule = None # Will be filled in during readDefaultConfiguration() if needed
 nextEvent = None
+missingContentWarningList = [] # Will hold one entry for every piece of content that is scheduled but not available
 configFile, config = readDefaultConfiguration()
 
 # If it exists, load the dictionary that maps one value into another

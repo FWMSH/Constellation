@@ -159,3 +159,27 @@ The schedule tab allows you to modify the power on/power off schedule for the `g
 #### Reloading currentExhibitConfiguration.ini
 
 If you make a manual change to `currentExhibitConfiguration.ini`, pressing this button will cause the control server to reload it and parse the new configuration as if it were starting up. This means you do not have to stop and restart the server process to make an update.
+
+## Using the flexible tracker
+The `flexible tracker` enables the collection of a wide variety of quantitative and qualitative data using the control server. Collected data is stored as a list of JSON objects, one object per line, in a plain text document on the server.
+
+### Collection types
+The tracker can collect a variety of data types. Each type provides a widget that makes inputting the data easy and reliable.
+
+#### Counter
+The `counter` records a single integer, which can be increased or decreased in units of 1, much like a traditional "clicker" counter.
+
+#### Dropdown
+The `dropdown` records a single value from a user-defined list.
+
+#### Number
+The `number` records a single number, including decimals.
+
+#### Slider
+The `slider` records a single number, bounded in a user-defined range. The value is selected using a slider.
+
+#### Text
+The `text` allows free input of text.
+
+#### Timer
+The `timer` records the number of seconds it was running. It can be stopped and started by the user. `timer`s can be exclusive, meaning they stop all other `timer` widgets, or multiple can be used simultaneously.
