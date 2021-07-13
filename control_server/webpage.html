@@ -627,7 +627,7 @@
 
           // Then, go through and populate all the cells with as much information
           // as we have. Shade cells red if an error is reported.
-          if ("power_state" in obj.state) {
+          if ("power_state" in obj.state && obj.state["power_state"]) {
             $("#projectorInfoPowerState").html(obj.state["power_state"]);
           } else {
             $("#projectorInfoPowerState").html("-");
@@ -707,7 +707,7 @@
             $("#projectorInfoModel").html("-");
           }
 
-          if ("lamp_status" in obj.state) {
+          if ("lamp_status" in obj.state && obj.state["lamp_status"] != "") {
             var lampList = obj.state["lamp_status"];
             var lamp_html = "";
             for (var i=0; i<lampList.length; i++) {
@@ -715,8 +715,10 @@
               var statusStr = "";
               if (lamp[1] == false) {
                 statusStr = "(off)";
-              } else {
+              } else if (lamp[1] == true) {
                 statusStr = "(on)";
+              } else {
+                statusStr = "";
               }
               lamp_html += `Lamp ${i+1} ${statusStr}: ${lamp[0]} hours<br>`;
             }

@@ -63,17 +63,17 @@ def serial_send_command(connection, command, char_to_read=None, debug=False, mak
             "barco": (lambda x: "Barco"),
             "christie": (lambda x: "Christie"),
             "optoma": (lambda x: "Optoma"),
-            "viewsonic": (lambda x: "ViewSonic"),
+            "viewsonic": (lambda x: "Viewsonic"),
         },
         "lamp_status": {
             "barco": serial_barco_lamp_status,
-            "chritie": serial_christie_lamp_status,
+            "christie": serial_christie_lamp_status,
         },
         "power_off": {
             "barco": ":POWR0\r",
             "christie": "(PWR0)",
             "optoma": "~0000 0\r",
-            "viewsonic": "\x06\x14\x00\x04\x00\x34\x11\x01\x00\x5E"
+            "viewsonic": serial_viewsonic_power_state,
         },
         "power_on": {
             "barco": ":POWR1\r",
@@ -169,6 +169,9 @@ def serial_send_command(connection, command, char_to_read=None, debug=False, mak
         command_to_send = command
 
     if command_to_send is not None:
+        # Make sure we've flushed out any prior input before we write/read
+        connection.reset_input_buffer()
+
         connection.write(bytes(command_to_send, 'UTF-8'))
         if char_to_read is None:
             response = connection.readline().decode("UTF-8").strip()
@@ -310,6 +313,20 @@ def serial_christie_video_mute_state(connection):
         return("muted")
     else:
         return("unknown")
+
+# def serial_viewsonic_power_state(connection):
+#
+#     # Function to poll a viewsonic projector for its power state and parse the
+#     # response
+#
+#     connection.reset_input_buffer()
+#
+#     response = serial_send_command(connection, "\x06\x14\x00\x04\x00\x34\x11\x01\x00\x5E")
+#     if len(response) > 0:
+#         if '\x05\x14\x00\x03\x00\x00\x00\x00\x18' in response:
+#             return("on")
+#         elif '\x05\x14\x00\x03\x00\x00\x00\x00\x17' in response:
+#             return("off")
 
 def pjlink_connect(ip, password=None, timeout=2):
 
