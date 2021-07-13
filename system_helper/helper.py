@@ -132,7 +132,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     exhibit = ".".join(spilt[:-2])
                 else:
                     exhibit = split[0]
-                filepath = os.path.join(content_path, exhibit, fields.get("filename")[0])
+                filepath = os.path.join(content_path, fields.get("filename")[0])
                 print(f"Saving uploaded file to {filepath}")
                 with open(filepath, "wb") as f:
                     f.write(file)
