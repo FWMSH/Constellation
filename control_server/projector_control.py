@@ -59,6 +59,12 @@ def serial_send_command(connection, command, char_to_read=None, debug=False, mak
         "get_source": {
             "barco": serial_barco_get_source,
         },
+        "get_model": {
+            "barco": (lambda x: "Barco"),
+            "christie": (lambda x: "Christie"),
+            "optoma": (lambda x: "Optoma"),
+            "viewsonic": (lambda x: "ViewSonic"),
+        },
         "lamp_status": {
             "barco": serial_barco_lamp_status,
             "chritie": serial_christie_lamp_status,
