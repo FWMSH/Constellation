@@ -646,24 +646,26 @@ def loadDictionary():
     else:
         return(None)
 
-signal.signal(signal.SIGINT, quit_handler)
+if __name__ == "__main__":
 
-schedule = None # Will be filled in during readDefaultConfiguration() if needed
-nextEvent = None
-missingContentWarningList = [] # Will hold one entry for every piece of content that is scheduled but not available
-configFile, config = readDefaultConfiguration()
+    signal.signal(signal.SIGINT, quit_handler)
 
-# If it exists, load the dictionary that maps one value into another
-dictionary = loadDictionary()
+    schedule = None # Will be filled in during readDefaultConfiguration() if needed
+    nextEvent = None
+    missingContentWarningList = [] # Will hold one entry for every piece of content that is scheduled but not available
+    configFile, config = readDefaultConfiguration()
 
-# Look for an availble schedule and load it
-retrieveSchedule()
+    # If it exists, load the dictionary that maps one value into another
+    dictionary = loadDictionary()
 
-# This is hold information about currently loaded media, e.g., for the player
-clipList = {}
-commandList = []
+    # Look for an availble schedule and load it
+    retrieveSchedule()
 
-print(f"Launching server on port {config['helper_port']} to serve {config['id']}.")
+    # This is hold information about currently loaded media, e.g., for the player
+    clipList = {}
+    commandList = []
 
-httpd = HTTPServer(("", int(config["helper_port"])), RequestHandler)
-httpd.serve_forever()
+    print(f"Launching server on port {config['helper_port']} to serve {config['id']}.")
+
+    httpd = HTTPServer(("", int(config["helper_port"])), RequestHandler)
+    httpd.serve_forever()

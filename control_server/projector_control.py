@@ -12,6 +12,7 @@ def serial_connect_with_url(ip, baudrate=9600, make=None, port=None, protocol='s
     elif port is None:
 
         port_dict = {"barco": 1025,
+                     "christie": 3002,
                      "viewsonic": 8899}
 
         if make.lower() in port_dict:
@@ -49,7 +50,7 @@ def serial_connect(baudrate=9600,
     return(connection)
 
 
-def serial_send_command(connection, command, debug=False, make=None):
+def serial_send_command(connection, command, char_to_read=None, debug=False, make=None):
 
     # Function to send a command to a projector, wait for a response and
     # return that response
@@ -60,19 +61,23 @@ def serial_send_command(connection, command, debug=False, make=None):
         },
         "lamp_status": {
             "barco": serial_barco_lamp_status,
+            "chritie": serial_christie_lamp_status,
         },
         "power_off": {
             "barco": ":POWR0\r",
+            "christie": "(PWR0)",
             "optoma": "~0000 0\r",
             "viewsonic": "\x06\x14\x00\x04\x00\x34\x11\x01\x00\x5E"
         },
         "power_on": {
             "barco": ":POWR1\r",
+            "christie": "(PWR1)",
             "optoma": "~0000 1\r",
             "viewsonic": "\x06\x14\x00\x04\x00\x34\x11\x00\x00\x5D"
         },
         "power_state": {
             "barco": ":POST?\r",
+            "christie": serial_christie_power_state,
             "optoma": "~00124 1\r",
             "viewsonic": "\x07\x14\x00\x05\x00\x34\x00\x00\x11\x00\x5E"
         },
@@ -97,6 +102,24 @@ def serial_send_command(connection, command, debug=False, make=None):
         "set_vga_2": {
             "barco": ":IVGA2\r",
             "viewsonic": "\x06\x14\x00\x04\x00\x34\x13\x01\x08\x68",
+        },
+        "shutter_close": {
+            "christie": "(SHU1)",
+        },
+        "shutter_open": {
+            "christie": "(SHU0)",
+        },
+        "shutter_state": {
+            "christie": serial_christie_shutter_state,
+        },
+        "video_mute": {
+            "christie": "(PMT1)",
+        },
+        "video_mute_state": {
+            "christie": serial_christie_video_mute_state,
+        },
+        "video_unmute": {
+            "christie": "(PMT0)",
         },
     }
 
@@ -141,7 +164,10 @@ def serial_send_command(connection, command, debug=False, make=None):
 
     if command_to_send is not None:
         connection.write(bytes(command_to_send, 'UTF-8'))
-        response = connection.readline().decode("UTF-8").strip()
+        if char_to_read is None:
+            response = connection.readline().decode("UTF-8").strip()
+        else:
+            response = connection.read(int(char_to_read)).decode("UTF-8").strip()
 
         if make is not None:
             if command.lower() in response_dict:
@@ -162,6 +188,8 @@ def serial_barco_lamp_status(connection):
 
     # Function to build the lamp status list for a Barco projector
     # This list has format [(lamp1_hours, lamp1_on), (lamp2_hours, lamp2_on)]
+
+    connection.reset_input_buffer()
 
     # True means lamp is on (or warming up)
     lamp_status_codes = {
@@ -194,6 +222,8 @@ def serial_barco_get_source(connection):
 
     # Iterate through the Barco inputs to find the one that is active
 
+    connection.reset_input_buffer()
+
     # (Barco name, English name, number)
     inputs = [("IDVI", "DVI"),("IHDM", "HDMI"), ("IVGA", "VGA"),("IDHD", "Dual Head DVI"),
                 ("IDHH", "Dual Head HDMI"),("IDHX", "Dual Head XP2"), ("IXP2", "XP2"),
@@ -210,6 +240,70 @@ def serial_barco_get_source(connection):
 
     return("")
 
+def serial_christie_lamp_status(connection):
+
+    # Function to build the lamp status list for a Christie projector
+    # This list has format [(lamp1_hours, lamp1_on), (lamp2_hours, lamp2_on)]
+
+    connection.reset_input_buffer()
+
+    # Get lamp hours
+    l1_hours_response = serial_send_command(connection, "(LPH?)", char_to_read=23)
+    try:
+        l1_hours = int(l1_hours_response[17:22])
+        connection.reset_input_buffer()
+    except Exception as e:
+        print(e)
+        l1_hours = -1
+    return([(l1_hours, None)])
+
+def serial_christie_power_state(connection):
+
+    # Function to poll a Christie projector for its power state and parse the
+    # response
+
+    connection.reset_input_buffer()
+
+    response = serial_send_command(connection, "(PWR?)", char_to_read=21)
+    if len(response) > 0:
+        if "PWR!001" in response:
+            return("on")
+        elif "PWR!000" in response:
+            return("off")
+        elif "PWR!010" in response:
+            return("powering_off")
+        elif "PWR!011" in response:
+            return("powering_on")
+
+def serial_christie_shutter_state(connection):
+
+    # Function to poll a Christie projector for the status of its shutter
+
+    connection.reset_input_buffer()
+
+    response = serial_send_command(connection, "(SHU?)", char_to_read=21)
+
+    if "SHU!000" in response:
+        return("open")
+    elif "SHU!001" in response:
+        return("closed")
+    else:
+        return("unknown")
+
+def serial_christie_video_mute_state(connection):
+
+    # Function to poll a Christie projector for the status of its video mute
+
+    connection.reset_input_buffer()
+
+    response = serial_send_command(connection, "(PMT?)", char_to_read=21)
+
+    if "PMT!000" in response:
+        return("unmuted")
+    elif "PMT!001" in response:
+        return("muted")
+    else:
+        return("unknown")
 
 def pjlink_connect(ip, password=None, timeout=2):
 

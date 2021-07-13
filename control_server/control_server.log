@@ -1606,3 +1606,5 @@ WARNING, 2021-07-12 10:42:01, there is no configuration available for component 
 INFO, 2021-07-12 10:42:23, Server shutdown
 INFO, 2021-07-12 10:42:34, Server started
 WARNING, 2021-07-12 10:44:01, there is no configuration available for component with id=W1_KIOSK
+WARNING, 2021-07-12 14:45:01, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-12 15:00:01, commandAllExhibitComponents: power_on
