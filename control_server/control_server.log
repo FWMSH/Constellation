@@ -1614,3 +1614,31 @@ ERROR, 2021-07-13 10:11:21, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-07-13 10:12:33, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-07-13 10:13:14, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-07-13 10:14:02, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-13 10:36:43, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-13 10:37:27, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-13 10:37:50, Server shutdown
+INFO, 2021-07-13 10:38:36, Server started
+ERROR, 2021-07-13 10:38:52, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-13 10:38:55, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-07-13 10:39:04, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-13 10:39:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-13 10:39:54, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-13 10:40:10, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-13 10:40:22, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-13 10:41:01, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-13 10:46:04, Server shutdown
+INFO, 2021-07-13 10:46:05, Server started
+WARNING, 2021-07-13 10:47:04, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-13 10:48:01, Server shutdown
+INFO, 2021-07-13 10:48:06, Server started
+INFO, 2021-07-13 10:49:02, Server shutdown
+INFO, 2021-07-13 10:49:03, Server started
+WARNING, 2021-07-13 10:50:04, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-13 10:50:08, Server shutdown
+INFO, 2021-07-13 10:50:09, Server started
+INFO, 2021-07-13 10:50:34, Server shutdown
+INFO, 2021-07-13 10:50:35, Server started
+WARNING, 2021-07-13 10:51:04, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-13 10:52:24, Server shutdown
+INFO, 2021-07-13 10:52:25, Server started
+WARNING, 2021-07-13 10:53:04, there is no configuration available for component with id=W1_KIOSK

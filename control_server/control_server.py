@@ -44,7 +44,6 @@ class Projector:
     def update(self, full=False):
 
         # Contact the projector to get the latest state
-
         error = False
         try:
             if self.connection_type == 'pjlink':

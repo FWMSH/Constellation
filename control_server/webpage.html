@@ -627,7 +627,7 @@
 
           // Then, go through and populate all the cells with as much information
           // as we have. Shade cells red if an error is reported.
-          if ("power_state" in obj.state && obj.state["power_state"]) {
+          if ("power_state" in obj.state && obj.state["power_state"] != "") {
             $("#projectorInfoPowerState").html(obj.state["power_state"]);
           } else {
             $("#projectorInfoPowerState").html("-");

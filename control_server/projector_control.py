@@ -73,7 +73,7 @@ def serial_send_command(connection, command, char_to_read=None, debug=False, mak
             "barco": ":POWR0\r",
             "christie": "(PWR0)",
             "optoma": "~0000 0\r",
-            "viewsonic": serial_viewsonic_power_state,
+            "viewsonic": "\x06\x14\x00\x04\x00\x34\x11\x01\x00\x5E",
         },
         "power_on": {
             "barco": ":POWR1\r",
