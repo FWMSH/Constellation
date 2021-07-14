@@ -832,10 +832,11 @@
                 // Get filenames listed under key in availableContent and add
                 // the resulting buttons to the div given by div
 
-                for (var i=0; i<availableContent[key].length; i++) {
-                  var content = (availableContent[key])[i];
-                  var activeContent = availableContent["active_content"];
-                  if (activeContent.includes(content)) {
+                var activeContent = availableContent["active_content"];
+                var contentList = availableContent[key].sort(function(a,b) {return a.localeCompare(b)});
+
+                for (var i=0; i<contentList.length; i++) {
+                  if (activeContent.includes(contentList[i])) {
                     var active = "btn-primary";
                   } else {
                     var active = "btn-secondary";
@@ -843,15 +844,15 @@
                   var html = `
                   <div class="col-auto mt-1">
                     <div class="btn-group">
-                      <button type="button" id="${content.split('.').join("").split(")").join("").split("(").join("").split(/[\\\/]/).join("")}Button" class="btn componentContentButton ${active}">${content}</button>
-                      <button type="button" id="${content.split('.').join("").split(")").join("").split("(").join("").split(/[\\\/]/).join("")}ButtonDropdown" class="btn dropdown-toggle dropdown-toggle-split componentContentDropdownButton ${active}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      <button type="button" id="${contentList[i].split('.').join("").split(")").join("").split("(").join("").split(/[\\\/]/).join("")}Button" class="btn componentContentButton ${active}">${contentList[i]}</button>
+                      <button type="button" id="${contentList[i].split('.').join("").split(")").join("").split("(").join("").split(/[\\\/]/).join("")}ButtonDropdown" class="btn dropdown-toggle dropdown-toggle-split componentContentDropdownButton ${active}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="sr-only">Toggle Dropdown</span>
                       </button>
                       <div class="dropdown-menu">
                         <a class="dropdown-item disabled text-secondary">Rename</a>
                         <a class="dropdown-item disabled"></a>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item text-danger" onclick="deleteRemoteFile('${id}', '${content}')">Delete</a>
+                        <a class="dropdown-item text-danger" onclick="deleteRemoteFile('${id}', '${contentList[i]}')">Delete</a>
                       </div>
                     </div>
                   </div>

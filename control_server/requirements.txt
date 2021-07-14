@@ -1,2 +1,3 @@
 pypjlink2
 pyserial
+wakeonlan
