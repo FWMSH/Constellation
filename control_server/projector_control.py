@@ -57,10 +57,10 @@ def serial_send_command(connection, command, char_to_read=None, debug=False, mak
 
     command_dict = {
         "error_status": {
-            "barco": (lambda x: "ok"),
-            "christie": (lambda x: "ok"),
-            "optoma": (lambda x: "ok"),
-            "viewsonic": (lambda x: "ok"),
+            "barco": (lambda x: {'other': "ok"}),
+            "christie": (lambda x: {'other': "ok"}),
+            "optoma": (lambda x: {'other': "ok"}),
+            "viewsonic": (lambda x: {'other': "ok"}),
         },
         "get_source": {
             "barco": serial_barco_get_source,
@@ -168,6 +168,7 @@ def serial_send_command(connection, command, char_to_read=None, debug=False, mak
             if debug: print(f"command_to_send: {command_to_send}")
             # If this command is a function, call it instead of continuing
             if callable(command_to_send):
+                connection.reset_input_buffer()
                 response = command_to_send(connection)
                 return(response)
     else:
