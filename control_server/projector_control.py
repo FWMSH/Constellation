@@ -56,6 +56,12 @@ def serial_send_command(connection, command, char_to_read=None, debug=False, mak
     # return that response
 
     command_dict = {
+        "error_status": {
+            "barco": (lambda x: "ok"),
+            "christie": (lambda x: "ok"),
+            "optoma": (lambda x: "ok"),
+            "viewsonic": (lambda x: "ok"),
+        },
         "get_source": {
             "barco": serial_barco_get_source,
         },
