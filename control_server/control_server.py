@@ -79,6 +79,7 @@ class Projector:
 
         # Function to spawn a thread that sends a command to the projector.
         # Named "queueCommand" to match what is used for exhibitComponents
+
         print(f"Queuing command {cmd} for {self.id}")
         th = threading.Thread(target=self.sendCommand, args=[cmd])
         th.daemon = True

@@ -1642,3 +1642,11 @@ WARNING, 2021-07-13 10:51:04, there is no configuration available for component 
 INFO, 2021-07-13 10:52:24, Server shutdown
 INFO, 2021-07-13 10:52:25, Server started
 WARNING, 2021-07-13 10:53:04, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-13 10:54:09, Server shutdown
+INFO, 2021-07-13 10:54:10, Server started
+WARNING, 2021-07-13 10:55:04, there is no configuration available for component with id=W1_KIOSK
+WARNING, 2021-07-13 14:45:08, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-14 09:36:53, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-14 09:55:10, Server shutdown
+INFO, 2021-07-14 09:55:11, Server started
+WARNING, 2021-07-14 09:56:06, there is no configuration available for component with id=W1_KIOSK

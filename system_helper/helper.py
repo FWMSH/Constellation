@@ -236,12 +236,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 elif data["action"] == "getCurrentExhibit":
                     self.wfile.write(bytes(config["current_exhibit"], encoding="UTF-8"))
                 elif data["action"] == "deleteFile":
-                    if ("file" in data) and ("fromExhibit" in data):
-                        deleteFile(data["file"], data["fromExhibit"])
+                    if ("file" in data):
+                        deleteFile(data["file"])
                         response = {"success": True}
                     else:
                         response = {"success": False,
-                                    "reason": "Request missing necessary field"}
+                                    "reason": "Request missing field 'field'"}
                     json_string = json.dumps(response)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif data["action"] == 'copyFile':
@@ -379,12 +379,12 @@ def commandProjector(cmd):
         else:
             print(f"commandProjector: Error: Unknown command: {cmd}")
 
-def deleteFile(file, fromExhibit):
+def deleteFile(file):
 
-    # Function to delete a file from a given exhibit
+    # Function to delete a file
 
     root = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(root, "content", fromExhibit, file)
+    file_path = os.path.join(root, "content", file)
     print("Deleting file:", file_path)
     os.remove(file_path)
 
