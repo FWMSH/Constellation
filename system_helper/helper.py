@@ -222,7 +222,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                     # Update file
                     if update_made:
-                        print("Configuration file updated")
                         with open('defaults.ini', 'w') as f:
                             configFile.write(f)
                 elif data["action"] == "getAvailableContent":

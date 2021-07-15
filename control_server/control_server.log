@@ -1676,3 +1676,39 @@ ERROR, 2021-07-14 11:49:12, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-07-14 11:49:37, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-07-14 11:50:07, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-07-14 11:59:00, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-07-14 14:45:07, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-14 15:49:54, Server shutdown
+INFO, 2021-07-14 15:49:55, Server started
+WARNING, 2021-07-14 15:51:07, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-14 16:03:58, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-14 16:05:54, Server shutdown
+INFO, 2021-07-14 16:05:55, Server started
+WARNING, 2021-07-14 16:07:07, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-14 16:08:44, Server shutdown
+INFO, 2021-07-14 16:08:44, Server started
+WARNING, 2021-07-14 16:09:07, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-14 16:25:00, Server shutdown
+INFO, 2021-07-14 16:25:02, Server started
+WARNING, 2021-07-14 16:26:07, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-14 16:26:47, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-14 16:29:05, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-14 16:29:09, Unknown webpage command received: queueWOLCommand
+INFO, 2021-07-14 16:30:27, Server shutdown
+INFO, 2021-07-14 16:30:28, Server started
+WARNING, 2021-07-14 16:31:07, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-14 16:31:39, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-07-14 16:32:38, Server shutdown
+INFO, 2021-07-14 16:32:39, Server started
+WARNING, 2021-07-14 16:33:07, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-14 16:33:33, Server shutdown
+INFO, 2021-07-14 16:33:35, Server started
+INFO, 2021-07-14 16:34:05, Server shutdown
+INFO, 2021-07-14 16:34:21, Server started
+WARNING, 2021-07-14 16:35:07, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-07-14 16:35:38, Server shutdown
+INFO, 2021-07-14 16:39:50, Server started
+WARNING, 2021-07-14 16:41:07, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-07-14 16:43:04, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-14 17:05:20, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-14 17:37:42, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-07-15 09:01:54, GET for unexpected file /favicon.ico

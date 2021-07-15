@@ -15,6 +15,8 @@ import sys
 import shutil
 import traceback
 import threading, _thread
+import wakeonlan
+
 import projector_control # Our file
 
 
@@ -192,6 +194,43 @@ class ExhibitComponent:
         print(f"{self.id}: command queued: {command}")
         self.config["commands"].append(command)
 
+class WakeOnLANDevice:
+
+    # Hold basic information about a wake on LAN device and facilitate waking it
+
+    def __init__(self, id, macAddress):
+
+        self.id = id
+        self.type = "WAKE_ON_LAN"
+        self.macAddress = macAddress
+        self.broadcastAddress = "255.255.255.255"
+        self.port = 9
+        self.ip = None
+        self.state = {"status": "STANDBY"}
+
+    def queueCommand(self, cmd):
+
+        # Wrapper function to match other exhibit components
+
+        if cmd in ["power_on", "wakeDisplay"]:
+            self.wake()
+
+    def wake(self):
+
+        # Function to send a magic packet waking the device
+
+        print(f"Sending wake on LAN packet to {self.id}")
+        with logLock:
+            logging.info(f"Sending wake on LAN packet to {self.id}")
+        try:
+            wakeonlan.send_magic_packet(self.macAddress,
+                                        ip_address=self.broadcastAddress,
+                                        port=self.port)
+        except ValueError as e:
+            print(f"Wake on LAN error for component {self.id}: {str(e)}")
+            with logLock:
+                logging.error(f"Wake on LAN error for component {self.id}: {str(e)}")
+
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     # Stub which triggers dispatch of requests into individual threads.
     daemon_threads = True
@@ -232,6 +271,16 @@ class RequestHandler(SimpleHTTPRequestHandler):
             temp = {}
             temp["id"] = item.id
             temp["type"] = 'PROJECTOR'
+            temp["ip_address"] = item.ip
+
+            temp["class"] = "exhibitComponent"
+            temp["status"] = item.state["status"]
+            componentDictList.append(temp)
+
+        for item in wakeOnLANList:
+            temp = {}
+            temp["id"] = item.id
+            temp["type"] = 'WAKE_ON_LAN'
             temp["ip_address"] = item.ip
 
             temp["class"] = "exhibitComponent"
@@ -418,6 +467,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     getExhibitComponent(data["id"]).queueCommand(data["command"])
                 elif action == "queueProjectorCommand":
                     getProjector(data["id"]).queueCommand(data["command"])
+                    self.wfile.write(bytes("", encoding="UTF-8"))
+                elif action == "queueWOLCommand":
+                    getWakeOnLanComponent(data["id"]).queueCommand(data["command"])
                     self.wfile.write(bytes("", encoding="UTF-8"))
                 elif action == "updateSchedule":
                     # This command handles both adding a new scheduled action
@@ -937,6 +989,7 @@ def loadDefaultConfiguration():
     global ip_address
     global gallery_name
     global projectorList
+    global wakeOnLANList
     global serverRebootTime
 
     # First, retrieve the config filename that defines the desired exhibit
@@ -958,7 +1011,6 @@ def loadDefaultConfiguration():
     projectorList = []
 
     # Parse list of PJLink projectors
-
     try:
         pjlink_projectors = config["PJLINK_PROJECTORS"]
         print("Connecting to PJLink projectors...", end="\r", flush=True)
@@ -992,7 +1044,6 @@ def loadDefaultConfiguration():
     print("Connecting to PJLink projectors... done                      ")
 
     # Parse list of serial proejctors
-
     try:
         serial_projectors = config["SERIAL_PROJECTORS"]
         print("Connecting to serial projectors...", end="\r", flush=True)
@@ -1024,6 +1075,20 @@ def loadDefaultConfiguration():
                 break
             projectorList.append(newProj)
     print("Connecting to serial projectors... done                      ")
+
+    # Parse list of serial proejctors
+    try:
+        wol = config["WAKE_ON_LAN"]
+        print("Collecting wake on LAN devices...", end="", flush=True)
+
+        for key in wol:
+            wakeOnLANList.append(WakeOnLANDevice(key, wol[key]))
+        print(" done")
+    except:
+        print("No wake on LAN devices specified")
+        wakeOnLANList = []
+
+
 
     # Parse the reboot_time if necessary
     if "reboot_time" in current:
@@ -1095,6 +1160,15 @@ def getProjector(id):
     projector = next((x for x in projectorList if x.id == id), None)
 
     return(projector)
+
+def getWakeOnLanComponent(id):
+
+    # Return a projector with the given id, or None if no such
+    # component exists
+
+    component = next((x for x in wakeOnLANList if x.id == id), None)
+
+    return(component)
 
 def addExhibitComponent(id, type):
 
@@ -1207,6 +1281,7 @@ ADDR = "" # Accept connections from all interfaces
 gallery_name = ""
 componentList = []
 projectorList = []
+wakeOnLANList = []
 synchronizationList = [] # Holds sets of displays that are being synchronized
 currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
 exhibitList = []

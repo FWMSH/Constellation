@@ -1252,10 +1252,15 @@
 
         var obj = getExhibitComponent(id);
         var cmdType = ""
-        if (obj.type == "PROJECTOR") {
-          cmdType = "queueProjectorCommand";
-        } else {
-          cmdType = "queueCommand"
+        switch (obj.type) {
+          case "PROJECTOR":
+            cmdType = "queueProjectorCommand";
+            break;
+          case "WAKE_ON_LAN":
+            cmdType = "queueWOLCommand";
+            break;
+          default:
+            cmdType = "queueCommand"
         }
 
         //var requestString = `class=webpage&action=${cmdType}&id=${id}&command=${cmd}`;
