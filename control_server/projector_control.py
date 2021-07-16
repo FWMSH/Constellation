@@ -6,7 +6,6 @@ def serial_connect_with_url(ip, baudrate=9600, make=None, port=None, protocol='s
 
     # Function to establish a serial connection over TCP/IP
 
-
     if (port is None) and (make is None):
         raise Exception("Must specifiy either a port or a make")
     elif port is None:
@@ -21,8 +20,8 @@ def serial_connect_with_url(ip, baudrate=9600, make=None, port=None, protocol='s
     connection = serial.serial_for_url(protocol + "://" + ip + ":" + str(port),
                                 baudrate=baudrate,
                                 timeout=timeout)
-
     return(connection)
+
 
 def serial_connect(baudrate=9600,
                    bytesize=serial.EIGHTBITS,
@@ -235,6 +234,7 @@ def serial_barco_lamp_status(connection):
 
     return(lamp_status)
 
+
 def serial_barco_get_source(connection):
 
     # Iterate through the Barco inputs to find the one that is active
@@ -257,6 +257,7 @@ def serial_barco_get_source(connection):
 
     return("")
 
+
 def serial_christie_lamp_status(connection):
 
     # Function to build the lamp status list for a Christie projector
@@ -273,6 +274,7 @@ def serial_christie_lamp_status(connection):
         print(e)
         l1_hours = -1
     return([(l1_hours, None)])
+
 
 def serial_christie_power_state(connection):
 
@@ -292,6 +294,7 @@ def serial_christie_power_state(connection):
         elif "PWR!011" in response:
             return("powering_on")
 
+
 def serial_christie_shutter_state(connection):
 
     # Function to poll a Christie projector for the status of its shutter
@@ -306,6 +309,7 @@ def serial_christie_shutter_state(connection):
         return("closed")
     else:
         return("unknown")
+
 
 def serial_christie_video_mute_state(connection):
 
@@ -322,19 +326,6 @@ def serial_christie_video_mute_state(connection):
     else:
         return("unknown")
 
-# def serial_viewsonic_power_state(connection):
-#
-#     # Function to poll a viewsonic projector for its power state and parse the
-#     # response
-#
-#     connection.reset_input_buffer()
-#
-#     response = serial_send_command(connection, "\x06\x14\x00\x04\x00\x34\x11\x01\x00\x5E")
-#     if len(response) > 0:
-#         if '\x05\x14\x00\x03\x00\x00\x00\x00\x18' in response:
-#             return("on")
-#         elif '\x05\x14\x00\x03\x00\x00\x00\x00\x17' in response:
-#             return("off")
 
 def pjlink_connect(ip, password=None, timeout=2):
 
@@ -347,6 +338,8 @@ def pjlink_connect(ip, password=None, timeout=2):
 
 
 def pjlink_send_command(connection, command):
+
+    # Function to send a command using the PJLink protocol
 
     if command == "error_status":
         return(connection.get_errors())

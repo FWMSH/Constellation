@@ -235,7 +235,14 @@
         } else {
           document.getElementById("fullscreenVideo").muted = true;
         }
-
+      }
+      if ("image_duration" in update) {
+          if (isFinite(parseInt(update["image_duration"]))) {
+            // Image duration is specified in seconds in defaults.ini
+            // but needs to be converted to milliseconds
+            image_duration = update["image_duration"]*1000;
+            console.log(`Setting image duration: ${update["image_duration"]} seconds`);
+          }
       }
 
       // This should be last to make sure the path has been updated
@@ -400,7 +407,7 @@
           videoContainer.style.opacity = 0;
           image.src = source;
           imageContainer.style.opacity = 1;
-          sourceAdvanceTimer = setTimeout(gotoNextSource, 10000);
+          sourceAdvanceTimer = setTimeout(gotoNextSource, image_duration);
         }
       } else {
         video.play();
@@ -526,6 +533,7 @@
     var currentExhibit = ""; // This will double as the root of the source path
     var waitingForSynchronization = false;
     var autoplayEnabled = true;
+    var image_duration = 10000; // milliseconds; the amount of time an image will be displayed before going to the next one
 
     var errorDict = {};
     var debug = true;
