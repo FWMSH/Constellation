@@ -624,6 +624,9 @@ def readDefaultConfiguration():
     default = config_object["CURRENT"]
     config_dict = dict(default.items())
 
+    if "allow_audio" in config_dict and strToBool(config_dict["allow_audio"]) is True:
+        print("Warning: You have enabled audio. Make sure the file is whitelisted in the browser or media will not play.")
+
     # Make sure we have the appropriate file system set up
     checkDirectoryStructure()
 
