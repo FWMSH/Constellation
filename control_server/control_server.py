@@ -1,3 +1,9 @@
+### Constellation Control Server
+### A centralized server for controling museum exhibit components
+### Written by Morgan Rehnberg, Fort Worth Museum of Science and History
+### Released under the MIT license
+
+# Standard modules
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from socketserver import ThreadingMixIn
 import time
@@ -7,7 +13,6 @@ import dateutil.parser
 import configparser
 import json
 import os
-import pypjlink
 import mimetypes
 import cgi
 import signal
@@ -15,9 +20,14 @@ import sys
 import shutil
 import traceback
 import threading, _thread
-import wakeonlan
 
-import projector_control # Our file
+# Non-standard modules
+import wakeonlan
+import icmplib
+import pypjlink
+
+# Constellation modules
+import projector_control
 
 
 class Projector:
@@ -32,6 +42,7 @@ class Projector:
         self.mac_address = mac_address # For use with Wake on LAN
         self.connection_type = connection_type
         self.make = make
+        self.config = {"allowed_actions": ["power_on", "power_off"]}
 
         self.state = {"status": "OFFLINE"}
         self.lastContactDateTime = datetime.datetime(2020,1,1)
@@ -46,6 +57,7 @@ class Projector:
     def update(self, full=False):
 
         # Contact the projector to get the latest state
+
         error = False
         try:
             if self.connection_type == 'pjlink':
@@ -70,7 +82,6 @@ class Projector:
 
         if (error and (self.secondsSinceLastContact() > 60)):
             self.state = {"status": "OFFLINE"}
-            #self.state["status"] = "OFFLINE"
         else:
             if self.state["power_state"] == "on":
                 self.state["status"] = "ONLINE"
@@ -128,8 +139,10 @@ class ExhibitComponent:
         self.lastContactDateTime = datetime.datetime.now()
         self.lastInteractionDateTime = datetime.datetime(2020, 1, 1)
 
-        self.config = {}
-        self.config["commands"] = []
+        self.config = {
+                        "commands": [],
+                        "allowed_actions": ["power_on", "power_off"]}
+
         self.updateConfiguration()
 
     def secondsSinceLastContact(self):
@@ -196,17 +209,25 @@ class ExhibitComponent:
 
 class WakeOnLANDevice:
 
-    # Hold basic information about a wake on LAN device and facilitate waking it
+    # Holds basic information about a wake on LAN device and facilitates waking it
 
-    def __init__(self, id, macAddress):
+    def __init__(self, id, macAddress, ip_address=None):
 
         self.id = id
         self.type = "WAKE_ON_LAN"
         self.macAddress = macAddress
         self.broadcastAddress = "255.255.255.255"
         self.port = 9
-        self.ip = None
-        self.state = {"status": "STANDBY"}
+        self.ip = ip_address
+        self.config = {"allowed_actions": ["power_on"]}
+
+        self.state = {"status": "UNKNOWN"}
+        self.lastContactDateTime = datetime.datetime(2020,1,1)
+
+    def secondsSinceLastContact(self):
+
+        diff = datetime.datetime.now() - self.lastContactDateTime
+        return(diff.total_seconds())
 
     def queueCommand(self, cmd):
 
@@ -230,6 +251,31 @@ class WakeOnLANDevice:
             print(f"Wake on LAN error for component {self.id}: {str(e)}")
             with logLock:
                 logging.error(f"Wake on LAN error for component {self.id}: {str(e)}")
+
+    def update(self, full=False):
+
+        # If we have an IP address, ping the host to see if it is awake
+
+        global serverWarningDict
+
+        if self.ip is not None:
+            try:
+                ping = icmplib.ping("10.8.0.85", privileged=False, count=1)
+                if ping.is_alive:
+                    self.state["status"] = "ONLINE"
+                    self.lastContactDateTime = datetime.datetime.now()
+                elif self.secondsSinceLastContact() > 60:
+                    self.state["status"] = "OFFLINE"
+            except icmplib.exceptions.SocketPermissionError:
+                if "wakeOnLANPrivilege" not in serverWarningDict:
+                    print("Warning: to check the status of Wake on LAN devices, you must run the control server with administrator privileges.")
+                    with logLock:
+                        logging.info("Need administrator privilege to check Wake on LAN status")
+                    serverWarningDict["wakeOnLANPrivilege"] = True
+        else:
+            self.state["status"] = "UNKNOWN"
+
+
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     # Stub which triggers dispatch of requests into individual threads.
@@ -261,6 +307,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 temp["content"] = item.config["content"]
             if "error" in item.config:
                 temp["error"] = item.config["error"]
+            if "allowed_actions" in item.config:
+                temp["allowed_actions"] = item.config["allowed_actions"]
             temp["class"] = "exhibitComponent"
             temp["status"] = item.currentStatus()
             temp["ip_address"] = item.ip
@@ -272,6 +320,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
             temp["id"] = item.id
             temp["type"] = 'PROJECTOR'
             temp["ip_address"] = item.ip
+            if "allowed_actions" in item.config:
+                temp["allowed_actions"] = item.config["allowed_actions"]
 
             temp["class"] = "exhibitComponent"
             temp["status"] = item.state["status"]
@@ -282,6 +332,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
             temp["id"] = item.id
             temp["type"] = 'WAKE_ON_LAN'
             temp["ip_address"] = item.ip
+            if "allowed_actions" in item.config:
+                temp["allowed_actions"] = item.config["allowed_actions"]
 
             temp["class"] = "exhibitComponent"
             temp["status"] = item.state["status"]
@@ -321,7 +373,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         # print("+++++++++++++++")
         # print("BEGIN GET")
-        print(f"Active threads: {threading.active_count()}       ", end="\r", flush=True)
+        print(f" Active threads: {threading.active_count()}       ", end="\r", flush=True)
 
         # print(f"  path = {self.path}")
 
@@ -395,7 +447,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         # print("===============")
         # print("BEGIN POST")
 
-        print(f"Active threads: {threading.active_count()}      ", end="\r", flush=True)
+        print(f" Active threads: {threading.active_count()}      ", end="\r", flush=True)
 
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -821,8 +873,6 @@ def pollProjectors():
 
     global pollingThreadDict
 
-    #print("Polling projectors...")
-
     for projector in projectorList:
         th = threading.Thread(target=projector.update)
         th.daemon = True # So it dies if we exit
@@ -830,6 +880,18 @@ def pollProjectors():
 
     pollingThreadDict["pollProjectors"] = threading.Timer(30, pollProjectors)
     pollingThreadDict["pollProjectors"].start()
+
+def pollWakeOnLANDevices():
+
+    global pollingThreadDict
+
+    for device in wakeOnLANList:
+        th = threading.Thread(target=device.update)
+        th.daemon = True # So it dies if we exit
+        th.start()
+
+    pollingThreadDict["pollWakeOnLANDevices"] = threading.Timer(30, pollWakeOnLANDevices)
+    pollingThreadDict["pollWakeOnLANDevices"].start()
 
 def checkEventSchedule():
 
@@ -1079,10 +1141,20 @@ def loadDefaultConfiguration():
     # Parse list of serial proejctors
     try:
         wol = config["WAKE_ON_LAN"]
-        print("Collecting wake on LAN devices...", end="", flush=True)
+        print("Collecting Wake on LAN devices...", end="", flush=True)
 
         for key in wol:
-            wakeOnLANList.append(WakeOnLANDevice(key, wol[key]))
+            value_split = wol[key].split(",")
+            if len(value_split) == 2:
+                # We have been given a MAC address and IP address
+                device = WakeOnLANDevice(key, value_split[0].strip(), ip_address=value_split[1].strip())
+            elif len(value_split) == 1:
+                # We have been given only a MAC address
+                device = WakeOnLANDevice(key, value_split[0].strip())
+            else:
+                print(f"Wake on LAN device specified with unknown format: {wol[key]}")
+                continue
+            wakeOnLANList.append(device)
         print(" done")
     except:
         print("No wake on LAN devices specified")
@@ -1257,12 +1329,17 @@ def quit_handler(sig, frame):
         print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
         exit_code = 0
 
+    #print("Exit1")
     for key in pollingThreadDict:
         pollingThreadDict[key].cancel()
+    #print("Exit2")
     with logLock:
         logging.info("Server shutdown")
+    #print("Exit3")
     with currentExhibitConfigurationLock:
+        #print("Exit4")
         with scheduleLock:
+            #print("Exit5")
             sys.exit(exit_code)
 
 def error_handler(*exc_info):
@@ -1279,21 +1356,24 @@ serverPort = 8080 # Default; should be set in exhibit INI file
 ip_address = "localhost" # Default; should be set in exhibit INI file
 ADDR = "" # Accept connections from all interfaces
 gallery_name = ""
+
 componentList = []
 projectorList = []
 wakeOnLANList = []
 synchronizationList = [] # Holds sets of displays that are being synchronized
+
 currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
 exhibitList = []
 currentExhibitConfiguration = None # the configParser object holding the current config
+
 nextEvent = {} # Will hold the datetime and action of the upcoming event
 scheduleList = [] # Will hold a list of scheduled actions in the next week
 scheduleUpdateTime = 0
 serverRebootTime = None
 rebooting = False # This will be set to True from a background thread when it is time to reboot
-pollingThreadDict = {} # Holds references to the threads starting by various polling procedures
 
 # threading resources
+pollingThreadDict = {} # Holds references to the threads starting by various polling procedures
 logLock = threading.Lock()
 currentExhibitConfigurationLock = threading.Lock()
 trackingDataWriteLock = threading.Lock()
@@ -1304,6 +1384,9 @@ logging.basicConfig(datefmt='%Y-%m-%d %H:%M:%S', filename='control_server.log', 
 signal.signal(signal.SIGINT, quit_handler)
 sys.excepthook = error_handler
 
+# Dictionary to keep track of warnings we have already presented
+serverWarningDict = {}
+
 with logLock:
     logging.info("Server started")
 
@@ -1312,7 +1395,7 @@ checkAvailableExhibits()
 loadDefaultConfiguration()
 pollEventSchedule()
 pollProjectors()
+pollWakeOnLANDevices()
 
-#httpd = HTTPServer((ADDR, serverPort), RequestHandler)
 httpd = ThreadedHTTPServer((ADDR, serverPort), RequestHandler)
 httpd.serve_forever()

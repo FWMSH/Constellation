@@ -359,11 +359,11 @@
           this.id = id;
           this.type = type;
           this.content = null;
-          this.ip = ""; // Default; will be replaced when componet pings in
-          this.helperPort = 8000; // Default; will be replaced when componet pings in
+          this.ip = ""; // Default; will be replaced when component pings in
+          this.helperPort = 8000; // Default; will be replaced when component pings in
           this.state = {};
           this.status = "OFFLINE";
-          this.buildHTML();
+          this.allowed_actions = [];
 
           if (this.type == "PROJECTOR") {
             this.checkProjector();
@@ -448,18 +448,21 @@
         getButtonColorClass() {
 
           // Get the Bootstrap class based on the current status
-          var btnClass = 'btn-danger';
-          if (this.status == 'ACTIVE') {
-            btnClass = 'btn-primary';
-          } else if (this.status == "ONLINE") {
-            btnClass = 'btn-success';
-          } else if (this.status == "WAITING") {
-            btnClass = 'btn-warning';
-          } else if (this.status == "STANDBY") {
-            btnClass = 'btn-info';
-          }
 
-          return btnClass;
+          switch (this.status) {
+            case 'ACTIVE':
+              return 'btn-primary';
+            case 'ONLINE':
+              return 'btn-success';
+            case 'WAITING':
+              return 'btn-warning';
+            case 'UNKNOWN':
+              return 'btn-warning';
+            case 'STANDBY':
+              return 'btn-info'
+            default:
+              return 'btn-danger';
+          }
         }
 
         buildHTML() {
@@ -470,13 +473,29 @@
           var onCmdName = "";
           var offCmdName = "";
           var displayName = this.id;
-          if (this.type == "PROJECTOR") {
-            onCmdName = "Wake projector";
-            offCmdName = "Sleep projector";
-            displayName = displayName.toUpperCase();
-          } else {
-            onCmdName = "Wake display";
-            offCmdName = "Sleep display";
+          switch (this.type) {
+            case "PROJECTOR":
+              onCmdName = "Wake projector";
+              offCmdName = "Sleep projector";
+              break;
+            case "WAKE_ON_LAN":
+              onCmdName = "Wake component";
+              offCmdName = "Sleep component";
+              break;
+            default:
+              onCmdName = "Wake display";
+              offCmdName = "Sleep display";
+          }
+
+          var optionList = "";
+          if (this.allowed_actions.includes("power_on")) {
+            optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'wakeDisplay')">${onCmdName}</a>`;
+          }
+          if (this.allowed_actions.includes("power_off")) {
+            optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'sleepDisplay')">${offCmdName}</a>`;
+          }
+          if (optionList.length == 0) {
+            optionList += `<span class="dropdown-item">No available actions</span>`;
           }
 
           // Change the amount of the Bootstrap grid being used depending on the
@@ -497,8 +516,7 @@
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <div class="dropdown-menu">
-                  <a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'wakeDisplay')">${onCmdName}</a>
-                  <a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'sleepDisplay')">${offCmdName}</a>
+                  ${optionList}
                 </div>
               </div>
             </div>
@@ -1138,6 +1156,9 @@
           if ("helperPort" in component) {
             obj.helperPort = component["helperPort"];
           }
+          if ("allowed_actions" in component) {
+            obj.allowed_actions = component["allowed_actions"];
+          }
           if ("error" in component) {
             errorDict[obj.id + ": "] = component["error"];
             rebuildErrorList();
@@ -1157,6 +1178,10 @@
           // Then create a new component
           var newComponent = new ExhibitComponent(component["id"], component["type"]);
           newComponent.setStatus(component["status"]);
+          if ("allowed_actions" in component) {
+            newComponent.allowed_actions = component["allowed_actions"];
+          }
+          newComponent.buildHTML();
           exhibitComponents.push(newComponent);
 
           // Add the component to the right group
