@@ -147,6 +147,7 @@ def serial_send_command(connection, command, char_to_read=None, debug=False, mak
             },
             "viewsonic": {
                 '\x05\x14\x00\x03\x00\x00\x00\x00\x18': "on",
+                '\x05\x14\x00\x03\x00\x00\x00\x01\x18': "on",
                 '\x05\x14\x00\x03\x00\x00\x00\x00\x17': "off",
             }
         }
