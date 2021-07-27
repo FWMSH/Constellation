@@ -359,12 +359,15 @@ def commandProjector(cmd):
         else:
             print(f"commandProjector: Error: Unknown command: {cmd}")
 
-def deleteFile(file):
+def deleteFile(file, absolute=False):
 
     # Function to delete a file
 
-    root = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(root, "content", file)
+    if absolute:
+        file_path = file
+    else:
+        root = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(root, "content", file)
     print("Deleting file:", file_path)
     os.remove(file_path)
 
@@ -388,13 +391,17 @@ def getAllDirectoryContents():
 
     return([x for x in result if x.find(".DS_Store") == -1 ])
 
-def getDirectoryContents(path):
+def getDirectoryContents(path, absolute=False):
 
     # Return the contents of an exhibit directory
+    # if absolute == False, the path is appended to the default content directory
 
-    root = os.path.dirname(os.path.abspath(__file__))
-    content_path = os.path.join(root, "content")
-    contents = os.listdir(os.path.join(content_path, path))
+    if absolute:
+        contents = os.listdir(path)
+    else:
+        root = os.path.dirname(os.path.abspath(__file__))
+        content_path = os.path.join(root, "content")
+        contents = os.listdir(os.path.join(content_path, path))
     return([x for x in contents if x[0] != "."]) # Don't return hidden files
 
 def checkDirectoryStructure():
@@ -636,12 +643,12 @@ def updateDefaults(data):
                 content += file
 
         # If content has changed, update our configuration
-        if content != config.defaults_dict["content"]:
+        if ("content" not in config.defaults_dict) or (content != config.defaults_dict["content"]):
             config.defaults_object.set("CURRENT", "content", content)
             config.defaults_dict["content"] = content
             update_made = True
     if "current_exhibit" in data:
-        if data["current_exhibit"] != config.defaults_dict["current_exhibit"]:
+        if ("current_exhibit" not in config.defaults_dict) or (data["current_exhibit"] != config.defaults_dict["current_exhibit"]):
             config.defaults_object.set("CURRENT", "current_exhibit", data["current_exhibit"])
             config.defaults_dict["current_exhibit"] = data["current_exhibit"]
             update_made = True

@@ -1,6 +1,7 @@
 # This application sets up a small server to communicate with the screen players
 # and handle interacting with the system (since the browser cannot)
 
+# Standard module imports
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import time
 from datetime import datetime
@@ -8,10 +9,18 @@ import configparser
 import json
 import sys
 import os
-import serial
-from sockio.sio import TCP
 import signal
+import threading
+from pathlib import Path
+
+# Non-standard modules
+import requests
+from sockio.sio import TCP
 import mimetypes
+
+# Constellation modules
+import helper
+import config
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
@@ -57,9 +66,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
         # Receives pings from client devices and respond with any updated
         # information
 
-        global configFile
-        global config
-
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
@@ -82,29 +88,25 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 data[split2[0]] = split2[1]
 
         if "action" in data:
-            if data["action"] == "sleepDisplays":
-                sleepDisplays()
-            elif data["action"] == "wakeDisplays":
-                wakeDisplays()
-            elif data["action"] == "commandProjector":
-                if "command" in data:
-                    commandProjector(data["command"])
-            elif data["action"] == "getDefaults":
-                configToSend = dict(config.items())
-                if dictionary is not None:
-                    configToSend["dictionary"] = dict(dictionary.items("DEFAULT"))
+            if data["action"] == "getDefaults":
+                configToSend = dict(config.defaults_dict.items())
+                if config.dictionary_object is not None:
+                    configToSend["dictionary"] = dict(config.dictionary_object.items("CURRENT"))
 
                 json_string = json.dumps(configToSend)
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif data["action"] == "updateDefaults":
-                if "content" in data:
-                    content = data["content"]
-                    configFile.set("DEFAULT", "content", data["content"])
-                    config["content"] = content
-
-                    # Update file
-                    with open('defaults.ini', 'w') as f:
-                        configFile.write(f)
+                with defaultWriteLock:
+                    helper.updateDefaults(data)
+            elif data["action"] == "deleteFile":
+                    if ("file" in data):
+                        deleteFile(os.path.join("/", "home", "sos", "sosrc", data["file"]), absolute=True)
+                        response = {"success": True}
+                    else:
+                        response = {"success": False,
+                                    "reason": "Request missing field 'file'"}
+                    json_string = json.dumps(response)
+                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif data["action"] == "SOS_getCurrentClipName":
                 currentClip = sendSOSCommand("get_clip_number")
                 dataset = sendSOSCommand("get_clip_info " + currentClip)
@@ -147,6 +149,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 playlist = reply.split("/")[-1]
 
                 self.wfile.write(bytes(playlist, encoding="UTF-8"))
+            elif data["action"] == "SOS_openPlaylist":
+                if "name" in data:
+                    SOS_open_playlist(name)
             elif data["action"] == "SOS_getState":
                 reply = sendSOSCommand("get_state 0")
 
@@ -230,49 +235,16 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     reply = sendSOSCommand(f"playlist_read {data['playlistName']}", multiline=True)
 
                     self.wfile.write(bytes(reply, encoding="UTF-8"))
+            elif data["action"] == 'getAvailableContent':
+                active_content = [s.strip() for s in config.defaults_dict.get("content", "").split(",")]
+                all_content = list(Path("/home/sos/sosrc/").rglob("*.[sS][oO][sS]"))
+                response = {"all_exhibits": [str(os.path.relpath(x, '/home/sos/sosrc/')) for x in all_content],
+                            "active_content": active_content,
+                            "system_stats": helper.getSystemStats()}
+                json_string = json.dumps(response)
+                self.wfile.write(bytes(json_string, encoding="UTF-8"))
             else:
                 print(f"Warning: action {data['action']} not recognized!")
-
-
-def sleepDisplays():
-
-    if config["display_type"] == "screen":
-        if sys.platform == "darwin": # MacOS
-            os.system("pmset displaysleepnow")
-        elif sys.platform == "linux":
-            os.system("xset dpms force off")
-    elif config["display_type"] == "projector":
-        commandProjector("off")
-
-def wakeDisplays():
-    if config["display_type"] == "screen":
-        if sys.platform == "darwin": # MacOS
-            os.system("caffeinate -u -t 2")
-        elif sys.platform == "linux":
-            os.system("xset dpms force on")
-    elif config["display_type"] == "projector":
-        commandProjector("on")
-
-def commandProjector(cmd):
-
-    make = "Optoma"
-
-    if make == "Optoma":
-        ser = serial.Serial("/dev/ttyUSB0",9600, timeout=0, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS)
-        ser.reset_input_buffer()
-        ser.reset_output_buffer()
-
-        if cmd == "on":
-            ser.write(b"~0000 1\r")
-        elif cmd == "off":
-            ser.write(b"~0000 0\r")
-        elif cmd == "checkState":
-            ser.write(b"~00124 1\r")
-            time.sleep(0.3)
-            response = ser.readline()
-            print(response)
-        else:
-            print(f"commandProjector: Error: Unknown command: {cmd}")
 
 def sendSOSCommand(cmd, multiline=False):
 
@@ -290,35 +262,88 @@ def sendSOSCommand(cmd, multiline=False):
         print(e)
         sosSocket = connectToSOS()
 
-def readDefaultConfiguration():
+# def readDefaultConfiguration():
+#
+#     config_object = configparser.ConfigParser(delimiters=("="))
+#     config_object.read('defaults.ini')
+#     default = config_object["DEFAULT"]
+#     config_dict = dict(default.items())
+#
+#     return(config_object, config_dict)
 
-    config_object = configparser.ConfigParser(delimiters=("="))
-    config_object.read('defaults.ini')
-    default = config_object["DEFAULT"]
-    config_dict = dict(default.items())
+def sendPing():
 
-    return(config_object, config_dict)
+    #global config
+
+    headers = {'Content-type': 'application/json'}
+    requestDict = {"class": "exhibitComponent",
+                   "id": config.defaults_dict["id"],
+                   "type": config.defaults_dict["type"]}
+
+    server_full_address = "http://" + str(config.defaults_dict["server_ip_address"]) + ":" + str(config.defaults_dict["server_port"])
+
+    try:
+        response = requests.post(server_full_address, headers=headers, json=requestDict, timeout=1)
+    except:
+        type, value, traceback = sys.exc_info()
+        print("Error sending request", type, value)
+        return()
+
+    updates = response.json()
+
+    if "content" in updates:
+        content = (updates["content"])[0] # No support for multiple files
+        updates["content"] = [content]
+        if content != config.defaults_dict.get("content", ""):
+            print("new content detected:", content)
+            SOS_open_playlist(content)
+
+    with defaultWriteLock:
+        helper.updateDefaults(updates)
+
+    # if "commands" in updates:
+    #     for command in updates["commands"]:
+    #         if command == "sleepDisplay":
+    #             sleepDisplays()
+    #         elif command == "wakeDisplay":
+    #             wakeDisplays()
+    #         else:
+    #             print(f"Error: command {command} not recognized!")
+
+def sendPingAtInterval():
+
+    # Function to send a ping, then spawn a thread that will call this function
+    # again
+
+    global pingThread
+
+    sendPing()
+    pingThread = threading.Timer(5, sendPingAtInterval)
+    pingThread.start()
+
+def SOS_open_playlist(content):
+
+    # Send an SOS command to change to the specified playlist
+
+    sendSOSCommand("open_playlist " + content)
+    time.sleep(0.01)
+    sendSOSCommand("play 0")
 
 def quit_handler(sig, frame):
+
+    # Stop threads, shutdown connections, etc.
+
     print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
+
+    if pingThread is not None:
+        pingThread.cancel()
     if sosSocket != None:
         sosSocket.write(b'exit\n')
     sys.exit(0)
 
-def loadDictionary():
-
-    # look for a file called dictionary.ini and load it if it exists
-
-    if "dictionary.ini" in os.listdir():
-        parser = configparser.ConfigParser(delimiters=("="))
-        parser.read("dictionary.ini")
-        return(parser)
-    else:
-        return(None)
-
 def connectToSOS():
 
-    global config
+    #global config
 
     while True:
         # Sleep for 5 seconds so that we don't spam the connection
@@ -326,21 +351,26 @@ def connectToSOS():
         time.sleep(5)
 
         try:
-            sosSocket = TCP(config["sos_ip_address"], 2468)
             # Send Science on a Sphere command to begin communication
+            sosSocket = TCP(config.defaults_dict["sos_ip_address"], 2468)
             sosSocket.write_readline(b'enable\n')
             print("Connected!")
             return(sosSocket)
         except:
-            print("Error: Connection with Science on a Sphere failed to initialize. Make sure you have specificed sos_ip_address in defaults.ini, both computers are on the same network, and port 2468 is accessible.")
+            print("Error: Connection with Science on a Sphere failed to initialize. Make sure you have specificed sos_ip_address in defaults.ini, both computers are on the same network (or are the same machine), and port 2468 is accessible.")
             sosSocket = None
 
 signal.signal(signal.SIGINT, quit_handler)
 
-configFile, config = readDefaultConfiguration()
-dictionary = loadDictionary()
+# Threading resources
+pingThread = None
+defaultWriteLock = threading.Lock()
+
+helper.readDefaultConfiguration(checkDirectories=False)
+helper.loadDictionary()
 
 sosSocket = connectToSOS()
+sendPingAtInterval()
 
-httpd = HTTPServer(("", int(config["helper_port"])), RequestHandler)
+httpd = HTTPServer(("", int(config.defaults_dict["helper_port"])), RequestHandler)
 httpd.serve_forever()
