@@ -1056,46 +1056,46 @@
         var selectedButtons = $('.componentContentButton.btn-primary');
         var component = getExhibitComponent(id);
         var contentList = [];
-        for (var i=0; i<selectedButtons.length; i++) {
-          content = selectedButtons[i].innerHTML.trim();
-          content_split = content.split(/[\\\/]/); // regex to split on forward and back slash
-
-          // If the split > 1, we have a path, indicating we are selected content
-          // from another exhibit and need to copy it over first.
-          if (content_split.length > 1) {
-            var currentExhibitName = currentExhibit.split('.')[0];
-            if (currentExhibitName == content_split[0]) {
-              // This file is already part of the exhibit and just needs to be selected
-              content = content_split[1];
-            } else {
-              // This file is loaded only for another exhibit. First we need to
-              // ask the remote helper to copy the file to the directory for this
-              // exhibit.
-              content = content_split[1];
-
-              requestString = JSON.stringify({
-                "action": "copyFile",
-                "file": content,
-                "fromExhibit": content_split[0],
-                "toExhibit": currentExhibitName
-              })
-              var xhr = new XMLHttpRequest();
-              xhr.open("POST", `http://${component.ip}:${component.helperPort}`, true);
-              xhr.timeout = 2000;
-              xhr.setRequestHeader('Content-Type', 'application/json');
-              // xhr.onreadystatechange = function () {
-              //   if (this.readyState != 4) return;
-              //
-              //   if (this.status == 200) {
-              //     sendComponentContentChangeRequest(id, content)
-              //   }
-              // };
-              xhr.send(requestString);
-            }
-          }
-          contentList.push(content);
-          sendComponentContentChangeRequest(id, contentList);
-        }
+        // for (var i=0; i<selectedButtons.length; i++) {
+        //   content = selectedButtons[i].innerHTML.trim();
+        //   content_split = content.split(/[\\\/]/); // regex to split on forward and back slash
+        //
+        //   // If the split > 1, we have a path, indicating we are selected content
+        //   // from another exhibit and need to copy it over first.
+        //   if (content_split.length > 1) {
+        //     var currentExhibitName = currentExhibit.split('.')[0];
+        //     if (currentExhibitName == content_split[0]) {
+        //       // This file is already part of the exhibit and just needs to be selected
+        //       content = content_split[1];
+        //     } else {
+        //       // This file is loaded only for another exhibit. First we need to
+        //       // ask the remote helper to copy the file to the directory for this
+        //       // exhibit.
+        //       content = content_split[1];
+        //
+        //       requestString = JSON.stringify({
+        //         "action": "copyFile",
+        //         "file": content,
+        //         "fromExhibit": content_split[0],
+        //         "toExhibit": currentExhibitName
+        //       })
+        //       var xhr = new XMLHttpRequest();
+        //       xhr.open("POST", `http://${component.ip}:${component.helperPort}`, true);
+        //       xhr.timeout = 2000;
+        //       xhr.setRequestHeader('Content-Type', 'application/json');
+        //       // xhr.onreadystatechange = function () {
+        //       //   if (this.readyState != 4) return;
+        //       //
+        //       //   if (this.status == 200) {
+        //       //     sendComponentContentChangeRequest(id, content)
+        //       //   }
+        //       // };
+        //       xhr.send(requestString);
+        //     }
+        //   }
+        //   contentList.push(content);
+        //   sendComponentContentChangeRequest(id, contentList);
+        // }
 
         askForUpdate();
 
