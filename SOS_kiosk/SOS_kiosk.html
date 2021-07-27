@@ -83,8 +83,6 @@
       <div class="row">
 
         <div class='col-4 col-md-3 mt-2' style="position: fixed;">
-          <!-- <H3><center>Drag your finger over the globe to rotate the sphere:</center></H3>
-          <img src="sphere.svg" id="scrollPad" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event)"></img> -->
           <H1 class="mt-1"><center>Rotate sphere:</center></H1>
           <div class="row mt-4">
             <div class="col-6 offset-3">
@@ -122,6 +120,8 @@
   <script type="text/javascript" src="js/jquery-3.5.1.slim.min.js"></script>
   <script type="text/javascript" src="js/popper.min.js"></script>
   <script type="text/javascript" src="js/bootstrap.min.js"></script>
+
+  <script type="text/javascript" src="config.js"></script>
   <script>
 
     function handleTouchEnd(event) {
@@ -262,7 +262,6 @@
       xhr.open("POST", helperIP, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.onreadystatechange = function () {
-
         if (this.readyState != 4) return;
 
         if (this.status == 200) {
@@ -575,7 +574,6 @@
     var id = 'SOS-KIOSK';
     var type = 'KIOSK';
     var serverAddress = ""; // The address of the main control server
-    var helperIP = "http://10.1.1.31:8000"; // This is the address of the local helper process that can interact with the OS
     var source = "";
     var dictionary = null;
     var autorunScheduler = null; // Will hold a reference to a setTimeout object that handles starting autorun gracefully.
@@ -618,8 +616,8 @@
               'lastTouchY': null};
 
     askForDefaults();
-    // sendPing();
-    // setInterval(sendPing, 5000);
+    sendPing();
+    setInterval(sendPing, 5000);
     rebuildInterface();
     var inactivityTimer = null;
     resetActivityTimer();

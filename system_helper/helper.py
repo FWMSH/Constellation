@@ -1,6 +1,7 @@
 # This application sets up a small server to communicate with user-facing interfaces
 # and handle interacting with the system (since the browser cannot)
 
+# Standard modules
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import time
 import datetime
@@ -8,16 +9,21 @@ import configparser
 import json
 import sys
 import os
-import serial
-from sockio.sio import TCP
 import signal
 import cgi
 import shutil
 import psutil
-import mimetypes
 import socket
+
+# Non-standard modules
+from sockio.sio import TCP
+import mimetypes
 import dateutil.parser
 import requests
+import serial
+
+# Constellation modules
+import config
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
@@ -32,7 +38,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
         # Receive a GET request and respond with a console webpage
         #print("do_GET: ENTER")
         #print("  ", self.path)
-        global config
+        #global config
+
         if self.path == "/":
             pass
         elif self.path.lower().endswith(".html"):
@@ -50,9 +57,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
             page = str(f.read())
             # Build the address that the webpage should contact to reach this helper
             if self.address_string() == "127.0.0.1": # Request is coming from this machine too
-                address_to_insert = "'http://localhost:" + config["helper_port"] + "'"
+                address_to_insert = "'http://localhost:" + config.helper_port + "'"
             else: # Request is coming from the network
-                address_to_insert = "'http://" + socket.gethostbyname(socket.gethostname()) + config["helper_port"] + "'"
+                address_to_insert = "'http://" + socket.gethostbyname(socket.gethostname()) + config.helper_port + "'"
             # Then, insert that into the document
             page = page.replace("INSERT_HELPERIP_HERE", address_to_insert)
 
@@ -102,10 +109,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
         # Receives pings from client devices and respond with any updated
         # information
         # print("do_POST: ENTER")
-        global configFile
-        global config
-        global clipList
-        global commandList
+        # global configFile
+        # global config
+        # global clipList
+        # global commandList
 
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -173,21 +180,22 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     if "command" in data:
                         commandProjector(data["command"])
                 elif data["action"] == "getDefaults":
-                    configToSend = dict(config.items())
+                    #configToSend = dict(config.items())
+                    configToSend = config.defaults_dict.copy()
 
                     # Reformat this content list as an array
                     configToSend['content'] = [s.strip() for s in configToSend['content'].split(",")]
 
-                    if dictionary is not None:
+                    if config.dictionary_object is not None:
                         # If there are multiple sections, build a meta-dictionary
-                        if len(dictionary.items()) > 1:
+                        if len(config.dictionary_object.items()) > 1:
                             meta_dict = {"meta": True}
-                            for item in dictionary.items():
+                            for item in config.dictionary_object.items():
                                 name = item[0]
-                                meta_dict[name] = dict(dictionary.items(name))
+                                meta_dict[name] = dict(config.dictionary_object.items(name))
                             configToSend["dictionary"] = meta_dict
                         else:
-                            configToSend["dictionary"] = dict(dictionary.items("CURRENT"))
+                            configToSend["dictionary"] = dict(config.dictionary_object.items("CURRENT"))
                     configToSend["availableContent"] = {"all_exhibits": getAllDirectoryContents()}
 
                     root = os.path.dirname(os.path.abspath(__file__))
@@ -196,36 +204,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     json_string = json.dumps(configToSend)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif data["action"] == "updateDefaults":
-                    update_made = False
-                    if "content" in data:
-
-                        if isinstance(data["content"], str):
-                            content = data["content"]
-                        elif isinstance(data["content"], list):
-                            content = ""
-                            for i in range(len(data["content"])):
-                                file = (data["content"])[i]
-                                if i != 0:
-                                    content += ', '
-                                content += file
-
-                        # If content has changed, update our configuration
-                        if content != config["content"]:
-                            configFile.set("CURRENT", "content", content)
-                            config["content"] = content
-                            update_made = True
-                    if "current_exhibit" in data:
-                        if data["current_exhibit"] != config["current_exhibit"]:
-                            configFile.set("CURRENT", "current_exhibit", data["current_exhibit"])
-                            config["current_exhibit"] = data["current_exhibit"]
-                            update_made = True
-
-                    # Update file
-                    if update_made:
-                        with open('defaults.ini', 'w') as f:
-                            configFile.write(f)
+                    updateDefaults(data)
                 elif data["action"] == "getAvailableContent":
-                    active_content = [s.strip() for s in config["content"].split(",")]
+                    active_content = [s.strip() for s in config.defaults_dict["content"].split(",")]
                     response = {"all_exhibits": getAllDirectoryContents(),
                                 "active_content": active_content,
                                 "system_stats": getSystemStats()}
@@ -233,14 +214,14 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     json_string = json.dumps(response)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif data["action"] == "getCurrentExhibit":
-                    self.wfile.write(bytes(config["current_exhibit"], encoding="UTF-8"))
+                    self.wfile.write(bytes(config.defaults_dict["current_exhibit"], encoding="UTF-8"))
                 elif data["action"] == "deleteFile":
                     if ("file" in data):
                         deleteFile(data["file"])
                         response = {"success": True}
                     else:
                         response = {"success": False,
-                                    "reason": "Request missing field 'field'"}
+                                    "reason": "Request missing field 'file'"}
                     json_string = json.dumps(response)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif data["action"] == 'copyFile':
@@ -254,26 +235,26 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif data["action"] == "updateClipList":
                     if "clipList" in data:
-                        clipList["clipList"] = data["clipList"]
+                        config.clipList["clipList"] = data["clipList"]
                 elif data["action"] == "updateActiveClip":
                     if "index" in data:
-                        clipList["activeClip"] = data["index"]
+                        config.clipList["activeClip"] = data["index"]
                 elif data["action"] == "getClipList":
 
                     # If we don't have a clip list, ask for one to be sent for
                     # next time.
-                    if (len(clipList) == 0):
+                    if (len(config.clipList) == 0):
                         commandList.append("sendClipList")
                         self.wfile.write(bytes(json.dumps([]), encoding="UTF-8"))
                     else:
-                        json_string = json.dumps(clipList)
+                        json_string = json.dumps(config.clipList)
                         self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif data["action"] == 'gotoClip':
                     if "clipNumber" in data:
-                        commandList.append("gotoClip_"+str(data["clipNumber"]))
+                        config.commandList.append("gotoClip_"+str(data["clipNumber"]))
                 elif data["action"] == "getUpdate":
-                    responseDict = {"commands": commandList,
-                                    "missingContentWarnings": missingContentWarningList}
+                    responseDict = {"commands": config.commandList,
+                                    "missingContentWarnings": config.missingContentWarningList}
 
                     event_content = checkEventSchedule()
                     if event_content is not None:
@@ -284,22 +265,22 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         self.wfile.write(bytes(json_string, encoding="UTF-8"))
                     except socket.error as e:
                         print("Socket error in getUpdate:", e)
-                    commandList = []
+                    config.commandList = []
                 elif data["action"] == "setAutoplay":
                     if "state" in data:
                         if data["state"] == "on":
-                            commandList.append("enableAutoplay")
+                            config.commandList.append("enableAutoplay")
                         elif data["state"] == "off":
-                            commandList.append("disableAutoplay")
+                            config.commandList.append("disableAutoplay")
                         elif data["state"] == "toggle":
-                            commandList.append("toggleAutoplay")
+                            config.commandList.append("toggleAutoplay")
                 elif data["action"] == "seekVideo":
                     if ("direction" in data) and ("fraction" in data):
-                        commandList.append("seekVideo_"+data["direction"]+"_"+str(data["fraction"]))
+                        config.commandList.append("seekVideo_"+data["direction"]+"_"+str(data["fraction"]))
                 elif data["action"] == "pauseVideo":
-                    commandList.append("pauseVideo")
+                    config.commandList.append("pauseVideo")
                 elif data["action"] == "playVideo":
-                    commandList.append("playVideo")
+                    config.commandList.append("playVideo")
                 elif data["action"] == 'getLabelText':
                     if "lang" in data:
                         lang = data["lang"]
@@ -307,12 +288,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         lang = "en"
                     if "name" in data:
                         root = os.path.dirname(os.path.abspath(__file__))
-                        label_path = os.path.join(root, "labels", config["current_exhibit"], lang, data["name"])
+                        label_path = os.path.join(root, "labels", config.defaults_dict["current_exhibit"], lang, data["name"])
                         try:
                             f = open(label_path,"r")
                             label = f.read()
                         except:
-                            print(f"Error: Unknown label {data['name']} requested in language {lang} for exhibit {config['current_exhibit']}")
+                            print(f"Error: Unknown label {data['name']} requested in language {lang} for exhibit {config.defaults_dict['current_exhibit']}")
                             return()
 
                         self.wfile.write(bytes(label, encoding="UTF-8"))
@@ -326,7 +307,7 @@ def reboot():
 
     # Send an OS-appropriate command to restart the computer
 
-    reboot_allowed = config.getboolean("allow_restart", True)
+    reboot_allowed = config.defaults_dict.getboolean("allow_restart", True)
 
     if reboot_allowed:
         if sys.platform == "darwin": # MacOS
@@ -338,22 +319,22 @@ def reboot():
 
 def sleepDisplays():
 
-    if strToBool(config.get("allow_sleep", True)):
-        if config["display_type"] == "screen":
+    if strToBool(config.defaults_dict.get("allow_sleep", True)):
+        if config.defaults_dict["display_type"] == "screen":
             if sys.platform == "darwin": # MacOS
                 os.system("pmset displaysleepnow")
             elif sys.platform == "linux":
                 os.system("xset dpms force off")
-        elif config["display_type"] == "projector":
+        elif config.defaults_dict["display_type"] == "projector":
             commandProjector("off")
 
 def wakeDisplays():
-    if config["display_type"] == "screen":
+    if config.defaults_dict["display_type"] == "screen":
         if sys.platform == "darwin": # MacOS
             os.system("caffeinate -u -t 2")
         elif sys.platform == "linux":
             os.system("xset dpms force on")
-    elif config["display_type"] == "projector":
+    elif config.defaults_dict["display_type"] == "projector":
         commandProjector("on")
 
 def commandProjector(cmd):
@@ -368,7 +349,7 @@ def commandProjector(cmd):
         if cmd == "on":
             ser.write(b"~0000 1\r")
         elif cmd == "off":
-            if strToBool(config.get("allow_sleep", True)):
+            if strToBool(config.defaults_dict.get("allow_sleep", True)):
                 ser.write(b"~0000 0\r")
         elif cmd == "checkState":
             ser.write(b"~00124 1\r")
@@ -441,9 +422,9 @@ def strToBool(val):
         return(val)
     else:
         val = str(val).strip()
-        if val in ["false", "False"]:
+        if val in ["false", "False", 'FALSE']:
             return(False)
-        elif val in ["true", "True"]:
+        elif val in ["true", "True", 'TRUE']:
             return(True)
         else:
             print("strToBool: Error: ambiguous string", val)
@@ -480,23 +461,23 @@ def performManualContentUpdate(content):
 
     # First, update the control server
     requestDict = {"class": "webpage",
-                   "id": config["id"],
+                   "id": config.defaults_dict["id"],
                    "action": "setComponentContent",
                    "content": content}
 
     headers = {'Content-type': 'application/json'}
-    r = requests.post("http://" + config["server_ip_address"] + ":" + config["server_port"],
+    r = requests.post("http://" + config.defaults_dict["server_ip_address"] + ":" + config.defaults_dict["server_port"],
                         headers=headers, json=requestDict)
 
 def retrieveSchedule():
 
     # Function to search the schedules directory for an appropriate schedule
 
-    global schedule
+    #global schedule
 
     # Try several possible sources for the schedule with increasing generality
     root = os.path.dirname(os.path.abspath(__file__))
-    sources_to_try = [config["current_exhibit"], "default"]
+    sources_to_try = [config.defaults_dict["current_exhibit"], "default"]
     today_filename = datetime.datetime.now().date().isoformat() + ".ini" # eg. 2021-04-14.ini
     today_day_filename = datetime.datetime.now().strftime("%A").lower() + ".ini" # eg. monday.ini
     schedule_to_read = None
@@ -529,8 +510,8 @@ def retrieveSchedule():
             print("retrieveSchedule: error: no INI section 'SCHEDULE' found!")
     else:
         # Check again tomorrow
-        schedule = []
-        schedule.append((datetime.time(0,1), "reload_schedule"))
+        config.schedule = []
+        config.schedule.append((datetime.time(0,1), "reload_schedule"))
         print("No schedule for today. Checking again tomorrow...")
 
 
@@ -539,11 +520,11 @@ def readSchedule(schedule_input):
     # Parse the configParser section provided in schedule and convert it for
     # later use
 
-    global schedule
-    global missingContentWarningList
+    #global schedule
+    #global missingContentWarningList
 
-    schedule = []
-    missingContentWarningList = []
+    config.schedule = []
+    config.missingContentWarningList = []
 
     root = os.path.dirname(os.path.abspath(__file__))
     content_path = os.path.join(root, "content")
@@ -555,11 +536,11 @@ def readSchedule(schedule_input):
         # Otherwise, add it to the warning list to be passed to the control server
         for item in content:
             if not os.path.isfile(os.path.join(content_path, item)):
-                missingContentWarningList.append(item)
-        schedule.append((time, content))
+                config.missingContentWarningList.append(item)
+        config.schedule.append((time, content))
 
     # Add an event at 12:01 AM to retrieve the new schedule
-    schedule.append((datetime.time(0,1), "reload_schedule"))
+    config.schedule.append((datetime.time(0,1), "reload_schedule"))
 
     queueNextScheduledEvent()
 
@@ -567,14 +548,14 @@ def queueNextScheduledEvent():
 
     # Cycle through the schedule and queue the next event
 
-    global schedule
-    global nextEvent
-    global missingContentWarningList
+    #global schedule
+    #global nextEvent
+    #global missingContentWarningList
 
-    nextEvent = None
+    config.nextEvent = None
 
-    if schedule is not None:
-        sorted_sched = sorted(schedule)
+    if config.schedule is not None:
+        sorted_sched = sorted(config.schedule)
         now = datetime.datetime.now().time()
 
         root = os.path.dirname(os.path.abspath(__file__))
@@ -585,23 +566,23 @@ def queueNextScheduledEvent():
             # If the content was previously missing, see if it is still missing
             # (the user may have fixed the problem)
             for item in content:
-                if item in missingContentWarningList:
+                if item in config.missingContentWarningList:
                     if  os.path.isfile(os.path.join(content_path, item)):
                         # It now exists; remove it from the warning list
-                        missingContentWarningList = [ x for x in missingContentWarningList if x != item]
+                        config.missingContentWarningList = [ x for x in config.missingContentWarningList if x != item]
             if now < time:
-                nextEvent = event
+                config.nextEvent = event
                 break
 
 def checkEventSchedule():
 
     # Check the nextEvent and see if it is time. If so, set the content
 
-    global nextEvent
+    #global nextEvent
 
     content_to_retrun = None
-    if nextEvent is not None:
-        time, content = nextEvent
+    if config.nextEvent is not None:
+        time, content = config.nextEvent
         #print("Checking for scheduled event:", content)
         #print(f"Now: {datetime.now().time()}, Event time: {time}, Time for event: {datetime.now().time() > time}")
         if datetime.datetime.now().time() > time: # It is time for this event!
@@ -611,26 +592,64 @@ def checkEventSchedule():
             else:
                 performManualContentUpdate(content)
                 content_to_retrun = content
-            nextEvent = None
+            config.nextEvent = None
 
     queueNextScheduledEvent()
     return(content_to_retrun)
 
-def readDefaultConfiguration():
+def readDefaultConfiguration(checkDirectories=True):
 
     # Read defaults.ini
-    config_object = configparser.ConfigParser(delimiters=("="))
-    config_object.read('defaults.ini')
-    default = config_object["CURRENT"]
-    config_dict = dict(default.items())
+    #config_object = configparser.ConfigParser(delimiters=("="))
+    config.defaults_object = configparser.ConfigParser(delimiters=("="))
+    config.defaults_object.read('defaults.ini')
+    default = config.defaults_object["CURRENT"]
+    config.defaults_dict = dict(default.items())
 
-    if "allow_audio" in config_dict and strToBool(config_dict["allow_audio"]) is True:
+    if "allow_audio" in config.defaults_dict and strToBool(config.defaults_dict["allow_audio"]) is True:
         print("Warning: You have enabled audio. Make sure the file is whitelisted in the browser or media will not play.")
 
     # Make sure we have the appropriate file system set up
-    checkDirectoryStructure()
+    if checkDirectories:
+        checkDirectoryStructure()
 
-    return(config_object, config_dict)
+    #return(config_object, config_dict)
+
+def updateDefaults(data):
+
+    # Take a dictionary 'data' and write relevant parameters to disk if they
+    # have changed.
+
+    #global config
+    #global configFile
+
+    update_made = False
+    if "content" in data:
+        if isinstance(data["content"], str):
+            content = data["content"]
+        elif isinstance(data["content"], list):
+            content = ""
+            for i in range(len(data["content"])):
+                file = (data["content"])[i]
+                if i != 0:
+                    content += ', '
+                content += file
+
+        # If content has changed, update our configuration
+        if content != config.defaults_dict["content"]:
+            config.defaults_object.set("CURRENT", "content", content)
+            config.defaults_dict["content"] = content
+            update_made = True
+    if "current_exhibit" in data:
+        if data["current_exhibit"] != config.defaults_dict["current_exhibit"]:
+            config.defaults_object.set("CURRENT", "current_exhibit", data["current_exhibit"])
+            config.defaults_dict["current_exhibit"] = data["current_exhibit"]
+            update_made = True
+
+    # Update file
+    if update_made:
+        with open('defaults.ini', 'w') as f:
+            config.defaults_object.write(f)
 
 def quit_handler(sig, frame):
     print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
@@ -641,12 +660,12 @@ def loadDictionary():
     # look for a file called dictionary.ini and load it if it exists
 
     if "dictionary.ini" in os.listdir():
-        parser = configparser.ConfigParser(delimiters=("="))
-        parser.optionxform = str # Override the default, which is case-insensitive
-        parser.read("dictionary.ini")
-        return(parser)
-    else:
-        return(None)
+        config.dictionary_object = configparser.ConfigParser(delimiters=("="))
+        config.dictionary_object.optionxform = str # Override the default, which is case-insensitive
+        config.dictionary_object.read("dictionary.ini")
+    #     return(parser)
+    # else:
+    #     return(None)
 
 if __name__ == "__main__":
 
@@ -655,19 +674,19 @@ if __name__ == "__main__":
     schedule = None # Will be filled in during readDefaultConfiguration() if needed
     nextEvent = None
     missingContentWarningList = [] # Will hold one entry for every piece of content that is scheduled but not available
-    configFile, config = readDefaultConfiguration()
+    readDefaultConfiguration()
 
     # If it exists, load the dictionary that maps one value into another
-    dictionary = loadDictionary()
+    loadDictionary()
 
     # Look for an availble schedule and load it
     retrieveSchedule()
 
     # This is hold information about currently loaded media, e.g., for the player
-    clipList = {}
-    commandList = []
+    #clipList = {}
+    #commandList = []
 
-    print(f"Launching server on port {config['helper_port']} to serve {config['id']}.")
+    print(f'Launching server on port {config.defaults_dict["helper_port"]} to serve {config.defaults_dict["id"]}.')
 
-    httpd = HTTPServer(("", int(config["helper_port"])), RequestHandler)
+    httpd = HTTPServer(("", int(config.defaults_dict["helper_port"])), RequestHandler)
     httpd.serve_forever()

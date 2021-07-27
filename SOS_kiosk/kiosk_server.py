@@ -30,37 +30,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
         if self.path=="/":
             self.path="/SOS_kiosk.html"
 
-        # sendReply = False
-        # #try:
-        # if self.path.endswith(".html"):
-        #     mimetype = 'text/html'
-        #     sendReply = True
-        # elif self.path.endswith(".json"):
-        #     mimetype = 'application/json'
-        #     sendReply = True
-        # elif self.path.endswith(".jpg"):
-        #     mimetype = 'image/jpg'
-        #     sendReply = True
-        # elif self.path.endswith(".gif"):
-        #     mimetype = 'image/gif'
-        #     sendReply = True
-        # elif self.path.endswith(".svg"):
-        #     mimetype = 'image/svg+xml'
-        #     sendReply = True
-        # elif self.path.endswith(".js"):
-        #     mimetype = 'application/javascript'
-        #     sendReply = True
-        # elif self.path.endswith(".css"):
-        #     mimetype = 'text/css'
-        #     sendReply = True
-        # elif self.path.endswith(".ttf"):
-        #     mimetype = 'font/ttf'
-        #     sendReply = True
-        # else:
-        #     print(f"Error: filetype not recognized: {self.path}")
-        #
-        # if sendReply == True
-
         # Open the static file requested and send it
         try:
             mimetype = mimetypes.guess_type(self.path, strict=False)[0]
@@ -73,8 +42,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
         except FileNotFoundError:
             print(f"Error: could not find file {self.path}")
         return
-        # except IOError:
-        #     self.send_error(404,'File Not Found: %s' % self.path)
 
     def do_OPTIONS(self):
 
@@ -375,5 +342,5 @@ dictionary = loadDictionary()
 
 sosSocket = connectToSOS()
 
-httpd = HTTPServer(("", int(config["server_port"])), RequestHandler)
+httpd = HTTPServer(("", int(config["helper_port"])), RequestHandler)
 httpd.serve_forever()
