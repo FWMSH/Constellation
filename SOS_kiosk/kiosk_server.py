@@ -3,6 +3,7 @@
 
 # Standard module imports
 from http.server import HTTPServer, SimpleHTTPRequestHandler
+from socketserver import ThreadingMixIn
 import time
 from datetime import datetime
 import configparser
@@ -22,6 +23,10 @@ import mimetypes
 import helper
 import config
 
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    # Stub which triggers dispatch of requests into individual threads.
+    daemon_threads = True
+
 class RequestHandler(SimpleHTTPRequestHandler):
 
     def log_request(code='-', size='-'):
@@ -34,7 +39,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         # Receive a GET request and respond appropriately
 
-        # print("GET received: ", self.path)
+        if debug:
+            print("GET received: ", self.path)
 
         if self.path=="/":
             self.path="/SOS_kiosk.html"
@@ -50,9 +56,14 @@ class RequestHandler(SimpleHTTPRequestHandler):
             f.close()
         except FileNotFoundError:
             print(f"Error: could not find file {self.path}")
+        if debug:
+            print("GET complete")
         return
 
     def do_OPTIONS(self):
+
+        if debug:
+            print("DO_OPTIONS")
 
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -61,10 +72,16 @@ class RequestHandler(SimpleHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Credentials', 'true')
         self.end_headers()
 
+        if debug:
+            print("DO_OPTIONS complete")
+
     def do_POST(self):
 
         # Receives pings from client devices and respond with any updated
         # information
+
+        if debug:
+            print("POST Received", flush=True)
 
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -88,16 +105,23 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 data[split2[0]] = split2[1]
 
         if "action" in data:
+            if debug:
+                print(f'  {data["action"]}')
             if data["action"] == "getDefaults":
                 configToSend = dict(config.defaults_dict.items())
+
                 if config.dictionary_object is not None:
                     configToSend["dictionary"] = dict(config.dictionary_object.items("CURRENT"))
 
                 json_string = json.dumps(configToSend)
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif data["action"] == "updateDefaults":
+                if debug:
+                    print("    waiting for defaultWriteLock")
                 with defaultWriteLock:
                     helper.updateDefaults(data)
+                if debug:
+                    print("    defaultWriteLock released")
             elif data["action"] == "deleteFile":
                     if ("file" in data):
                         deleteFile(os.path.join("/", "home", "sos", "sosrc", data["file"]), absolute=True)
@@ -245,10 +269,16 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             else:
                 print(f"Warning: action {data['action']} not recognized!")
+        if debug:
+            print("POST complete")
+
 
 def sendSOSCommand(cmd, multiline=False):
 
     # Function to send a command to Science on a Sphere adn read its response
+
+    if debug:
+        print("    sendSOSCommand:", cmd)
 
     global sosSocket
 
@@ -262,18 +292,10 @@ def sendSOSCommand(cmd, multiline=False):
         print(e)
         sosSocket = connectToSOS()
 
-# def readDefaultConfiguration():
-#
-#     config_object = configparser.ConfigParser(delimiters=("="))
-#     config_object.read('defaults.ini')
-#     default = config_object["DEFAULT"]
-#     config_dict = dict(default.items())
-#
-#     return(config_object, config_dict)
-
 def sendPing():
 
-    #global config
+    if debug:
+        print("Sending ping")
 
     headers = {'Content-type': 'application/json'}
     requestDict = {"class": "exhibitComponent",
@@ -298,17 +320,13 @@ def sendPing():
             print("new content detected:", content)
             SOS_open_playlist(content)
 
+    if debug:
+        print("    waiting for defaultWriteLock")
     with defaultWriteLock:
         helper.updateDefaults(updates)
-
-    # if "commands" in updates:
-    #     for command in updates["commands"]:
-    #         if command == "sleepDisplay":
-    #             sleepDisplays()
-    #         elif command == "wakeDisplay":
-    #             wakeDisplays()
-    #         else:
-    #             print(f"Error: command {command} not recognized!")
+    if debug:
+        print("    defaultWriteLock released")
+        print("Ping complete")
 
 def sendPingAtInterval():
 
@@ -326,8 +344,7 @@ def SOS_open_playlist(content):
     # Send an SOS command to change to the specified playlist
 
     sendSOSCommand("open_playlist " + content)
-    time.sleep(0.01)
-    sendSOSCommand("play 0")
+    sendSOSCommand("play 1")
 
 def quit_handler(sig, frame):
 
@@ -362,6 +379,8 @@ def connectToSOS():
 
 signal.signal(signal.SIGINT, quit_handler)
 
+debug = False
+
 # Threading resources
 pingThread = None
 defaultWriteLock = threading.Lock()
@@ -372,5 +391,5 @@ helper.loadDictionary()
 sosSocket = connectToSOS()
 sendPingAtInterval()
 
-httpd = HTTPServer(("", int(config.defaults_dict["helper_port"])), RequestHandler)
+httpd = ThreadedHTTPServer(("", int(config.defaults_dict["helper_port"])), RequestHandler)
 httpd.serve_forever()
