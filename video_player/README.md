@@ -16,8 +16,13 @@ Every instance of the media player requires an instance of the `system helper`. 
 The media player is based on HTML 5 and JavaScript, so it should work on any modern browser; however, it has only been tested significantly on Chromium.
 
 ### Configuration options
+* `allow_audio` (default: `false`): Allow media files to play audio.
+ * If you enable audio, you **must** whitelist the player HTML file in the browser. Otherwise, no media will play. This is a feature mandated by all modern browsers.
 * `allow_sleep` (default: `true`): Allow the `system helper` to put the display to sleep on command from the `control server`. This does not override any operating system settings, which may interfere with sleeping/waking the screen.
 * `id`: A unique name for communicating with the `control server`. Every media player must have an `id`.
+* `image_duration` (Default: 10 seconds): The number of seconds an image is displayed before the next item in the playlist is shown. Specify with a number only, no units.
+* `kiosk_id` (default: `UNKNOWN`): A unique name for the optional kiosk.
+* `kiosk_type` (default: `PLAYER_KIOSK`): A user-defined grouping name for the optional kiosk
 * `synchronize_with`: A list of other media player `id`s with which to synchronize playback.
 * `type`: A user-defined grouping name. Every media player must have a `type`.
 

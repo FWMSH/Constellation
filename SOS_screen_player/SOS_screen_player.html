@@ -73,6 +73,7 @@
       requestString = `action=sleepDisplays`;
 
       var xhr = new XMLHttpRequest();
+      xhr.timeout = 1000;
       xhr.open("POST", helperIP, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.onreadystatechange = function () {
@@ -93,6 +94,7 @@
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperIP, true);
+      xhr.timeout = 1000;
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.onreadystatechange = function () {
         if (this.readyState != 4) return;
@@ -111,6 +113,7 @@
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperIP, true);
+      xhr.timeout = 1000;
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.onreadystatechange = function () {
         if (this.readyState != 4) return;
@@ -201,6 +204,7 @@
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", helperIP, true);
+      xhr.timeout = 2000;
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.onreadystatechange = function () {
 
@@ -218,10 +222,17 @@
       // Contact the control server and ask for any updates
 
       if (serverAddress != "") {
-        requestString = `class=exhibitComponent&id=${id}&type=${type}`;
+        requestDict = {"class":"exhibitComponent",
+                       "id": id,
+                       "type": type}
+        if (errorString != null) {
+          requestDict["error"] = errorString;
+        }
+        requestString = JSON.stringify(requestDict);
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", serverAddress, true);
+        xhr.timeout = 1000;
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onerror = function() {
         }
@@ -256,9 +267,19 @@
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", sosAddress, true);
+      xhr.timeout = 450;
+
+      var errorFunc = function() {
+        if (currentObject != null) {
+          changeMedia("playlists/default/"+dictionary["default"]);
+        }
+        currentObject = null;
+        errorString = "SOS connection offline";
+      }
+      xhr.onerror = errorFunc;
+      xhr.ontimeout = errorFunc;
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.onreadystatechange = function () {
-
         if (this.readyState != 4) return;
 
         if (this.status == 200) {
@@ -267,12 +288,12 @@
             if (this.response in dictionary) {
               filename = dictionary[this.response];
             } else {
-              console.log(this.response)
               filename = dictionary["default"];
             }
 
             changeMedia("playlists/default/"+filename);
             currentObject = this.response;
+            errorString = null;
           }
 
         }
@@ -290,10 +311,11 @@
     var dictionary = null; // will hold the dictionary used to translate between SOS dataset names and filenames
 
     var currentObject = "";
+    var errorString = null;
 
     askForDefaults();
-    //sendPing();
-    //setInterval(sendPing, 5000);
+    sendPing();
+    setInterval(sendPing, 5000);
     setInterval(pollSOS, 500);
 
   </script>
