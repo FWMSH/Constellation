@@ -269,14 +269,17 @@
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", sosAddress, true);
-      xhr.timeout = 450;
+      xhr.timeout = 1000;
 
       var errorFunc = function() {
-        if (currentObject != null) {
-          changeMedia("playlists/default/"+dictionary["default"]);
+        if (pollSOSErrorTicks > 1) {
+          if (currentObject != null) {
+            changeMedia("playlists/default/"+dictionary["default"]);
+          }
+          currentObject = null;
+          errorString = "SOS connection offline";
         }
-        currentObject = null;
-        errorString = "SOS connection offline";
+        pollSOSErrorTicks += 1;
       }
       xhr.onerror = errorFunc;
       xhr.ontimeout = errorFunc;
@@ -285,6 +288,7 @@
         if (this.readyState != 4) return;
 
         if (this.status == 200) {
+          pollSOSErrorTicks = 0;
           if (this.response != currentObject) {
             var filename = "";
             if (this.response in dictionary) {
@@ -314,6 +318,7 @@
 
     var currentObject = "";
     var errorString = null;
+    var pollSOSErrorTicks = 0
 
     askForDefaults();
     sendPing();
