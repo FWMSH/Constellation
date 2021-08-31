@@ -2010,3 +2010,4 @@ INFO, 2021-08-31 11:39:06, Server started
 WARNING, 2021-08-31 11:39:24, there is no configuration available for component with id=9-11_DISP
 ERROR, 2021-08-31 11:39:46, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-08-31 11:39:48, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-08-31 14:00:10, GET for unexpected file /js/popper.min.js.map

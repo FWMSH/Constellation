@@ -182,8 +182,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 elif data["action"] == "getDefaults":
                     #configToSend = dict(config.items())
                     configToSend = config.defaults_dict.copy()
-                    if "reboot_allowed" not in configToSend:
-                        configToSend["reboot_allowed"] = "true"
+                    if "allow_restart" not in configToSend:
+                        configToSend["allow_restart"] = "true"
 
                     # Reformat this content list as an array
                     configToSend['content'] = [s.strip() for s in configToSend['content'].split(",")]

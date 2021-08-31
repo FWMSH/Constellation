@@ -497,7 +497,7 @@
           if (this.allowed_actions.includes("refresh")) {
             optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'refresh_page')">Refresh component</a>`;
           }
-          if (this.allowed_actions.includes("reboot")) {
+          if (this.allowed_actions.includes("restart")) {
             optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'restart')">Restart component</a>`;
           }
           if (this.allowed_actions.includes("shutdown") || this.allowed_actions.includes("power_off")) {

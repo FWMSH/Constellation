@@ -250,11 +250,11 @@
             console.log(`Setting image duration: ${update["image_duration"]} seconds`);
           }
       }
-      if ("reboot_allowed" in update) {
-        allowedActionsDict["reboot"] = update["reboot_allowed"];
+      if ("allow_restart" in update) {
+        allowedActionsDict["restart"] = update["allow_restart"];
       }
-      if ("shutdown_allowed" in update) {
-        allowedActionsDict["shutdown"] = update["shutdown_allowed"];
+      if ("allow_shutdown" in update) {
+        allowedActionsDict["shutdown"] = update["allow_shutdown"];
       }
 
       // This should be last to make sure the path has been updated
