@@ -1402,7 +1402,7 @@ def checkFileStructure():
 def quit_handler(sig, frame):
 
     # Function to handle cleaning shutting down the server
-
+    
     if rebooting == True:
         print("\nRebooting server...")
         exit_code = 1
@@ -1414,6 +1414,7 @@ def quit_handler(sig, frame):
     # we can resume from the current state
     with open("current_state.dat", 'wb') as f:
         pickle.dump(componentList, f)
+        a = pickle.dumps(componentList)
 
     #print("Exit1")
     for key in pollingThreadDict:
@@ -1482,7 +1483,7 @@ try:
     with open("current_state.dat", "rb") as f:
         componentList = pickle.load(f)
         print("Previous server state loaded")
-except FileNotFoundError:
+except (FileNotFoundError, EOFError):
     print("Could not load previous server state")
 
 checkFileStructure()
