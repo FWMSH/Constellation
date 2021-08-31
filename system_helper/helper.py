@@ -246,7 +246,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     # If we don't have a clip list, ask for one to be sent for
                     # next time.
                     if (len(config.clipList) == 0):
-                        commandList.append("sendClipList")
+                        config.commandList.append("sendClipList")
                         self.wfile.write(bytes(json.dumps([]), encoding="UTF-8"))
                     else:
                         json_string = json.dumps(config.clipList)
@@ -319,7 +319,7 @@ def reboot():
         if sys.platform == "darwin": # MacOS
             os.system("osascript -e 'tell app \"System Events\" to restart'")
         elif sys.platform == "linux":
-            os.system("systemctl reboot")
+            os.system("systemctl reboot -i")
         elif sys.platform == "win32":
             os.system("shutdown -t 0 -r")
     else:
@@ -336,7 +336,7 @@ def shutdown():
         if sys.platform == "darwin": # MacOS
             os.system("osascript -e 'tell app \"System Events\" to shutdown'")
         elif sys.platform == "linux":
-            os.system("systemctl shutdown")
+            os.system("systemctl shutdown -i")
         elif sys.platform == "win32":
             os.system("shutdown -t 0 -s")
     else:
