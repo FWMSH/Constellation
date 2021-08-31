@@ -1,7 +1,11 @@
 # Control Server
 
 ## Introduction
+
+<img src="images/Components_overview_tab.png" style="width: 40%; float: right; border: 2px solid gray; margin: 5px;"></img>
+
 The control server coordinates communication between **_Constellation_** components and provides a web-based interface for controlling them. The server is implemented in Python 3 and the web console in Javascript.
+
 
 ## Terminology
 
@@ -30,7 +34,9 @@ If you wish to run multiple control servers so you can manage separate galleries
 
 The following packages are required to install the control server. For `pip`, they are listed in `requirements.txt`.
 
+* [`icmplib`](https://github.com/ValentinBELYN/icmplib)
 * [`pypjlink2`](https://github.com/benoitlouy/pypjlink)
+* [`pywakeonlan`](https://github.com/remcohaszing/pywakeonlan)
 
 ### Configuration
 
@@ -72,16 +78,50 @@ sunday_off = 5 PM
 The easiest and best way to manage the schedule is through the web console's [Schedule Tab](#schedule-tab).
 
 ##### Controlling projectors
-The control server can manage projectors over IP using the PJLink protocol. With this method, you can read the state of various internal projector parameters, as well as turn the projector on and off. Since this happens independently of whatever device is actually connected to the projector, projectors are not considered a `component` and do not have `content`.
+The control server can manage projectors over IP using the PJLink protocol or serial commands. Since this happens independently of whatever device is actually connected to the projector, projectors are not considered a `component` and do not have `content`. All projectors are assigned the `type` of "PROJECTOR".
 
-Projectors are defined in the `[PROJECTORS]` section as such:
+###### PJLink
+The PJLink protocol returns a defined set of information about the state of the connected projector. Each manufacturer implements the protocol slightly differently, so the available information may vary marginally.
+
+PJLink projectors are defined in the `[PJLINK_PROJECTORS]` section as such:
 
 ```
-[PROJECTORS]
+[PJLINK_PROJECTORS]
 myprojector = 10.8.0.177
 secureProjector = 10.8.1.235, thePassword
 ```
-Each line defines one projector, in which the keyword becomes the `id`. Note that INI keywords are case insensitive; the `id` will be converted to uppercase when displayed in the web console. If a projector has a password for access to PJLink, specify it with a comma after the IP address. All projectors are assigned the `type` of "PROJECTOR."
+Each line defines one projector, in which the keyword becomes the `id`. If a projector has a password for access to PJLink, specify it with a comma after the IP address.
+
+###### Serial (RS-232)
+The control server can also manage projectors that implement a serial-over-IP interface. You can also use a wireless serial adapter for projectors that do not implement serial-over-IP. Because every manufacturer implements a different set of functionality, the returned information is much more variable than over PJLink. **If PJLink is available, it is highly recommended.**
+
+PJLink projectors are defined in the `[SERIAL_PROJECTORS]` section as such:
+
+```
+[SERIAL_PROJECTORS]
+mySerialProjector = 10.8.0.175, barco
+myOtherProjector = 10.8.1.234, christie
+```
+
+In addition to their IP address, you must specify the manufacturer of your device. Because some manufacturers vary their serial commands over generation, there is no guarantee that the control server supports your model, even if your manufacturer is supported. The following makes are at least partially supported:
+
+| Make      | Known compatible models  |
+| ----      | ------------------       |
+| Barco     | F35                      |
+| Christie  | DHD850-GS, Mirage HD8             |
+| Optoma    |                          |
+| Viewsonic |                          |
+
+##### Wake on LAN
+
+The control server can send Wake on LAN magic packets to power on machines connected to its network. These devices are specified using the MAC addresses, as such:
+
+```
+[WAKE_ON_LAN]
+My_PC = B0:C7:30:95:93:C0
+MY_PC2 = F1-E3-D1-51-B5-A1, 10.8.0.85
+```
+If the given machine has a static IP address, you can specify it on the same line, after a comma. The control server will ping that address at intervals to check if the machine is powered on. **To send pings on Windows, you must run the control server with administrator privileges.**
 
 #### Exhibit files
 An exhibit file defines the content for a particular exhibit. It is in INI format, with the equals sign (=) as the separator. Each component has its own section. The `content` keyword defines the files that component should use. To specify multiple media pieces, separate them by a comma. For example, the content definition for two displays with `id`s of DISPLAY1 and DISPLAY2 would look like:
@@ -104,21 +144,20 @@ The web console is the most convenient way of managing your settings and viewing
 
 The components tab lists every managed `component` and `projector`. Each receives its own tile, which is color-coded by the object's current state.
 
+
 #### States
 
 The following states apply to both `component`s and `projector`s:
 
-* `ONLINE` (green): This object is currently operational.
-* `WAITING` (yellow): This object was recently operational but has gone offline. This may be due to a temporary network or other issue. When a `component` is connected to a display that is sleeping, the OS or browser may allow processes to operate only on an interval. This often manifests as alternating between `ONLINE` and `WAITING`.
-* `OFFLINE` (red): This object has been offline for an extended period of time. If this is due to a network issue, the `component` or `projector` may still be operating correctly from the perspective of the public, but it will not currently respond to commands.
-
-The following states apply only to a `component`:
-
-* `ACTIVE` (blue): This `component` is currently being interacted with by a person. For example, a touchscreen kiosk in which the touchscreen is being used.
-
-The following states apply only to a `projector`:
-
-* `STANDBY` (teal): The `projector` is accessible via PJLink but is currently powered off.
+| State   | Component | Projector | Wake on LAN |
+| -----   | --------- | --------- | ----------- |
+| ACTIVE  | Component is currently being interacted with | - | - |
+| ONLINE  | Component is responding | Projector is responding, and powered on | - |
+| OFFLINE | Component is not responding | Projector is not responding | WoL system is not responding |
+| STANDBY | - | Projector is responding, but powered off | - |
+| SYSTEM ON | The computer is on, but no Constellation software is responding. | - | The WoL system is responding to pings |
+| WAITING | The component was recently ONLINE. There may only be a temporary connectivity issue.  This is common if a display is sleeping. | - | - |
+| UNKONWN | - | - | No IP address was supplied for this WoL system, so we cannot ping it to check its status. |
 
 ### Component status page
 

@@ -23,6 +23,10 @@
         padding-right: 10px;
         margin-right: 10px;
       }
+      .dropdown-item {
+        padding-top: 10px;
+        padding-bottom: 10px;
+      }
       .handCursor {
         cursor: pointer;
       }
@@ -460,6 +464,8 @@
               return 'btn-warning';
             case 'STANDBY':
               return 'btn-info'
+            case 'SYSTEM ON':
+              return 'btn-info'
             default:
               return 'btn-danger';
           }
@@ -483,16 +489,28 @@
               offCmdName = "Sleep component";
               break;
             default:
-              onCmdName = "Wake display";
-              offCmdName = "Sleep display";
+              onCmdName = "Wake component";
+              offCmdName = "Shutdown component";
           }
 
           var optionList = "";
-          if (this.allowed_actions.includes("power_on")) {
-            optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'wakeDisplay')">${onCmdName}</a>`;
+          if (this.allowed_actions.includes("refresh")) {
+            optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'refresh_page')">Refresh component</a>`;
           }
-          if (this.allowed_actions.includes("power_off")) {
-            optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'sleepDisplay')">${offCmdName}</a>`;
+          if (this.allowed_actions.includes("reboot")) {
+            optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'restart')">Restart component</a>`;
+          }
+          if (this.allowed_actions.includes("shutdown") || this.allowed_actions.includes("power_off")) {
+            optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'shutdown')">${offCmdName}</a>`;
+          }
+          if (this.allowed_actions.includes("power_on")) {
+            optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'power_on')">${onCmdName}</a>`;
+          }
+          if (this.allowed_actions.includes("wake")) {
+            optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'wakeDisplay')">$Wake display</a>`;
+          }
+          if (this.allowed_actions.includes("sleep")) {
+            optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'sleepDisplay')">Sleep display</a>`;
           }
           if (optionList.length == 0) {
             optionList += `<span class="dropdown-item">No available actions</span>`;
@@ -1240,29 +1258,43 @@
         // be sent to the component the next time it pings the server
 
         var obj = getExhibitComponent(id);
-        var cmdType = ""
-        switch (obj.type) {
-          case "PROJECTOR":
-            cmdType = "queueProjectorCommand";
-            break;
-          case "WAKE_ON_LAN":
-            cmdType = "queueWOLCommand";
-            break;
-          default:
-            cmdType = "queueCommand"
+        if (["shutdown", "restart"].includes(cmd)) {
+          // We send these commands directly to the helper
+          var requestDict = {"action": cmd};
+
+          var xhr = new XMLHttpRequest();
+          xhr.timeout = 2000;
+          console.log(`http://${obj.ip}:${obj.helperPort}`)
+          xhr.open("POST", `http://${obj.ip}:${obj.helperPort}`, true);
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.send(JSON.stringify(requestDict));
+
+        } else {
+          // We send these commands to the server to pass to the component itself
+          var cmdType = ""
+          switch (obj.type) {
+            case "PROJECTOR":
+              cmdType = "queueProjectorCommand";
+              break;
+            case "WAKE_ON_LAN":
+              cmdType = "queueWOLCommand";
+              break;
+            default:
+              cmdType = "queueCommand"
+          }
+
+          var requestDict = {"class": "webpage",
+                             "id": id,
+                             "command": cmd,
+                             "action": cmdType};
+
+          var xhr = new XMLHttpRequest();
+          xhr.timeout = 2000;
+          xhr.open("POST", serverIP, true);
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.send(JSON.stringify(requestDict));
         }
 
-        //var requestString = `class=webpage&action=${cmdType}&id=${id}&command=${cmd}`;
-        var requestDict = {"class": "webpage",
-                           "id": id,
-                           "command": cmd,
-                           "action": cmdType};
-
-        var xhr = new XMLHttpRequest();
-        xhr.timeout = 2000;
-        xhr.open("POST", serverIP, true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(JSON.stringify(requestDict));
       }
 
       function sendGroupCommand(group, cmd) {
@@ -1749,7 +1781,7 @@
                 if ("class" in component) {
                   if (component["class"] == "exhibitComponent") {
                     n_comps += 1;
-                    if ((component["status"] == "ONLINE") || (component["status"] == "STANDBY")) {
+                    if ((component["status"] == "ONLINE") || (component["status"] == "STANDBY") || (component["status"] == "SYSTEM ON")) {
                       n_online += 1;
                     }
                     updateComponentFromServer(component);

@@ -25,3 +25,4 @@ system_helper/content/Gong-Greenhouse_effect.png
 control_server/control_server.log
 system_helper/content/81KbKVU6gnL._RI_.jpg
 *.pyc
+control_server/current_state.dat

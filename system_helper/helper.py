@@ -182,6 +182,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 elif data["action"] == "getDefaults":
                     #configToSend = dict(config.items())
                     configToSend = config.defaults_dict.copy()
+                    if "reboot_allowed" not in configToSend:
+                        configToSend["reboot_allowed"] = "true"
 
                     # Reformat this content list as an array
                     configToSend['content'] = [s.strip() for s in configToSend['content'].split(",")]
@@ -299,6 +301,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         self.wfile.write(bytes(label, encoding="UTF-8"))
                     else:
                         print(f"Error: Label requested without name")
+                elif data["action"] == "shutdown":
+                    shutdown();
+                elif data["action"] == "restart":
+                    reboot();
                 else:
                     print("Error: unrecognized action:", data["action"])
         #print("do_POST: EXIT")
@@ -307,15 +313,34 @@ def reboot():
 
     # Send an OS-appropriate command to restart the computer
 
-    reboot_allowed = config.defaults_dict.getboolean("allow_restart", True)
-
-    if reboot_allowed:
+    reboot_allowed = config.defaults_dict.get("allow_restart", "true")
+    if reboot_allowed.lower() in ["true", "yes", '1', 1]:
+        print("Rebooting...")
         if sys.platform == "darwin": # MacOS
             os.system("osascript -e 'tell app \"System Events\" to restart'")
         elif sys.platform == "linux":
             os.system("systemctl reboot")
         elif sys.platform == "win32":
-            os.system("shutdown -t 0 -r -f")
+            os.system("shutdown -t 0 -r")
+    else:
+        print("Restart requested but not permitted by defaults.ini. Set allow_restart = true to enable")
+
+def shutdown():
+
+    # Send an OS-appropriate command to shutdown the computer
+
+    shutdown_allowed = config.defaults_dict.get("allow_shutdown", "false")
+
+    if shutdown_allowed.lower() in ["true", "yes", '1', 1]:
+        print("Shutting down...")
+        if sys.platform == "darwin": # MacOS
+            os.system("osascript -e 'tell app \"System Events\" to shutdown'")
+        elif sys.platform == "linux":
+            os.system("systemctl shutdown")
+        elif sys.platform == "win32":
+            os.system("shutdown -t 0 -s")
+    else:
+        print("Shutdown requested but not permitted by defaults.ini. Set allow_shutdown = true to enable")
 
 def sleepDisplays():
 

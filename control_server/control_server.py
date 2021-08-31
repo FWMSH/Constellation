@@ -20,6 +20,7 @@ import sys
 import shutil
 import traceback
 import threading, _thread
+import pickle
 
 # Non-standard modules
 import wakeonlan
@@ -131,19 +132,36 @@ class ExhibitComponent:
 
     def __init__(self, id, type):
 
+        global wakeOnLANList
+
         self.id = id
         self.type = type
         self.ip = "" # IP address of client
         self.helperPort = 8000 # port of the localhost helper for this component
+
+        self.macAddress = None # Added below if we have specified a Wake on LAN device
+        self.broadcastAddress = "255.255.255.255"
+        self.WOLPort = 9
 
         self.lastContactDateTime = datetime.datetime.now()
         self.lastInteractionDateTime = datetime.datetime(2020, 1, 1)
 
         self.config = {
                         "commands": [],
-                        "allowed_actions": ["power_on", "power_off"]}
+                        "allowed_actions": []}
 
         self.updateConfiguration()
+
+        # Check if we have specified a Wake on LAN device matching this id
+        # If yes, subsume it into this component
+        wol = getWakeOnLanComponent(self.id)
+        if wol is not None:
+            self.macAddress = wol.macAddress
+            if "power_on" not in self.config["allowed_actions"]:
+                self.config["allowed_actions"].append("power_on")
+            if "shutdown" not in self.config["allowed_actions"]:
+                self.config["allowed_actions"].append("power_off")
+            wakeOnLANList = [x for x in wakeOnLANList if x.id != wol.id]
 
     def secondsSinceLastContact(self):
 
@@ -172,7 +190,7 @@ class ExhibitComponent:
     def currentStatus(self):
 
         # Return the current status of the component
-        # [OFFLINE, ONLINE, ACTIVE, WAITING]
+        # [OFFLINE, SYSTEM ON, ONLINE, ACTIVE, WAITING]
 
         status = 'OFFLINE'
 
@@ -181,8 +199,12 @@ class ExhibitComponent:
                 status = "ACTIVE"
             else:
                 status = "ONLINE"
-        elif self.secondsSinceLastContact() < 300:
+        elif self.secondsSinceLastContact() < 60:
             status = "WAITING"
+        else:
+            # If we haven't heard from the component, we might still be able
+            # to ping the PC and see if it is alive
+            status = self.updatePCStatus()
 
         return(status)
 
@@ -204,8 +226,53 @@ class ExhibitComponent:
 
     def queueCommand(self, command):
 
-        print(f"{self.id}: command queued: {command}")
-        self.config["commands"].append(command)
+        if (command in ["power_on", "wakeDisplay"]) and (self.macAddress is not None):
+            self.wakeWithLAN()
+        else:
+            print(f"{self.id}: command queued: {command}")
+            self.config["commands"].append(command)
+
+    def wakeWithLAN(self):
+
+        # Function to send a magic packet waking the device
+
+        if self.macAddress is not None:
+
+            print(f"Sending wake on LAN packet to {self.id}")
+            with logLock:
+                logging.info(f"Sending wake on LAN packet to {self.id}")
+            try:
+                wakeonlan.send_magic_packet(self.macAddress,
+                                            ip_address=self.broadcastAddress,
+                                            port=self.WOLPort)
+            except ValueError as e:
+                print(f"Wake on LAN error for component {self.id}: {str(e)}")
+                with logLock:
+                    logging.error(f"Wake on LAN error for component {self.id}: {str(e)}")
+
+    def updatePCStatus(self):
+
+        # If we have an IP address, ping the host to see if it is awake
+
+        global serverWarningDict
+
+        if self.ip is not None:
+            try:
+                ping = icmplib.ping(self.ip, privileged=False, count=1)
+                if ping.is_alive:
+                    return("SYSTEM ON")
+                elif self.secondsSinceLastContact() > 60:
+                    return("OFFLINE")
+                else:
+                    return("WAITING")
+            except icmplib.exceptions.SocketPermissionError:
+                if "wakeOnLANPrivilege" not in serverWarningDict:
+                    print("Warning: to check the status of Wake on LAN devices, you must run the control server with administrator privileges.")
+                    with logLock:
+                        logging.info(f"Need administrator privilege to check Wake on LAN status")
+                    serverWarningDict["wakeOnLANPrivilege"] = True
+        else:
+            return("UNKNOWN")
 
 class WakeOnLANDevice:
 
@@ -252,7 +319,7 @@ class WakeOnLANDevice:
             with logLock:
                 logging.error(f"Wake on LAN error for component {self.id}: {str(e)}")
 
-    def update(self, full=False):
+    def update(self):
 
         # If we have an IP address, ping the host to see if it is awake
 
@@ -260,9 +327,9 @@ class WakeOnLANDevice:
 
         if self.ip is not None:
             try:
-                ping = icmplib.ping("10.8.0.85", privileged=False, count=1)
+                ping = icmplib.ping(self.ip, privileged=False, count=1)
                 if ping.is_alive:
-                    self.state["status"] = "ONLINE"
+                    self.state["status"] = "SYSTEM ON"
                     self.lastContactDateTime = datetime.datetime.now()
                 elif self.secondsSinceLastContact() > 60:
                     self.state["status"] = "OFFLINE"
@@ -270,7 +337,7 @@ class WakeOnLANDevice:
                 if "wakeOnLANPrivilege" not in serverWarningDict:
                     print("Warning: to check the status of Wake on LAN devices, you must run the control server with administrator privileges.")
                     with logLock:
-                        logging.info("Need administrator privilege to check Wake on LAN status")
+                        logging.info(f"Need administrator privilege to check Wake on LAN status")
                     serverWarningDict["wakeOnLANPrivilege"] = True
         else:
             self.state["status"] = "UNKNOWN"
@@ -1055,7 +1122,8 @@ def loadDefaultConfiguration():
     global serverRebootTime
 
     # First, retrieve the config filename that defines the desired exhibit
-    config = configparser.ConfigParser()
+    config = configparser.ConfigParser(delimiters=("="))
+    config.optionxform = str # Override default, which is case in-sensitive
     with currentExhibitConfigurationLock:
         config.read('currentExhibitConfiguration.ini')
     current = config["CURRENT"]
@@ -1138,23 +1206,27 @@ def loadDefaultConfiguration():
             projectorList.append(newProj)
     print("Connecting to serial projectors... done                      ")
 
-    # Parse list of serial proejctors
+    # Parse list of Wake on LAN devices
     try:
         wol = config["WAKE_ON_LAN"]
         print("Collecting Wake on LAN devices...", end="", flush=True)
 
         for key in wol:
-            value_split = wol[key].split(",")
-            if len(value_split) == 2:
-                # We have been given a MAC address and IP address
-                device = WakeOnLANDevice(key, value_split[0].strip(), ip_address=value_split[1].strip())
-            elif len(value_split) == 1:
-                # We have been given only a MAC address
-                device = WakeOnLANDevice(key, value_split[0].strip())
-            else:
-                print(f"Wake on LAN device specified with unknown format: {wol[key]}")
-                continue
-            wakeOnLANList.append(device)
+            if getExhibitComponent(key) is None:
+                # If getExhibitComponent is not None, this key corresponds
+                # to a WoL device with a matching exhibit component ID and
+                # we have already loaded that component from the pickle file
+                value_split = wol[key].split(",")
+                if len(value_split) == 2:
+                    # We have been given a MAC address and IP address
+                    device = WakeOnLANDevice(key, value_split[0].strip(), ip_address=value_split[1].strip())
+                elif len(value_split) == 1:
+                    # We have been given only a MAC address
+                    device = WakeOnLANDevice(key, value_split[0].strip())
+                else:
+                    print(f"Wake on LAN device specified with unknown format: {wol[key]}")
+                    continue
+                wakeOnLANList.append(device)
         print(" done")
     except:
         print("No wake on LAN devices specified")
@@ -1208,7 +1280,8 @@ def readExhibitConfiguration(name, updateDefault=False):
     currentExhibitConfiguration.read(os.path.join("exhibits", name))
 
     if updateDefault:
-        config = configparser.ConfigParser()
+        config = configparser.ConfigParser(delimiters=("="))
+        config.optionxform = str # Override default, which is case in-sensitive
         with currentExhibitConfigurationLock:
             config.read('currentExhibitConfiguration.ini')
             config.set("CURRENT", "current_exhibit", name)
@@ -1279,6 +1352,14 @@ def updateExhibitComponentStatus(data, ip):
     if "currentInteraction" in data:
         if data["currentInteraction"].lower() == "true":
             component.updateLastInteractionDateTime()
+    if "allowed_actions" in data:
+        allowed_actions = data["allowed_actions"]
+        for key in allowed_actions:
+            if allowed_actions[key].lower() in ["true", "yes", "1"]:
+                if key not in component.config["allowed_actions"]:
+                    component.config["allowed_actions"].append(key)
+            else:
+                component.config["allowed_actions"] = [x for x in component.config["allowed_actions"] if x != key]
     if "error" in data:
         component.config["error"] = data["error"]
     else:
@@ -1329,6 +1410,11 @@ def quit_handler(sig, frame):
         print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
         exit_code = 0
 
+    # Save the current component lists to a pickle file so that
+    # we can resume from the current state
+    with open("current_state.dat", 'wb') as f:
+        pickle.dump(componentList, f)
+
     #print("Exit1")
     for key in pollingThreadDict:
         pollingThreadDict[key].cancel()
@@ -1340,7 +1426,8 @@ def quit_handler(sig, frame):
         #print("Exit4")
         with scheduleLock:
             #print("Exit5")
-            sys.exit(exit_code)
+            with trackingDataWriteLock:
+                sys.exit(exit_code)
 
 def error_handler(*exc_info):
 
@@ -1390,12 +1477,21 @@ serverWarningDict = {}
 with logLock:
     logging.info("Server started")
 
+# Try to reload the previous state from the pickle file current_state.dat
+try:
+    with open("current_state.dat", "rb") as f:
+        componentList = pickle.load(f)
+        print("Previous server state loaded")
+except FileNotFoundError:
+    print("Could not load previous server state")
+
 checkFileStructure()
 checkAvailableExhibits()
 loadDefaultConfiguration()
 pollEventSchedule()
 pollProjectors()
 pollWakeOnLANDevices()
+
 
 httpd = ThreadedHTTPServer((ADDR, serverPort), RequestHandler)
 httpd.serve_forever()

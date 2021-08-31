@@ -171,10 +171,16 @@
         for (var i=0; i<update["commands"].length; i++) {
           var cmd = (update["commands"])[i];
 
-          if (cmd == "power_off") {
+          if (cmd == "restart") {
+            askForRestart();
+          } else if (cmd == "shutdown") {
+            askForShutdown();
+          } else if (cmd == "sleepDisplays") {
               sleepDisplays();
-          } else if (cmd == "power_on") {
+          } else if (cmd == "wakeDisplays") {
               wakeDisplays();
+          } else if (cmd == "refresh_page") {
+              location.reload();
           } else if (cmd == "reloadDefaults"){
               askForDefaults();
           } else if (cmd.startsWith("beginSynchronization")){
@@ -243,6 +249,12 @@
             image_duration = update["image_duration"]*1000;
             console.log(`Setting image duration: ${update["image_duration"]} seconds`);
           }
+      }
+      if ("reboot_allowed" in update) {
+        allowedActionsDict["reboot"] = update["reboot_allowed"];
+      }
+      if ("shutdown_allowed" in update) {
+        allowedActionsDict["shutdown"] = update["shutdown_allowed"];
       }
 
       // This should be last to make sure the path has been updated
@@ -416,6 +428,32 @@
       }
     }
 
+    function askForRestart() {
+
+      // Send a message to the local helper and ask for it to restart the PC
+
+      var requestString = JSON.stringify({"action": "restart"});
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperAddress, true);
+      xhr.timeout = 2000;
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(requestString);
+    }
+
+    function askForShutdown() {
+
+      // Send a message to the local helper and ask for it to restart the PC
+
+      var requestString = JSON.stringify({"action": "shutdown"});
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperAddress, true);
+      xhr.timeout = 2000;
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(requestString);
+    }
+
     function askForDefaults() {
 
       // Send a message to the local helper and ask for the latest configuration
@@ -433,7 +471,7 @@
         if (this.status == 200) {
           readUpdate(this.responseText);
         }
-    };
+      };
       xhr.send(requestString);
     }
 
@@ -445,7 +483,8 @@
         requestDict = {"class": "exhibitComponent",
                        "id": id,
                        "type": type,
-                       "helperPort": helperAddress.split(":")[2]};
+                       "helperPort": helperAddress.split(":")[2],
+                       "allowed_actions": allowedActionsDict};
         // See if there is an error to report
         var errorKeys = Object.keys(errorDict);
         var errorString = "";
@@ -533,7 +572,8 @@
     var currentExhibit = ""; // This will double as the root of the source path
     var waitingForSynchronization = false;
     var autoplayEnabled = true;
-    var image_duration = 10000; // milliseconds; the amount of time an image will be displayed before going to the next one
+    var image_duration = 30000; // milliseconds; the amount of time an image will be displayed before going to the next one
+    var allowedActionsDict = {"refresh": "true"};
 
     var errorDict = {};
     var debug = true;
