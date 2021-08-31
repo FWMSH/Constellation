@@ -57,9 +57,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
             page = str(f.read())
             # Build the address that the webpage should contact to reach this helper
             if self.address_string() == "127.0.0.1": # Request is coming from this machine too
-                address_to_insert = "'http://localhost:" + config.helper_port + "'"
+                address_to_insert = "'http://localhost:" + config.defaults_dict["helper_port"] + "'"
             else: # Request is coming from the network
-                address_to_insert = "'http://" + socket.gethostbyname(socket.gethostname()) + config.helper_port + "'"
+                address_to_insert = "'http://" + socket.gethostbyname(socket.gethostname()) + config.defaults_dict["helper_port"] + "'"
             # Then, insert that into the document
             page = page.replace("INSERT_HELPERIP_HERE", address_to_insert)
 

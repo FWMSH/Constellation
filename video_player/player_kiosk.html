@@ -410,6 +410,15 @@
       if ("dictionary" in update) {
         dictionary = update["dictionary"];
       }
+      if ('commands' in update) {
+        for (var i=0; i<update["commands"].length; i++) {
+          var cmd = (update["commands"])[i];
+
+          if (cmd == "refresh_page") {
+              location.reload();
+          }
+        }
+      }
     }
 
     function sendPing() {
@@ -418,10 +427,14 @@
 
       if (serverAddress != "") {
 
+        var allowedActionsDict = {"refresh": "true"}
+
         var requestDict = {"class": "exhibitComponent",
                            "id": id,
                            "type": type,
-                           "currentInteraction": String(currentlyActive)};
+                           "currentInteraction": String(currentlyActive),
+                           "allowed_actions": allowedActionsDict};
+                           
         var requestString = JSON.stringify(requestDict);
 
         var xhr = new XMLHttpRequest();
