@@ -172,7 +172,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
             if "action" in data:
                 if data["action"] == "sleepDisplays":
                     sleepDisplays()
-                elif data["action"] == "reboot":
+                elif data["action"] == "restart":
                     reboot()
                 elif data["action"] == "wakeDisplays":
                     wakeDisplays()
