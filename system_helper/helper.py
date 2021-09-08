@@ -174,6 +174,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     sleepDisplays()
                 elif data["action"] == "restart":
                     reboot()
+                elif data["action"] in ["shutdown", "power_off"] :
+                    shutdown();
                 elif data["action"] == "wakeDisplays":
                     wakeDisplays()
                 elif data["action"] == "commandProjector":
@@ -301,10 +303,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         self.wfile.write(bytes(label, encoding="UTF-8"))
                     else:
                         print(f"Error: Label requested without name")
-                elif data["action"] == "shutdown":
-                    shutdown();
-                elif data["action"] == "restart":
-                    reboot();
                 else:
                     print("Error: unrecognized action:", data["action"])
         #print("do_POST: EXIT")
