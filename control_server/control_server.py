@@ -1402,7 +1402,7 @@ def checkFileStructure():
 def quit_handler(sig, frame):
 
     # Function to handle cleaning shutting down the server
-    
+
     if rebooting == True:
         print("\nRebooting server...")
         exit_code = 1

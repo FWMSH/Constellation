@@ -174,7 +174,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     sleepDisplays()
                 elif data["action"] == "restart":
                     reboot()
-                elif data["action"] in ["shutdown", "power_off"] :
+                elif data["action"] in ["shutdown", "power_off"]:
                     shutdown();
                 elif data["action"] == "wakeDisplays":
                     wakeDisplays()
