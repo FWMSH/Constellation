@@ -2044,3 +2044,68 @@ WARNING, 2021-09-06 14:45:02, there is no configuration available for component 
 WARNING, 2021-09-06 14:45:02, there is no configuration available for component with id=W1_KIOSK
 WARNING, 2021-09-07 14:45:07, there is no configuration available for component with id=9-11_DISP
 WARNING, 2021-09-07 14:45:07, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-09-08 11:02:52, Server shutdown
+INFO, 2021-09-08 11:03:03, Server started
+WARNING, 2021-09-08 11:03:21, there is no configuration available for component with id=SCH_TOP
+WARNING, 2021-09-08 11:03:21, there is no configuration available for component with id=SCH_MID
+WARNING, 2021-09-08 11:03:21, there is no configuration available for component with id=SCH_BOT
+WARNING, 2021-09-08 11:03:21, there is no configuration available for component with id=IR_CAMERA
+WARNING, 2021-09-08 11:03:21, there is no configuration available for component with id=PSCALE_BK
+ERROR, 2021-09-08 11:03:30, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-08 11:04:16, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-08 11:04:25, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-08 11:04:26, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-08 11:04:27, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-08 11:04:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-08 11:04:29, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-08 11:04:36, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-09-08 11:05:07, Server shutdown
+INFO, 2021-09-08 11:05:08, Server started
+WARNING, 2021-09-08 11:05:15, there is no configuration available for component with id=SCH_TOP
+WARNING, 2021-09-08 11:05:15, there is no configuration available for component with id=SCH_MID
+WARNING, 2021-09-08 11:05:15, there is no configuration available for component with id=SCH_BOT
+WARNING, 2021-09-08 11:05:15, there is no configuration available for component with id=IR_CAMERA
+WARNING, 2021-09-08 11:05:15, there is no configuration available for component with id=PSCALE_BK
+ERROR, 2021-09-08 11:05:20, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-08 11:05:20, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-09-08 11:05:37, Server shutdown
+INFO, 2021-09-08 11:05:38, Server started
+WARNING, 2021-09-08 11:05:55, there is no configuration available for component with id=SCH_TOP
+WARNING, 2021-09-08 11:05:55, there is no configuration available for component with id=SCH_MID
+WARNING, 2021-09-08 11:05:55, there is no configuration available for component with id=SCH_BOT
+WARNING, 2021-09-08 11:05:55, there is no configuration available for component with id=IR_CAMERA
+WARNING, 2021-09-08 11:05:55, there is no configuration available for component with id=PSCALE_BK
+INFO, 2021-09-08 11:06:35, Server shutdown
+INFO, 2021-09-08 11:06:36, Server started
+WARNING, 2021-09-08 11:06:41, there is no configuration available for component with id=SCH_TOP
+WARNING, 2021-09-08 11:06:41, there is no configuration available for component with id=SCH_MID
+WARNING, 2021-09-08 11:06:41, there is no configuration available for component with id=SCH_BOT
+WARNING, 2021-09-08 11:06:41, there is no configuration available for component with id=IR_CAMERA
+WARNING, 2021-09-08 11:06:41, there is no configuration available for component with id=PSCALE_BK
+INFO, 2021-09-08 11:07:35, Server shutdown
+INFO, 2021-09-08 11:07:36, Server started
+WARNING, 2021-09-08 11:07:45, there is no configuration available for component with id=SCH_TOP
+WARNING, 2021-09-08 11:07:45, there is no configuration available for component with id=SCH_MID
+WARNING, 2021-09-08 11:07:45, there is no configuration available for component with id=SCH_BOT
+WARNING, 2021-09-08 11:07:45, there is no configuration available for component with id=IR_CAMERA
+WARNING, 2021-09-08 11:07:45, there is no configuration available for component with id=PSCALE_BK
+ERROR, 2021-09-08 11:08:03, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-08 11:09:13, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-09-08 11:10:03, Server shutdown
+INFO, 2021-09-08 11:10:05, Server started
+WARNING, 2021-09-08 11:10:22, there is no configuration available for component with id=SCH_TOP
+WARNING, 2021-09-08 11:10:22, there is no configuration available for component with id=SCH_MID
+WARNING, 2021-09-08 11:10:22, there is no configuration available for component with id=SCH_BOT
+WARNING, 2021-09-08 11:10:22, there is no configuration available for component with id=IR_CAMERA
+WARNING, 2021-09-08 11:10:22, there is no configuration available for component with id=PSCALE_BK
+INFO, 2021-09-08 11:18:56, Server shutdown
+INFO, 2021-09-08 11:18:57, Server started
+WARNING, 2021-09-08 11:19:04, there is no configuration available for component with id=SCH_TOP
+WARNING, 2021-09-08 11:19:04, there is no configuration available for component with id=SCH_MID
+WARNING, 2021-09-08 11:19:04, there is no configuration available for component with id=SCH_BOT
+WARNING, 2021-09-08 11:19:04, there is no configuration available for component with id=IR_CAMERA
+WARNING, 2021-09-08 11:19:04, there is no configuration available for component with id=PSCALE_BK
+ERROR, 2021-09-08 11:19:58, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-09-08 11:24:35, Server shutdown
+INFO, 2021-09-08 11:24:41, Server started
+ERROR, 2021-09-08 11:24:50, GET for unexpected file /js/popper.min.js.map

@@ -258,7 +258,7 @@ class ExhibitComponent:
 
         if self.ip is not None:
             try:
-                ping = icmplib.ping(self.ip, privileged=False, count=1)
+                ping = icmplib.ping(self.ip, privileged=False, count=1, timeout=0.05)
                 if ping.is_alive:
                     return("SYSTEM ON")
                 elif self.secondsSinceLastContact() > 60:
@@ -377,6 +377,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
             if "allowed_actions" in item.config:
                 temp["allowed_actions"] = item.config["allowed_actions"]
             temp["class"] = "exhibitComponent"
+            print(f"     getting current Status: {item.id}")
             temp["status"] = item.currentStatus()
             temp["ip_address"] = item.ip
             temp["helperPort"] = item.helperPort
@@ -416,6 +417,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         componentDictList.append(temp)
 
         # Also include an object containing the current schedule
+
         with scheduleLock:
             temp = {}
             temp["class"] = "schedule"

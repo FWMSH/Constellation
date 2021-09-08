@@ -1767,13 +1767,13 @@
         xhr.timeout = 2000;
         xhr.open("POST", serverIP, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.ontimeout = function() {console.log("Website update timed out")}
         xhr.onreadystatechange = function () {
           if (this.readyState != 4) return;
 
           if (this.status == 200) {
             if (this.responseText != "") {
               var update = JSON.parse(this.responseText);
-
               var n_comps = 0;
               var n_online = 0;
               for (var i=0; i<update["length"]; i++) {
