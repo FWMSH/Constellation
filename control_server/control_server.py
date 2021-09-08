@@ -377,7 +377,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
             if "allowed_actions" in item.config:
                 temp["allowed_actions"] = item.config["allowed_actions"]
             temp["class"] = "exhibitComponent"
-            print(f"     getting current Status: {item.id}")
             temp["status"] = item.currentStatus()
             temp["ip_address"] = item.ip
             temp["helperPort"] = item.helperPort
