@@ -2109,3 +2109,7 @@ ERROR, 2021-09-08 11:19:58, GET for unexpected file /js/popper.min.js.map
 INFO, 2021-09-08 11:24:35, Server shutdown
 INFO, 2021-09-08 11:24:41, Server started
 ERROR, 2021-09-08 11:24:50, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-09-09 09:23:53, there is no configuration available for component with id=9-11_DISP
+INFO, 2021-09-10 10:41:13, Server shutdown
+INFO, 2021-09-10 10:41:14, Server started
+WARNING, 2021-09-10 10:41:32, there is no configuration available for component with id=9-11_DISP

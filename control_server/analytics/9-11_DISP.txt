@@ -1,0 +1,2 @@
+{"action": "gotoPage", "target": "home", "idle": "true", "datetime": "2021-09-10T11:04:30.326"}
+{"target": "attractor", "action": "showAttractor", "idle": "true", "datetime": "2021-09-10T11:04:33.313"}

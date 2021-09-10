@@ -849,6 +849,17 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                     except:
                                         print("flexible-tracker: submitData: error: Not valid JSON")
                                         self.wfile.write(bytes(json.dumps({"success": False}), encoding="UTF-8"))
+                    elif action == "submitAnalytics":
+                        if "data" in data and "name" in data:
+                            with trackingDataWriteLock:
+                                with open(os.path.join("analytics", data["name"]+".txt"), "a") as f:
+                                    try:
+                                        json_str = json.dumps(data["data"])
+                                        f.write(json_str + "\n")
+                                        self.wfile.write(bytes(json.dumps({"success": True}), encoding="UTF-8"))
+                                    except:
+                                        print("submitAnalytics: error: Not valid JSON")
+                                        self.wfile.write(bytes(json.dumps({"success": False}), encoding="UTF-8"))
                     elif action == "getAvailableDefinitions":
                         definitionList = []
 
@@ -1374,6 +1385,7 @@ def checkFileStructure():
     root = os.path.dirname(os.path.abspath(__file__))
     schedules_dir = os.path.join(root, "schedules")
     exhibits_dir = os.path.join(root, "exhibits")
+    analytics_dir = os.path.join(root, "analytics")
 
     try:
         os.listdir(schedules_dir)
@@ -1388,6 +1400,15 @@ def checkFileStructure():
                     f.write("[SCHEDULE]\n")
         except:
             print("Error: unable to create 'schedules' directory. Do you have write permission?")
+
+    try:
+        os.listdir(analytics_dir)
+    except FileNotFoundError:
+        print("Missing analytics directory. Creating now...")
+        try:
+            os.mkdir(analytics_dir)
+        except:
+            print("Error: unable to create 'analytics' directory. Do you have write permission?")
 
     try:
         os.listdir(exhibits_dir)
