@@ -666,9 +666,11 @@
           // Set the title to the ID
           $("#projectorInfoModalTitle").html(id);
           $("#projectorInfoModalIPAddress").html(obj.ip);
-          $("#projectorInfoModalDescription").html(obj.description);
           if (obj.description == "") {
             $("#projectorInfoModalDescription").hide();
+          } else {
+            $("#projectorInfoModalDescription").html(obj.description);
+            $("#projectorInfoModalDescription").show();
           }
 
           // Then, go through and populate all the cells with as much information
@@ -780,9 +782,11 @@
 
           $("#componentInfoModalTitle").html(id);
           $("#componentInfoModalIPAddress").html(obj.ip);
-          $("#componentInfoModalDescription").html(obj.description);
           if (obj.description == "") {
             $("#componentInfoModalDescription").hide();
+          } else {
+            $("#componentInfoModalDescription").html(obj.description);
+            $("#componentInfoModalDescription").show();
           }
           $("#componentAvailableContentList").empty();
           $("#contentUploadSubmitButton").prop("disabled", false);
