@@ -208,9 +208,11 @@
 
     }
 
-    function stopSeek() {
+    function stopSeek(resetAttractor=true) {
 
-      resetAttractorTimer();
+      if (resetAttractor) {
+        resetAttractorTimer();
+      }
       clearInterval(seekTimer);
       // var temp = function() {setPlayPause("play");}
       // setTimeout(temp, 2000);
@@ -421,6 +423,38 @@
       }
     }
 
+    function sendAnalytics(data) {
+
+      // Take the provided dicitonary of data and send it to the control server
+
+      // Append the date and time of this recording
+      var tzoffset = (new Date()).getTimezoneOffset() * 60000; // Time zone offset in milliseconds
+      var date_str = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+      data["datetime"] = date_str;
+
+      // Append the current exhibit
+      data["exhibit"] = current_config["current_exhibit"]
+
+      var requestDict = {"class": "tracker",
+                         "action": "submitAnalytics",
+                         "data": data,
+                         "name": id};
+
+      var requestString = JSON.stringify(requestDict);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", serverAddress, true);
+      xhr.timeout = 5000;
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
+      xhr.onreadystatechange = function () {
+        if (this.readyState != 4) return;
+        if (this.status == 200) {
+        }
+      };
+      xhr.send(requestString);
+    }
+
     function sendPing() {
 
       // Contact the control server and ask for any updates
@@ -434,7 +468,7 @@
                            "type": type,
                            "currentInteraction": String(currentlyActive),
                            "allowed_actions": allowedActionsDict};
-                           
+
         var requestString = JSON.stringify(requestDict);
 
         var xhr = new XMLHttpRequest();
@@ -750,22 +784,36 @@
 
       // Make the attractor layer visible and start autorun
 
-      stopSeek();
+      stopSeek(false);
       $("#attractorOverlay").show();
       setLang("en");
       setAutoplay("on");
       resetTextSize();
       currentlyActive = false;
+
+      var analyticsData = {
+        "action": "showAttractor",
+        "target": "attractor",
+        "idle": "true"
+      };
+      sendAnalytics(analyticsData);
     }
 
     function hideAttractor() {
 
-      // Make the attractor layer invisible and start the autorun
+      // Make the attractor layer invisible and stop the autorun
 
       $("#attractorOverlay").hide();
       setAutoplay("off");
       resetAttractorTimer();
       currentlyActive = true;
+
+      var analyticsData = {
+        "action": "hideAttractor",
+        "target": "attractor",
+        "idle": "false"
+      };
+      sendAnalytics(analyticsData);
     }
 
     function resetAttractorTimer() {
