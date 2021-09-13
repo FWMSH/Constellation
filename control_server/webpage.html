@@ -23,6 +23,9 @@
         padding-right: 10px;
         margin-right: 10px;
       }
+      .componentContentButton {
+        width: 80% !important;
+      }
       .dropdown-item {
         padding-top: 10px;
         padding-bottom: 10px;
@@ -94,7 +97,6 @@
                   </div>
 
                   <div class='row align-items-end' id="contentUploadSystemStatsView">
-
                     <div class='col-4'>
                       <strong id="contentUploadDiskSpaceFree"></strong>
                       <div class="progress" style="height: 20px;">
@@ -126,7 +128,7 @@
                       <H5>Available content</H5>
                     </div>
                     <div class="col-12 w-100">
-                      <div id="componentAvailableContentList"></div>
+                      <div class="row" id="componentAvailableContentList"></div>
                     </div>
 
                   </div>
@@ -896,8 +898,8 @@
                     var active = "btn-secondary";
                   }
                   var html = `
-                  <div class="col-auto mt-1">
-                    <div class="btn-group">
+                  <div class="col-6 mt-1">
+                    <div class="btn-group w-100 h-100">
                       <button type="button" id="${contentList[i].split('.').join("").split(")").join("").split("(").join("").split(/[\\\/]/).join("")}Button" class="btn componentContentButton ${active}">${contentList[i]}</button>
                       <button type="button" id="${contentList[i].split('.').join("").split(")").join("").split("(").join("").split(/[\\\/]/).join("")}ButtonDropdown" class="btn dropdown-toggle dropdown-toggle-split componentContentDropdownButton ${active}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="sr-only">Toggle Dropdown</span>
