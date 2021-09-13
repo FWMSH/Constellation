@@ -2119,3 +2119,120 @@ WARNING, 2021-09-11 14:45:06, there is no configuration available for component 
 WARNING, 2021-09-11 14:45:06, there is no configuration available for component with id=W1_KIOSK
 WARNING, 2021-09-12 14:45:08, there is no configuration available for component with id=9-11_DISP
 WARNING, 2021-09-12 14:45:08, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-09-13 10:46:47, Server shutdown
+INFO, 2021-09-13 15:23:53, Server started
+WARNING, 2021-09-13 15:24:10, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 15:24:10, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-09-13 15:43:41, Server shutdown
+INFO, 2021-09-13 15:43:43, Server started
+WARNING, 2021-09-13 15:43:49, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 15:43:49, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-09-13 15:44:59, Server shutdown
+INFO, 2021-09-13 15:47:29, Server started
+WARNING, 2021-09-13 15:47:47, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 15:47:47, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-09-13 15:47:54, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-09-13 15:49:21, Server shutdown
+INFO, 2021-09-13 15:49:22, Server started
+WARNING, 2021-09-13 15:49:29, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 15:49:29, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-09-13 15:49:47, Server shutdown
+INFO, 2021-09-13 15:49:48, Server started
+WARNING, 2021-09-13 15:50:05, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 15:50:05, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-09-13 15:51:31, Server shutdown
+INFO, 2021-09-13 15:51:32, Server started
+WARNING, 2021-09-13 15:51:50, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 15:51:50, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-09-13 15:52:01, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 15:52:09, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-09-13 15:53:27, Server shutdown
+INFO, 2021-09-13 15:53:29, Server started
+WARNING, 2021-09-13 15:53:33, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 15:53:33, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-09-13 15:53:38, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-09-13 15:54:53, Server shutdown
+INFO, 2021-09-13 15:54:54, Server started
+WARNING, 2021-09-13 15:55:11, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 15:55:11, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-09-13 15:55:37, Server shutdown
+INFO, 2021-09-13 15:55:38, Server started
+WARNING, 2021-09-13 15:55:58, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 15:55:58, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-09-13 15:57:49, Server shutdown
+INFO, 2021-09-13 15:57:51, Server started
+WARNING, 2021-09-13 15:58:08, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 15:58:08, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-09-13 15:58:09, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 15:58:31, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 15:58:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 15:58:35, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 15:59:11, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 15:59:20, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 15:59:22, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 15:59:23, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-09-13 16:00:32, Server shutdown
+INFO, 2021-09-13 16:00:33, Server started
+WARNING, 2021-09-13 16:00:51, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 16:00:51, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-09-13 16:00:53, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-09-13 16:04:17, Server shutdown
+INFO, 2021-09-13 16:04:19, Server started
+WARNING, 2021-09-13 16:04:34, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 16:04:34, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-09-13 16:04:38, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:05:09, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-09-13 16:06:27, Server shutdown
+INFO, 2021-09-13 16:06:29, Server started
+WARNING, 2021-09-13 16:06:34, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 16:06:34, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-09-13 16:07:18, Server shutdown
+INFO, 2021-09-13 16:07:19, Server started
+WARNING, 2021-09-13 16:07:25, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 16:07:25, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-09-13 16:09:21, Server shutdown
+INFO, 2021-09-13 16:09:23, Server started
+WARNING, 2021-09-13 16:09:28, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 16:09:28, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-09-13 16:10:21, Server shutdown
+INFO, 2021-09-13 16:10:23, Server started
+WARNING, 2021-09-13 16:10:28, there is no configuration available for component with id=9-11_DISP
+WARNING, 2021-09-13 16:10:28, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-09-13 16:10:34, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-09-13 16:10:50, Server shutdown
+INFO, 2021-09-13 16:10:54, Server started
+ERROR, 2021-09-13 16:11:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:11:34, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:11:48, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:12:02, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:12:40, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:12:51, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:14:38, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:14:55, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:15:26, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:16:40, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:17:11, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:21:03, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:22:53, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:25:18, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-09-13 16:25:44, Server shutdown
+INFO, 2021-09-13 16:25:46, Server started
+INFO, 2021-09-13 16:25:47, Server shutdown
+INFO, 2021-09-13 16:25:53, Server started
+ERROR, 2021-09-13 16:26:19, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:26:27, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:27:35, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:28:38, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:29:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:29:38, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:30:37, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:30:41, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:31:01, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:31:04, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:31:13, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:31:24, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:32:36, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:32:42, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:32:52, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:33:06, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-13 16:33:35, GET for unexpected file /js/popper.min.js.map

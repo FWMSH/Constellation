@@ -77,6 +77,9 @@
                     <div class='col-4'>
                       <div id="componentInfoModalIPAddress" align="right"></div>
                     </div>
+                    <div class="col-12">
+                      <div id="componentInfoModalDescription">This is the description</div>
+                    </div>
                   </div>
                 </div>
                 <div class="modal-body">
@@ -94,7 +97,7 @@
 
                     <div class='col-4'>
                       <strong id="contentUploadDiskSpaceFree"></strong>
-                      <div class="progress" style="height: 30px;">
+                      <div class="progress" style="height: 20px;">
                         <div id="contentUploadDiskSpaceUsedBar" class="progress-bar bg-success" role="progressbar" style="width: 70%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
                         <div id="contentUploadDiskSpaceFreeBar" class="progress-bar bg-secondary" role="progressbar" style="width: 30%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
                       </div>
@@ -102,7 +105,7 @@
 
                     <div class='col-4'>
                       <strong id="contentUploadCPUUsed"></strong>
-                      <div class="progress" style="height: 30px;">
+                      <div class="progress" style="height: 20px;">
                         <div id="contentUploadCPUUsedBar" class="progress-bar bg-success" role="progressbar" style="width: 70%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
                         <div id="contentUploadCPUFreeBar"class="progress-bar bg-secondary" role="progressbar" style="width: 30%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
                       </div>
@@ -110,7 +113,7 @@
 
                     <div class='col-4'>
                       <strong id="contentUploadRAMUsed"></strong>
-                      <div class="progress" style="height: 30px;">
+                      <div class="progress" style="height: 20px;">
                         <div id="contentUploadRAMUsedBar" class="progress-bar bg-success" role="progressbar" style="width: 60%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
                         <div id="contentUploadRAMFreeBar" class="progress-bar bg-secondary" role="progressbar" style="width: 40%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
                       </div>
@@ -189,6 +192,9 @@
                     </div>
                     <div class='col-4'>
                       <div id="projectorInfoModalIPAddress" align="right"></div>
+                    </div>
+                    <div class="col-12">
+                      <div id="projectorInfoModalDescription"></div>
                     </div>
                   </div>
                 </div>
@@ -658,8 +664,12 @@
           $("#projectorInfoTempState").parent().removeClass();
 
           // Set the title to the ID
-          $("#projectorInfoModalTitle").html(id.toUpperCase());
+          $("#projectorInfoModalTitle").html(id);
           $("#projectorInfoModalIPAddress").html(obj.ip);
+          $("#projectorInfoModalDescription").html(obj.description);
+          if (obj.description == "") {
+            $("#projectorInfoModalDescription").hide();
+          }
 
           // Then, go through and populate all the cells with as much information
           // as we have. Shade cells red if an error is reported.
@@ -770,6 +780,10 @@
 
           $("#componentInfoModalTitle").html(id);
           $("#componentInfoModalIPAddress").html(obj.ip);
+          $("#componentInfoModalDescription").html(obj.description);
+          if (obj.description == "") {
+            $("#componentInfoModalDescription").hide();
+          }
           $("#componentAvailableContentList").empty();
           $("#contentUploadSubmitButton").prop("disabled", false);
           $("#contentUploadSubmitButton").html("Upload");
@@ -1125,6 +1139,9 @@
 
       function updateComponentFromServer(component) {
 
+        // Read the dictionary of component information from the control server
+        // and use it to set up the component
+
         obj = getExhibitComponent(component["id"])
         if (obj != null) {
           // Update the object with the latest info from the server
@@ -1140,6 +1157,9 @@
           }
           if ("allowed_actions" in component) {
             obj.allowed_actions = component["allowed_actions"];
+          }
+          if ("description" in component) {
+            obj.description = component["description"];
           }
           if ("error" in component) {
             errorDict[obj.id + ": "] = component["error"];
@@ -1169,7 +1189,8 @@
           // Add the component to the right group
           group.addComponent(newComponent);
 
-          //newComponent.setStatus(component["status"]);
+          // Finally, call this function again to populate the information
+          updateComponentFromServer(component);
         }
       }
 

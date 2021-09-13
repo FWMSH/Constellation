@@ -43,7 +43,8 @@ class Projector:
         self.mac_address = mac_address # For use with Wake on LAN
         self.connection_type = connection_type
         self.make = make
-        self.config = {"allowed_actions": ["power_on", "power_off"]}
+        self.config = {"allowed_actions": ["power_on", "power_off"],
+                       "description": componentDescriptions.get(id, "")}
 
         self.state = {"status": "OFFLINE"}
         self.lastContactDateTime = datetime.datetime(2020,1,1)
@@ -131,7 +132,6 @@ class ExhibitComponent:
     # Holds basic data about a component in the exhibit
 
     def __init__(self, id, type):
-
         global wakeOnLANList
 
         self.id = id
@@ -146,9 +146,9 @@ class ExhibitComponent:
         self.lastContactDateTime = datetime.datetime.now()
         self.lastInteractionDateTime = datetime.datetime(2020, 1, 1)
 
-        self.config = {
-                        "commands": [],
-                        "allowed_actions": []}
+        self.config = {"commands": [],
+                       "allowed_actions": [],
+                       "description": componentDescriptions.get(id, "")}
 
         self.updateConfiguration()
 
@@ -216,6 +216,8 @@ class ExhibitComponent:
             for key in fileConfig:
                 if key == 'content':
                     self.config[key] = [s.strip() for s in fileConfig[key].split(",")]
+                elif key == "description":
+                    pass # This is specified elsewhere
                 else:
                     self.config[key] = fileConfig[key]
         except configparser.NoSectionError:
@@ -286,7 +288,8 @@ class WakeOnLANDevice:
         self.broadcastAddress = "255.255.255.255"
         self.port = 9
         self.ip = ip_address
-        self.config = {"allowed_actions": ["power_on"]}
+        self.config = {"allowed_actions": ["power_on"],
+                       "description": componentDescriptions.get(id, "")}
 
         self.state = {"status": "UNKNOWN"}
         self.lastContactDateTime = datetime.datetime(2020,1,1)
@@ -376,6 +379,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 temp["error"] = item.config["error"]
             if "allowed_actions" in item.config:
                 temp["allowed_actions"] = item.config["allowed_actions"]
+            if "description" in item.config:
+                temp["description"] = item.config["description"]
             temp["class"] = "exhibitComponent"
             temp["status"] = item.currentStatus()
             temp["ip_address"] = item.ip
@@ -389,7 +394,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
             temp["ip_address"] = item.ip
             if "allowed_actions" in item.config:
                 temp["allowed_actions"] = item.config["allowed_actions"]
-
+            if "description" in item.config:
+                temp["description"] = item.config["description"]
             temp["class"] = "exhibitComponent"
             temp["status"] = item.state["status"]
             componentDictList.append(temp)
@@ -401,7 +407,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
             temp["ip_address"] = item.ip
             if "allowed_actions" in item.config:
                 temp["allowed_actions"] = item.config["allowed_actions"]
-
+            if "description" in item.config:
+                temp["description"] = item.config["description"]
             temp["class"] = "exhibitComponent"
             temp["status"] = item.state["status"]
             componentDictList.append(temp)
@@ -1131,6 +1138,7 @@ def loadDefaultConfiguration():
     global gallery_name
     global projectorList
     global wakeOnLANList
+    global componentDescriptions
     global serverRebootTime
 
     # First, retrieve the config filename that defines the desired exhibit
@@ -1151,6 +1159,16 @@ def loadDefaultConfiguration():
     retrieveSchedule()
 
     projectorList = []
+
+    # Load the component descriptions. Do this first so they are available when
+    # creating the various components
+    try:
+        print("Reading component descriptions...", end="", flush=True)
+        componentDescriptions = dict(config["COMPONENT_DESCRIPTIONS"])
+        print(" done")
+    except:
+        print("None found")
+        componentDescriptions = {}
 
     # Parse list of PJLink projectors
     try:
@@ -1243,8 +1261,6 @@ def loadDefaultConfiguration():
     except:
         print("No wake on LAN devices specified")
         wakeOnLANList = []
-
-
 
     # Parse the reboot_time if necessary
     if "reboot_time" in current:
@@ -1471,6 +1487,7 @@ componentList = []
 projectorList = []
 wakeOnLANList = []
 synchronizationList = [] # Holds sets of displays that are being synchronized
+componentDescriptions = {} # Holds optional short descriptions of each component
 
 currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
 exhibitList = []
