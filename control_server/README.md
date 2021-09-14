@@ -123,6 +123,17 @@ MY_PC2 = F1-E3-D1-51-B5-A1, 10.8.0.85
 ```
 If the given machine has a static IP address, you can specify it on the same line, after a comma. The control server will ping that address at intervals to check if the machine is powered on. **To send pings on Windows, you must run the control server with administrator privileges.**
 
+##### Providing component descriptions
+
+You can optionally specify a description for a `component`, which is displayed in the web console on that `component`'s status page. These are specified as such:
+
+```
+[COMPONENT_DESCRIPTIONS]
+HEADER = The projector for the header at the entrance to the gallery
+S_KIOSK = The kiosk near the exit where survey data is collected
+```
+where the `id` is given to the left of the equals sign and the description to the right.
+
 #### Exhibit files
 An exhibit file defines the content for a particular exhibit. It is in INI format, with the equals sign (=) as the separator. Each component has its own section. The `content` keyword defines the files that component should use. To specify multiple media pieces, separate them by a comma. For example, the content definition for two displays with `id`s of DISPLAY1 and DISPLAY2 would look like:
 
