@@ -1883,6 +1883,25 @@
         xhr.send(requestString);
       }
 
+      function parseQueryString() {
+
+        // Read the query string to determine what options to set
+
+        var queryString = decodeURIComponent(window.location.search);
+
+        var searchParams = new URLSearchParams(queryString);
+
+        if (searchParams.has("hideSchedule")) {
+          $("#nav-schedule-tab").hide()
+        }
+        if (searchParams.has("hideSettings")) {
+          $("#nav-settings-tab").hide()
+        }
+        if (searchParams.has("hideHelp")) {
+          $("#nav-help-tab").hide()
+        }
+      }
+
       var serverIP = INSERT_SERVERIP_HERE // This will be automatically inserted by the server before being sent to the client
       var currentExhibit = "";
       var exhibitComponents = [];
@@ -1895,6 +1914,7 @@
       askForUpdate();
       setInterval(askForUpdate, 5000);
       populateHelpTab();
+      parseQueryString();
 
     </script>
 

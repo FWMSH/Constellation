@@ -452,6 +452,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         # print(f"  path = {self.path}")
 
+        # Strip out any options from the query string
+        self.path = self.path.split("?")[0]
+
         if self.path.lower().endswith("html") or self.path == "/":
             if self.path == "/":
                 f = open("webpage.html","r")

@@ -2256,3 +2256,18 @@ ERROR, 2021-09-13 16:49:30, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-09-13 16:49:44, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-09-13 16:52:57, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-09-13 16:53:19, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-14 09:02:35, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-14 09:04:26, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-14 09:04:32, GET for unexpected file /?hideSettings
+ERROR, 2021-09-14 09:04:32, GET for unexpected file /favicon.ico
+ERROR, 2021-09-14 09:04:34, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-14 09:04:51, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-14 09:04:56, GET for unexpected file /webpage.html?hideSchedule
+INFO, 2021-09-14 09:06:31, Server shutdown
+INFO, 2021-09-14 09:06:32, Server started
+ERROR, 2021-09-14 09:06:50, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-14 09:06:56, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-14 09:07:34, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-14 09:07:43, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-14 09:08:07, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-14 09:08:12, GET for unexpected file /js/popper.min.js.map
