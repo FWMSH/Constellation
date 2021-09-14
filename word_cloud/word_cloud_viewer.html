@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <meta name="description" content="">
+    <meta name="author" content="Morgan Rehnberg">
+
+    <style>
+
+      html {
+        touch-action: manipulation;
+        word-wrap: break-word;
+        overflow-y: hidden;
+        height: 100%;
+        position: relative;
+
+        /* Disable text selection */
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+      body {
+        overflow-x: hidden;
+        height: 100%;
+        position: relative;
+      }
+      #wordCloudContainer {
+        height: 100vh;
+        width: 100vw;
+      }
+    </style>
+
+    <title>Word Cloud Viewer</title>
+
+  </head>
+
+  <body>
+
+    <!-- <canvas id="wordCloudCanvas">
+    </canvas> -->
+    <div id="wordCloudContainer">
+    </div>
+
+  <!-- Load js file with helperAddress -->
+  <script src="viewerConfig.js"></script>
+  <script src="js/wordcloud2.js"></script>
+  <script src="js/jquery-3.5.1.slim.min.js"></script>
+  <script>
+
+    function arraysEqual(arr1, arr2) {
+
+      // Function to check if two arrays have the same elements in the same order
+
+      if (arr1.length != arr2.length) {
+        return false;
+      } else {
+        for (var i=0; i<arr1.length; i++) {
+          if (arr1[i] != arr2[i]) {
+            return false;
+          }
+        }
+        return true;
+      }
+    }
+
+    function askForDefaults() {
+
+      // Send a message to the local helper and ask for the latest configuration
+      // defaults, then use them.
+
+      var requestString = `action=getDefaults`;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+          current_config = JSON.parse(this.responseText);
+          readUpdate(this.responseText);
+          rebuildInterface();
+        }
+    };
+      xhr.send(requestString);
+    }
+
+    function createWordCloud() {
+
+      // Scale canvas as needed for HiDPI displays
+
+      wc_options["list"] = [["foo", 9], ["Test2", 3.0], ["Test", 8]];
+      wc = WordCloud(divForWC, wc_options)
+    }
+
+    function getCurrentExhibit() {
+
+      // Ask the helper to send the current exhibit name and update as necessary
+
+      var requestDict = {"action": "getCurrentExhibit"};
+      var requestString = JSON.stringify(requestDict);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", helperAddress, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+          if (this.responseText != "") {
+            current_config["current_exhibit"] = this.responseText
+          }
+        }
+      };
+      xhr.send(requestString);
+    }
+
+    function readUpdate(responseText) {
+
+      // Function to read a message from the server and take action based
+      // on the contents
+
+      var update = JSON.parse(responseText);
+
+      //current_config = update;
+      if ("id" in update) {
+        id = update["id"];
+      }
+      if ("kiosk_type" in update) {
+        type = update["kiosk_type"]
+      }
+      if (("server_ip_address" in update) && ("server_port" in update)) {
+        serverAddress = "http://" + update["server_ip_address"] + ":" + update["server_port"];
+      }
+      if ("dictionary" in update) {
+        dictionary = update["dictionary"];
+      }
+      if ('commands' in update) {
+        for (var i=0; i<update["commands"].length; i++) {
+          var cmd = (update["commands"])[i];
+
+          if (cmd == "refresh_page") {
+              location.reload();
+          }
+        }
+      }
+    }
+
+    function sendAnalytics(data) {
+
+      // Take the provided dicitonary of data and send it to the control server
+
+      // Append the date and time of this recording
+      var tzoffset = (new Date()).getTimezoneOffset() * 60000; // Time zone offset in milliseconds
+      var date_str = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+      data["datetime"] = date_str;
+
+      // Append the current exhibit
+      data["exhibit"] = current_config["current_exhibit"]
+
+      var requestDict = {"class": "tracker",
+                         "action": "submitAnalytics",
+                         "data": data,
+                         "name": id};
+
+      var requestString = JSON.stringify(requestDict);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", serverAddress, true);
+      xhr.timeout = 5000;
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
+      xhr.onreadystatechange = function () {
+        if (this.readyState != 4) return;
+        if (this.status == 200) {
+        }
+      };
+      xhr.send(requestString);
+    }
+
+    function sendPing() {
+
+      // Contact the control server and ask for any updates
+
+      if (serverAddress != "") {
+
+        var allowedActionsDict = {"refresh": "true"}
+
+        var requestDict = {"class": "exhibitComponent",
+                           "id": id,
+                           "type": type,
+                           "allowed_actions": allowedActionsDict};
+
+        var requestString = JSON.stringify(requestDict);
+
+        var xhr = new XMLHttpRequest();
+        xhr.timeout = 1000;
+        xhr.open("POST", serverAddress, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onerror = function() {
+        }
+        xhr.onreadystatechange = function () {
+
+          if (this.readyState != 4) return;
+
+          if (this.status == 200) {
+            if (this.responseText != "") {
+              readUpdate(this.responseText);
+            }
+          }
+      };
+        xhr.send(requestString);
+      }
+    }
+
+    // These will be replaced by the values specified in defaults.ini
+    var id = 'UNKNWON';
+    var type = 'WORDCLOUD_VIEWER';
+    var serverAddress = ""; // The address of the main control server
+    var dictionary = null;
+    var current_config = {}; // Will hold the defaults sent from the helper
+
+    var divForWC = document.getElementById("wordCloudContainer");
+    var wc = null; // This will hold the reference to the wc generator
+    var wc_options = {
+      color: "random-dark",
+      gridSize: Math.round(16 * $(divForWC).width() / 1024),
+      weightFactor: function (size) {
+        return Math.pow(size, 2.3) * $(divForWC).width() / 1024;
+      },
+      drawOutOfBound: false,
+      shrinkToFit: true
+    }
+
+    createWordCloud();
+  </script>
+  </body>
+</html>
