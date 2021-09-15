@@ -859,6 +859,30 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                     except:
                                         print("flexible-tracker: submitData: error: Not valid JSON")
                                         self.wfile.write(bytes(json.dumps({"success": False}), encoding="UTF-8"))
+                    elif action == "submitRawText":
+                        if "data" in data and "name" in data:
+                            with trackingDataWriteLock:
+                                with open(os.path.join("flexible-tracker", "data", data["name"]+".txt"), "a") as f:
+                                    try:
+                                        f.write(data["data"] + "\n")
+                                        self.wfile.write(bytes(json.dumps({"success": True}), encoding="UTF-8"))
+                                    except:
+                                        print("flexible-tracker: submitRawText: error: Could not write text")
+                                        self.wfile.write(bytes(json.dumps({"success": False}), encoding="UTF-8"))
+                    elif action == "retrieveRawText":
+                        if "name" in data:
+                            with trackingDataWriteLock:
+                                try:
+                                    print(os.path.join("flexible-tracker", "data", data["name"]+".txt"))
+                                    with open(os.path.join("flexible-tracker", "data", data["name"]+".txt"), "r") as f:
+                                            result = f.read()
+                                            self.wfile.write(bytes(json.dumps({"success": True, "text": result}), encoding="UTF-8"))
+                                except FileNotFoundError:
+                                    print(f"flexible-tracker: retrieveRawText: error: file {data['name']} not found!")
+                                    self.wfile.write(bytes(json.dumps({"success": False, "text": ""}), encoding="UTF-8"))
+                                except:
+                                    print("flexible-tracker: retrieveRawText: error: Could not read text")
+                                    self.wfile.write(bytes(json.dumps({"success": False, "text": ""}), encoding="UTF-8"))
                     elif action == "submitAnalytics":
                         if "data" in data and "name" in data:
                             with trackingDataWriteLock:
