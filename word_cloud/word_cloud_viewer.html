@@ -46,7 +46,7 @@
     <!-- <canvas id="wordCloudCanvas">
     </canvas> -->
     <!-- This div is used the profanity filer -->
-    <div id="hiddenTextDiv"></div>
+    <div id="profanityCheckingDiv" style="display: none;"></div>
     <div id="wordCloudContainer">
     </div>
 
@@ -101,8 +101,12 @@
 
       // Converver to lowercase and remove special characters, while attempting
       // to retain apostrophes that are part of names. E.g., ja'mar
+      // Then, check the text for profanity
 
-      return text.toLowerCase().replace(/'\B|[^a-z'? ]/g, ` `)
+      var simpleText = text.toLowerCase().replace(/'\B|[^a-z'? ]/g, ` `);
+      $("#profanityCheckingDiv").html(simpleText).profanityFilter({customSwears: swearList, replaceWith: "#"});
+      $("#profanityCheckingDiv").html($("#profanityCheckingDiv").html().replace(/#/g, ""));
+      return($("#profanityCheckingDiv").html().trim())
     }
 
     function countText(text) {
@@ -110,8 +114,8 @@
       // Segment the text into words and count word frequency, attempting to
       // combine different variants of the same word.
 
-      var ignoreList = ["a","about","all","also","and","as","at","be","because",
-                        "but","by","can","come","could","even",
+      var ignoreList = ["a","about","all","also","am", "and","as","at","be",
+                        "because", "but","by","can","come","could","even",
                         "find","for","from","get","go","have",
                         "here","how","i","if","in",
                         "into","is", "it","its","just","like","look","make",

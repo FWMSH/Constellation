@@ -59,6 +59,7 @@
   </head>
 
   <body>
+    <div id="profanityCheckingDiv" style="display:none;"></div>
     <div id="inputContainer">
       <button id="clearButton" onclick='$("#inputField").val("")'>Clear</button>
       <input id="inputField" class="js-virtual-keyboard" data-kioskboard-type="keyboard" data-kioskboard-specialcharacters="false" placeholder="Your response" />
@@ -109,6 +110,15 @@
         }
       };
       xhr.send(requestString);
+    }
+
+    function getCleanText() {
+
+      // Run the profanity checker on the input field
+
+      $("#profanityCheckingDiv").html($("#inputField").val()).profanityFilter({customSwears: swearList, replaceWith: "#"});
+      $("#profanityCheckingDiv").html($("#profanityCheckingDiv").html().replace(/#/g, ""));
+      return($("#profanityCheckingDiv").html().trim())
     }
 
     function getCurrentExhibit() {
@@ -235,12 +245,13 @@
     function sendTexttoServer() {
 
       // Send the server the text that the user has inputted
-      if (serverAddress != "" && $("#inputField").val() != "") {
+      var text = getCleanText()
+      if (serverAddress != "" && text != "") {
 
         var requestDict = {"class": "tracker",
                            "name": `${current_config["viewer_id"]}-${current_config['current_exhibit']}`,
                            "action": "submitRawText",
-                           "text": $("#inputField").val()};
+                           "text": text};
 
         var requestString = JSON.stringify(requestDict);
 
