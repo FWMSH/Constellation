@@ -30,15 +30,27 @@
         overflow-x: hidden;
         height: 100%;
         position: relative;
+        background-color: #002f65;
+      }
+      #clearButton {
+        font-size: 3vw;
+        width: 15vw;
       }
       #inputField {
         display: block;
-        margin : 0 auto;
+        width: 45vw;
         font-size: 3vw;
+
       }
       #inputContainer {
         width: 100vw;
         margin-top: 40vh;
+        display: flex;
+        justify-content: center;
+      }
+      #submitButton {
+        font-size: 3vw;
+        width: 15vw;
       }
     </style>
 
@@ -48,7 +60,9 @@
 
   <body>
     <div id="inputContainer">
+      <button id="clearButton" onclick='$("#inputField").val("")'>Clear</button>
       <input id="inputField" class="js-virtual-keyboard" data-kioskboard-type="keyboard" data-kioskboard-specialcharacters="false" placeholder="Your response" />
+      <button id="submitButton" onclick="sendTexttoServer()">Submit</button>
     </div>
 
   <!-- Load js file with helperAddress -->
@@ -118,45 +132,6 @@
         }
       };
       xhr.send(requestString);
-    }
-
-    function getTextUpdateFromServer() {
-
-      // Ask the server to send the latest raw text, then trigger the wordcloud
-      // to rebuild
-
-      if (serverAddress != "") {
-
-        var requestDict = {"class": "tracker",
-                           "name": `${id}-${current_config['current_exhibit']}`,
-                           "action": "retrieveRawText"};
-
-        var requestString = JSON.stringify(requestDict);
-
-        var xhr = new XMLHttpRequest();
-        xhr.timeout = 1000;
-        xhr.open("POST", serverAddress, true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.onerror = function() {
-        }
-        xhr.onreadystatechange = function () {
-
-          if (this.readyState != 4) return;
-
-          if (this.status == 200) {
-            if (this.responseText != "") {
-              var result = JSON.parse(this.responseText);
-              if ("success" in result && result["success"] == true) {
-                if ("text" in result && result["text"] != "") {
-                  wc_options["list"] = createWordList(countText(cleanText(result["text"])));
-                }
-              }
-              createWordCloud()
-            }
-          }
-      };
-        xhr.send(requestString);
-      }
     }
 
     function readUpdate(responseText) {
@@ -257,6 +232,41 @@
       }
     }
 
+    function sendTexttoServer() {
+
+      // Send the server the text that the user has inputted
+      if (serverAddress != "" && $("#inputField").val() != "") {
+
+        var requestDict = {"class": "tracker",
+                           "name": `${current_config["viewer_id"]}-${current_config['current_exhibit']}`,
+                           "action": "submitRawText",
+                           "text": $("#inputField").val()};
+
+        var requestString = JSON.stringify(requestDict);
+
+        var xhr = new XMLHttpRequest();
+        xhr.timeout = 1000;
+        xhr.open("POST", serverAddress, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onerror = function() {
+        }
+        xhr.onreadystatechange = function () {
+
+          if (this.readyState != 4) return;
+
+          if (this.status == 200) {
+            if (this.responseText != "") {
+              var result = JSON.parse(this.responseText);
+              if ("success" in result && result["success"] == true) {
+                $("#inputField").val("");
+              }
+            }
+          }
+      };
+        xhr.send(requestString);
+      }
+    }
+
     // These will be replaced by the values specified in defaults.ini
     var id = 'UNKNWON';
     var type = 'WORDCLOUD_INPUT';
@@ -280,8 +290,8 @@
       // The theme of keyboard => "light" || "dark" || "flat" || "material" || "oldschool"
       theme: 'light',
       capsLockActive: true,
-      allowRealKeyboard: false,
-      allowMobileKeyboard: false,
+      allowRealKeyboard: true,
+      allowMobileKeyboard: true,
       cssAnimations: true,
       cssAnimationsDuration: 360,
       cssAnimationsStyle: 'slide',

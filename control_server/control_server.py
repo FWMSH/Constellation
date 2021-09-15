@@ -860,11 +860,11 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                         print("flexible-tracker: submitData: error: Not valid JSON")
                                         self.wfile.write(bytes(json.dumps({"success": False}), encoding="UTF-8"))
                     elif action == "submitRawText":
-                        if "data" in data and "name" in data:
+                        if "text" in data and "name" in data:
                             with trackingDataWriteLock:
                                 with open(os.path.join("flexible-tracker", "data", data["name"]+".txt"), "a") as f:
                                     try:
-                                        f.write(data["data"] + "\n")
+                                        f.write(data["text"] + "\n")
                                         self.wfile.write(bytes(json.dumps({"success": True}), encoding="UTF-8"))
                                     except:
                                         print("flexible-tracker: submitRawText: error: Could not write text")
@@ -873,7 +873,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         if "name" in data:
                             with trackingDataWriteLock:
                                 try:
-                                    print(os.path.join("flexible-tracker", "data", data["name"]+".txt"))
                                     with open(os.path.join("flexible-tracker", "data", data["name"]+".txt"), "r") as f:
                                             result = f.read()
                                             self.wfile.write(bytes(json.dumps({"success": True, "text": result}), encoding="UTF-8"))

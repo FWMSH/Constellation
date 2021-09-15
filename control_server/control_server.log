@@ -2289,3 +2289,11 @@ ERROR, 2021-09-15 13:04:37, GET for unexpected file /js/popper.min.js.map
 WARNING, 2021-09-15 13:07:11, there is no configuration available for component with id=WC_INPUT
 ERROR, 2021-09-15 13:07:38, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-09-15 13:08:49, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-09-15 13:51:10, Server shutdown
+INFO, 2021-09-15 13:51:20, Server started
+WARNING, 2021-09-15 13:51:27, there is no configuration available for component with id=WC_VIEW
+WARNING, 2021-09-15 13:51:27, there is no configuration available for component with id=WC_INPUT
+INFO, 2021-09-15 13:52:12, Server shutdown
+INFO, 2021-09-15 13:52:14, Server started
+WARNING, 2021-09-15 13:52:31, there is no configuration available for component with id=WC_VIEW
+WARNING, 2021-09-15 13:52:31, there is no configuration available for component with id=WC_INPUT
