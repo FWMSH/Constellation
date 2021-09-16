@@ -55,7 +55,7 @@ class Projector:
     def secondsSinceLastContact(self):
 
         diff = datetime.datetime.now() - self.lastContactDateTime
-        return(diff.total_seconds())
+        return diff.total_seconds()
 
     def update(self, full=False):
 
@@ -103,7 +103,7 @@ class Projector:
 
     def sendCommand(self, cmd):
 
-        # Function to connect to a PJLink projector and send a command
+        """Connect to a PJLink projector and send a command"""
 
         # Translate commands for projector_control
         cmd_dict = {
@@ -130,7 +130,7 @@ class Projector:
 
 class ExhibitComponent:
 
-    # Holds basic data about a component in the exhibit
+    """Holds basic data about a component in the exhibit"""
 
     def __init__(self, id, type):
         global wakeOnLANList
@@ -166,13 +166,17 @@ class ExhibitComponent:
 
     def secondsSinceLastContact(self):
 
+        """Return the number of seconds since a ping was received"""
+
         diff = datetime.datetime.now() - self.lastContactDateTime
-        return(diff.total_seconds())
+        return diff.total_seconds()
 
     def secondsSinceLastInteraction(self):
 
+        """Return the number of seconds since an interaction was recorded"""
+
         diff = datetime.datetime.now() - self.lastInteractionDateTime
-        return(diff.total_seconds())
+        return diff.total_seconds()
 
     def updateLastContactDateTime(self):
 
@@ -190,8 +194,10 @@ class ExhibitComponent:
 
     def currentStatus(self):
 
-        # Return the current status of the component
-        # [OFFLINE, SYSTEM ON, ONLINE, ACTIVE, WAITING]
+        """Return the current status of the component
+
+        Options: [OFFLINE, SYSTEM ON, ONLINE, ACTIVE, WAITING]
+        """
 
         status = 'OFFLINE'
 
@@ -207,7 +213,7 @@ class ExhibitComponent:
             # to ping the PC and see if it is alive
             status = self.updatePCStatus()
 
-        return(status)
+        return status
 
     def updateConfiguration(self):
 
@@ -228,6 +234,8 @@ class ExhibitComponent:
         self.config["current_exhibit"] = currentExhibit[0:-8]
 
     def queueCommand(self, command):
+
+        """Queue a command to be sent to the component on the next ping"""
 
         if (command in ["power_on", "wakeDisplay"]) and (self.macAddress is not None):
             self.wakeWithLAN()
@@ -255,31 +263,29 @@ class ExhibitComponent:
 
     def updatePCStatus(self):
 
-        # If we have an IP address, ping the host to see if it is awake
+        """If we have an IP address, ping the host to see if it is awake"""
 
-        global serverWarningDict
-
+        status = "UNKNOWN"
         if self.ip is not None:
             try:
                 ping = icmplib.ping(self.ip, privileged=False, count=1, timeout=0.05)
                 if ping.is_alive:
-                    return("SYSTEM ON")
+                    status = "SYSTEM ON"
                 elif self.secondsSinceLastContact() > 60:
-                    return("OFFLINE")
+                    status = "OFFLINE"
                 else:
-                    return("WAITING")
+                    status = "WAITING"
             except icmplib.exceptions.SocketPermissionError:
                 if "wakeOnLANPrivilege" not in serverWarningDict:
                     print("Warning: to check the status of Wake on LAN devices, you must run the control server with administrator privileges.")
                     with logLock:
                         logging.info(f"Need administrator privilege to check Wake on LAN status")
                     serverWarningDict["wakeOnLANPrivilege"] = True
-        else:
-            return("UNKNOWN")
+        return status
 
 class WakeOnLANDevice:
 
-    # Holds basic information about a wake on LAN device and facilitates waking it
+    """Holds basic information about a wake on LAN device and facilitates waking it"""
 
     def __init__(self, id, macAddress, ip_address=None):
 
@@ -298,7 +304,7 @@ class WakeOnLANDevice:
     def secondsSinceLastContact(self):
 
         diff = datetime.datetime.now() - self.lastContactDateTime
-        return(diff.total_seconds())
+        return diff.total_seconds()
 
     def queueCommand(self, cmd):
 
@@ -503,6 +509,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
     def do_OPTIONS(self):
 
+        """Respond to an OPTIONS request"""
         # print("---------------")
         # print("BEGIN OPTIONS")
 
@@ -519,8 +526,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
 
-        # Receives pings from client devices and respond with any updated
-        # information
+        """Receives pings from client devices and respond with any updated information"""
 
         # print("===============")
         # print("BEGIN POST")
@@ -543,7 +549,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 logging.warning("POST received without content-type header")
             print(self.headers)
 
-        if (ctype == "application/json"):
+        if ctype == "application/json":
             # print("  application/json")
 
             # Unpack the data
@@ -563,7 +569,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 pingClass = data["class"]
             except:
                 print("Error: ping received without class field")
-                return() # No id or type, so bail out
+                return # No id or type, so bail out
 
             # print(f"  class = {pingClass}")
 
@@ -574,14 +580,14 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     print("Error: webpage ping received without action field")
                     # print("END POST")
                     # print("===============")
-                    return() # No id or type, so bail out
+                    return # No id or type, so bail out
                 # print(f"    action = {action}")
                 if action == "fetchUpdate":
                     self.sendWebpageUpdate()
                 elif action == "fetchProjectorUpdate":
                     if "id" in data:
                         proj = getProjector(data["id"])
-                        if proj != None:
+                        if proj is not None:
                             #proj.update()
                             json_string = json.dumps(proj.state)
                             self.wfile.write(bytes(json_string, encoding="UTF-8"))
@@ -607,14 +613,18 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     error = False
                     error_message = ""
 
-                    if "name" in data and "timeToSet" in data and "actionToSet" in data and "targetToSet" in data and "isAddition" in data:
+                    if ("name" in data and
+                            "timeToSet" in data and
+                            "actionToSet" in data and
+                            "targetToSet" in data and
+                            "isAddition" in data):
                         line_to_set = f"{data['timeToSet']} = {data['actionToSet']}"
                         if data["targetToSet"] is None:
                             line_to_set += "\n"
                         else:
                             line_to_set += f", {data['targetToSet']}\n"
 
-                        if (data["isAddition"]):
+                        if data["isAddition"]:
                             with scheduleLock:
                                 root = os.path.dirname(os.path.abspath(__file__))
                                 sched_dir = os.path.join(root, "schedules")
@@ -622,7 +632,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                 # Iterate through the existing schedule to make sure that we aren't
                                 # adding a time that already exists
                                 time_to_set = dateutil.parser.parse(data['timeToSet']).time()
-                                with open(os.path.join(sched_dir, data["name"] + ".ini"), 'r') as f:
+                                path = os.path.join(sched_dir, data["name"] + ".ini")
+                                with open(path, 'r', encoding="UTF-8") as f:
                                     for line in f.readlines():
                                         split = line.split("=")
                                         if len(split) == 2:
@@ -825,12 +836,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             #print(f"Warning: exhibitComponent ping with id=UNKNOWN coming from {self.address_string()}")
                             # print("END POST")
                             # print("===============")
-                            return()
+                            return
                     except:
                         print("Error: exhibitComponent ping received without id or type field")
                         # print("END POST")
                         # print("===============")
-                        return() # No id or type, so bail out
+                        return # No id or type, so bail out
 
                     # print(f"    id = {id}")
                     # print("    action = ping")
@@ -907,7 +918,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 print(f"Error: ping with unknown class '{pingClass}' received")
                 # print("END POST")
                 # print("===============")
-                return() # Bail out
+                return # Bail out
         # print("END POST")
         # print("===============")
 
@@ -982,8 +993,6 @@ def pollEventSchedule():
     pollingThreadDict["eventSchedule"].start()
 
 def pollProjectors():
-
-    global pollingThreadDict
 
     for projector in projectorList:
         th = threading.Thread(target=projector.update)
@@ -1082,7 +1091,6 @@ def retrieveSchedule():
             schedule_to_read = None
 
             for source in sources_to_try:
-                sched_path = os.path.join(root, "schedules", source)
                 if source in source_dir:
                     schedule_to_read = os.path.join(root, "schedules", source)
                     if source == date_specific_filename:
@@ -1103,9 +1111,9 @@ def retrieveSchedule():
                     sched = parser["SCHEDULE"]
                     for key in sched:
                         time = dateutil.parser.parse(key).time()
-                        eventTime = datetime.datetime.combine(day, time)
+                        event_time = datetime.datetime.combine(day, time)
                         action = [s.strip() for s in sched[key].split(",")]
-                        day_schedule.append([eventTime, eventTime.strftime("%-I:%M %p"), action])
+                        day_schedule.append([event_time, event_time.strftime("%-I:%M %p"), action])
                 else:
                     print("retrieveSchedule: error: no INI section 'SCHEDULE' found!")
             day_dict["schedule"] = sorted(day_schedule)
@@ -1114,41 +1122,33 @@ def retrieveSchedule():
 
 def queueNextOnOffEvent():
 
-    # Function to consult schedule_dict and set the next datetime that we should
-    # send an on or off command
-
-    global scheduleList
-    global nextEvent
+    """Consult schedule_dict and set the next datetime that we should send an on or off command"""
 
     now = datetime.datetime.now() # Right now
-    # eventDate = datetime.datetime.now().date() # When the event is (start now and we will advance it)
-    nextEventDateTime = None
-    nextAction = None
-    counter = 0
+    next_event_datetime = None
+    next_action = None
 
     for day in scheduleList:
         sched = day["schedule"]
         for item in sched:
             if item[0] > now:
-                nextEventDateTime = item[0]
-                nextAction = item[2]
+                next_event_datetime = item[0]
+                next_action = item[2]
                 break
-        if nextEventDateTime is not None:
+        if next_event_datetime is not None:
             break
 
-    if nextEventDateTime is not None:
-        nextEvent["date"] = nextEventDateTime
-        nextEvent["time"] = nextEventDateTime.strftime("%-I:%M %p")
-        nextEvent["action"] = nextAction
-        print(f"New event queued: {nextAction}, {nextEventDateTime}")
+    if next_event_datetime is not None:
+        nextEvent["date"] = next_event_datetime
+        nextEvent["time"] = next_event_datetime.strftime("%-I:%M %p")
+        nextEvent["action"] = next_action
+        print(f"New event queued: {next_action}, {next_event_datetime}")
     else:
         print("No events to queue right now")
 
 def checkAvailableExhibits():
 
-    # Get a list of available "*.exhibit" configuration files
-
-    global exhibitList
+    """Get a list of available "*.exhibit" configuration files"""
 
     for file in os.listdir("exhibits"):
         if file.endswith(".exhibit"):
@@ -1327,7 +1327,7 @@ def readExhibitConfiguration(name, updateDefault=False):
         print(f"Error: exhibit definition with name {name} does not appear to be properly formatted. This file should be located in the exhibits directory.")
         with logLock:
             logging.error(f'Bad exhibit definition fileanme: {name}')
-        return()
+        return
 
     currentExhibit = name
     currentExhibitConfiguration = configparser.ConfigParser()
@@ -1339,46 +1339,39 @@ def readExhibitConfiguration(name, updateDefault=False):
         with currentExhibitConfigurationLock:
             config.read('currentExhibitConfiguration.ini')
             config.set("CURRENT", "current_exhibit", name)
-            with open('currentExhibitConfiguration.ini', "w") as f:
+            with open('currentExhibitConfiguration.ini', "w", encoding="UTF-8") as f:
                 config.write(f)
 
 def getExhibitComponent(id):
 
-    # Return a component with the given id, or None if no such
-    # component exists
+    """Return a component with the given id, or None if no such component exists"""
 
-    component = next((x for x in componentList if x.id == id), None)
-
-    return(component)
+    return next((x for x in componentList if x.id == id), None)
 
 def getProjector(id):
 
-    # Return a projector with the given id, or None if no such
-    # component exists
+    """Return a projector with the given id, or None if no such component exists"""
 
-    projector = next((x for x in projectorList if x.id == id), None)
-
-    return(projector)
+    return next((x for x in projectorList if x.id == id), None)
 
 def getWakeOnLanComponent(id):
 
-    # Return a projector with the given id, or None if no such
-    # component exists
+    """Return a WakeOnLan device with the given id, or None if no such component exists"""
 
-    component = next((x for x in wakeOnLANList if x.id == id), None)
-
-    return(component)
+    return next((x for x in wakeOnLANList if x.id == id), None)
 
 def addExhibitComponent(id, type):
+
+    """Create a new ExhibitComponent, add it to the componentList, and return it"""
 
     component = ExhibitComponent(id, type)
     componentList.append(component)
 
-    return(component)
+    return component
 
 def commandAllExhibitComponents(cmd):
 
-    # Queue a command for every exhibit component
+    """Queue a command for every exhibit component"""
 
     print("Sending command to all components:", cmd)
     with logLock:
@@ -1392,12 +1385,12 @@ def commandAllExhibitComponents(cmd):
 
 def updateExhibitComponentStatus(data, ip):
 
-    id = data["id"]
-    type = data["type"]
+    this_id = data["id"]
+    this_type = data["type"]
 
-    component = getExhibitComponent(id)
+    component = getExhibitComponent(this_id)
     if component is None: # This is a new id, so make the component
-        component = addExhibitComponent(id, type)
+        component = addExhibitComponent(this_id, this_type)
 
     component.ip = ip
     if "helperPort" in data:
@@ -1422,7 +1415,7 @@ def updateExhibitComponentStatus(data, ip):
 
 def checkFileStructure():
 
-    # Check to make sure we have the appropriate file structure set up
+    """Check to make sure we have the appropriate file structure set up"""
 
     root = os.path.dirname(os.path.abspath(__file__))
     schedules_dir = os.path.join(root, "schedules")
@@ -1435,12 +1428,15 @@ def checkFileStructure():
         print("Missing schedules directory. Creating now...")
         try:
             os.mkdir(schedules_dir)
-            default_schedule_list = ["monday.ini", "tuesday.ini", "wednesday.ini", "thursday.ini", "friday.ini", "saturday.ini", "sunday.ini"]
+            default_schedule_list = ["monday.ini", "tuesday.ini",
+                                     "wednesday.ini", "thursday.ini",
+                                     "friday.ini", "saturday.ini",
+                                     "sunday.ini"]
 
             for file in default_schedule_list:
-                with open(os.path.join(schedules_dir, file), 'w') as f:
+                with open(os.path.join(schedules_dir, file), 'w', encoding="UTF-8") as f:
                     f.write("[SCHEDULE]\n")
-        except:
+        except PermissionError:
             print("Error: unable to create 'schedules' directory. Do you have write permission?")
 
     try:
@@ -1458,7 +1454,7 @@ def checkFileStructure():
         print("Missing exhibits directory. Creating now...")
         try:
             os.mkdir(exhibits_dir)
-            with open(os.path.join(exhibits_dir, "default.exhibit"), 'w') as f:
+            with open(os.path.join(exhibits_dir, "default.exhibit"), 'w', encoding="UTF-8") as f:
                 f.write("")
         except:
             print("Error: unable to create 'exhibits' directory. Do you have write permission?")
@@ -1467,7 +1463,7 @@ def quit_handler(sig, frame):
 
     # Function to handle cleaning shutting down the server
 
-    if rebooting == True:
+    if rebooting is True:
         print("\nRebooting server...")
         exit_code = 1
     else:
@@ -1533,7 +1529,10 @@ trackingDataWriteLock = threading.Lock()
 scheduleLock = threading.Lock()
 
 # Set up log file
-logging.basicConfig(datefmt='%Y-%m-%d %H:%M:%S', filename='control_server.log', format='%(levelname)s, %(asctime)s, %(message)s', level=logging.DEBUG)
+logging.basicConfig(datefmt='%Y-%m-%d %H:%M:%S',
+                    filename='control_server.log',
+                    format='%(levelname)s, %(asctime)s, %(message)s',
+                    level=logging.DEBUG)
 signal.signal(signal.SIGINT, quit_handler)
 sys.excepthook = error_handler
 

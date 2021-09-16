@@ -471,8 +471,7 @@ def getSystemStats():
 
     # Get the percentage the disk is full
     total, used, free = shutil.disk_usage(__file__)
-    # Used is not right sometimes, so calulate it
-    used = total - free
+
     result["disk_pct_free"] = round((free/total) * 100)
     result["disK_free_GB"] = round(free / (2**30)) # GB
 
@@ -483,7 +482,7 @@ def getSystemStats():
     # Get memory usage
     result["ram_used_pct"] = round(psutil.virtual_memory().percent)
 
-    return(result)
+    return result
 
 def performManualContentUpdate(content):
 
