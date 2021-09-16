@@ -27,3 +27,4 @@ system_helper/content/81KbKVU6gnL._RI_.jpg
 *.pyc
 control_server/current_state.dat
 control_server/control_server.log
+control_server/flexible-tracker/data/WC_VIEW-space.txt

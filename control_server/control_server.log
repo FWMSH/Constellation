@@ -2299,3 +2299,7 @@ WARNING, 2021-09-15 13:52:31, there is no configuration available for component 
 WARNING, 2021-09-15 13:52:31, there is no configuration available for component with id=WC_INPUT
 WARNING, 2021-09-15 14:45:02, there is no configuration available for component with id=WC_VIEW
 WARNING, 2021-09-15 14:45:02, there is no configuration available for component with id=WC_INPUT
+INFO, 2021-09-16 16:49:46, Server shutdown
+INFO, 2021-09-16 16:49:47, Server started
+WARNING, 2021-09-16 16:49:52, there is no configuration available for component with id=WC_VIEW
+WARNING, 2021-09-16 16:49:52, there is no configuration available for component with id=WC_INPUT

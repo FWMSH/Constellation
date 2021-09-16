@@ -12,11 +12,10 @@ import os
 import signal
 import cgi
 import shutil
-import psutil
 import socket
+import psutil
 
 # Non-standard modules
-from sockio.sio import TCP
 import mimetypes
 import dateutil.parser
 import requests
@@ -27,7 +26,7 @@ import config
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
-    def log_request(code='-', size='-'):
+    def log_request(self, code='-', size='-'):
 
         # Override to suppress the automatic logging
 
@@ -45,9 +44,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
         elif self.path.lower().endswith(".html"):
             #print("  Handling HTML file", self.path)
             try:
-                f = open(self.path[1:],"r")
+                f = open(self.path[1:], "r")
             except IOError:
-                self.send_error(404, "File Not Found: %s" % self.path)
+                self.send_error(404, f"File Not Found: {self.path}")
                 print(f"GET for unexpected file {self.path}")
                 #print("do_GET: EXIT")
                 return()
@@ -59,7 +58,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
             if self.address_string() == "127.0.0.1": # Request is coming from this machine too
                 address_to_insert = "'http://localhost:" + config.defaults_dict["helper_port"] + "'"
             else: # Request is coming from the network
-                address_to_insert = "'http://" + socket.gethostbyname(socket.gethostname()) + config.defaults_dict["helper_port"] + "'"
+                address_to_insert = "'http://" \
+                                    + socket.gethostbyname(socket.gethostname()) \
+                                    + config.defaults_dict["helper_port"] \
+                                    + "'"
             # Then, insert that into the document
             page = page.replace("INSERT_HELPERIP_HERE", address_to_insert)
 
@@ -124,7 +126,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         # Get the data from the request
         ctype, pdict = cgi.parse_header(self.headers.get('content-type'))
 
-        if (ctype == "multipart/form-data"): # File upload
+        if ctype == "multipart/form-data": # File upload
             try:
                 pdict['boundary'] = bytes(pdict['boundary'], "utf-8")
                 content_len = int(self.headers.get('Content-length'))
@@ -134,11 +136,11 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                 root = os.path.dirname(os.path.abspath(__file__))
                 content_path = os.path.join(root, "content")
-                split = fields.get("exhibit")[0].split(".")
-                if len(split) > 2:
-                    exhibit = ".".join(spilt[:-2])
-                else:
-                    exhibit = split[0]
+                # split = fields.get("exhibit")[0].split(".")
+                # if len(split) > 2:
+                #     exhibit = ".".join(split[:-2])
+                # else:
+                #     exhibit = split[0]
                 filepath = os.path.join(content_path, fields.get("filename")[0])
                 print(f"Saving uploaded file to {filepath}")
                 with open(filepath, "wb") as f:
@@ -151,7 +153,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 json_string = json.dumps({"success": False})
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
 
-        elif (ctype == "application/json"):
+        elif ctype == "application/json":
 
             # Unpack the data
             length = int(self.headers['Content-length'])
@@ -175,7 +177,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 elif data["action"] == "restart":
                     reboot()
                 elif data["action"] in ["shutdown", "power_off"]:
-                    shutdown();
+                    shutdown()
                 elif data["action"] == "wakeDisplays":
                     wakeDisplays()
                 elif data["action"] == "commandProjector":
@@ -247,7 +249,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                     # If we don't have a clip list, ask for one to be sent for
                     # next time.
-                    if (len(config.clipList) == 0):
+                    if len(config.clipList) == 0:
                         config.commandList.append("sendClipList")
                         self.wfile.write(bytes(json.dumps([]), encoding="UTF-8"))
                     else:
@@ -294,15 +296,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         root = os.path.dirname(os.path.abspath(__file__))
                         label_path = os.path.join(root, "labels", config.defaults_dict["current_exhibit"], lang, data["name"])
                         try:
-                            f = open(label_path,"r")
-                            label = f.read()
+                            with open(label_path,"r") as f:
+                                label = f.read()
                         except:
                             print(f"Error: Unknown label {data['name']} requested in language {lang} for exhibit {config.defaults_dict['current_exhibit']}")
                             return()
 
                         self.wfile.write(bytes(label, encoding="UTF-8"))
                     else:
-                        print(f"Error: Label requested without name")
+                        print("Error: Label requested without name")
                 else:
                     print("Error: unrecognized action:", data["action"])
         #print("do_POST: EXIT")
@@ -449,13 +451,13 @@ def strToBool(val):
     # Take a string value like "false" and convert it to a bool
 
     if isinstance(val, bool):
-        return(val)
+        return val
     else:
         val = str(val).strip()
         if val in ["false", "False", 'FALSE']:
-            return(False)
+            return False
         elif val in ["true", "True", 'TRUE']:
-            return(True)
+            return True
         else:
             print("strToBool: Error: ambiguous string", val)
 
@@ -486,8 +488,6 @@ def getSystemStats():
 def performManualContentUpdate(content):
 
     # Take the given list of content and update the control server
-
-    global config
 
     # First, update the control server
     requestDict = {"class": "webpage",
@@ -550,9 +550,6 @@ def readSchedule(schedule_input):
     # Parse the configParser section provided in schedule and convert it for
     # later use
 
-    #global schedule
-    #global missingContentWarningList
-
     config.schedule = []
     config.missingContentWarningList = []
 
@@ -560,14 +557,14 @@ def readSchedule(schedule_input):
     content_path = os.path.join(root, "content")
 
     for key in schedule_input:
-        time = dateutil.parser.parse(key).time()
+        event_time = dateutil.parser.parse(key).time()
         content = [s.strip() for s in schedule_input[key].split(",")]
         # Check to make sure that every file in the schedule actually exists.
         # Otherwise, add it to the warning list to be passed to the control server
         for item in content:
             if not os.path.isfile(os.path.join(content_path, item)):
                 config.missingContentWarningList.append(item)
-        config.schedule.append((time, content))
+        config.schedule.append((event_time, content))
 
     # Add an event at 12:01 AM to retrieve the new schedule
     config.schedule.append((datetime.time(0,1), "reload_schedule"))
@@ -592,7 +589,7 @@ def queueNextScheduledEvent():
         content_path = os.path.join(root, "content")
 
         for event in sorted_sched:
-            time, content = event
+            event_time, content = event
             # If the content was previously missing, see if it is still missing
             # (the user may have fixed the problem)
             for item in content:
@@ -600,7 +597,7 @@ def queueNextScheduledEvent():
                     if  os.path.isfile(os.path.join(content_path, item)):
                         # It now exists; remove it from the warning list
                         config.missingContentWarningList = [ x for x in config.missingContentWarningList if x != item]
-            if now < time:
+            if now < event_time:
                 config.nextEvent = event
                 break
 
@@ -612,11 +609,11 @@ def checkEventSchedule():
 
     content_to_retrun = None
     if config.nextEvent is not None:
-        time, content = config.nextEvent
+        event_time, content = config.nextEvent
         #print("Checking for scheduled event:", content)
         #print(f"Now: {datetime.now().time()}, Event time: {time}, Time for event: {datetime.now().time() > time}")
-        if datetime.datetime.now().time() > time: # It is time for this event!
-            print("Scheduled event occurred:", time, content)
+        if datetime.datetime.now().time() > event_time: # It is time for this event!
+            print("Scheduled event occurred:", event_time, content)
             if content == "reload_schedule":
                 retrieveSchedule()
             else:
@@ -625,7 +622,7 @@ def checkEventSchedule():
             config.nextEvent = None
 
     queueNextScheduledEvent()
-    return(content_to_retrun)
+    return content_to_retrun
 
 def readDefaultConfiguration(checkDirectories=True):
 

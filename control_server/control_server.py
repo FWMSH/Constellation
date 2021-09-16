@@ -6,10 +6,9 @@
 # Standard modules
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from socketserver import ThreadingMixIn
-import time
+# import time
 import logging
 import datetime
-import dateutil.parser
 import configparser
 import json
 import os
@@ -19,13 +18,15 @@ import signal
 import sys
 import shutil
 import traceback
-import threading, _thread
+import threading
+import _thread
 import pickle
+import dateutil.parser
 
 # Non-standard modules
 import wakeonlan
 import icmplib
-import pypjlink
+# import pypjlink
 
 # Constellation modules
 import projector_control
@@ -346,7 +347,6 @@ class WakeOnLANDevice:
             self.state["status"] = "UNKNOWN"
 
 
-
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     # Stub which triggers dispatch of requests into individual threads.
     daemon_threads = True
@@ -436,7 +436,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         self.wfile.write(bytes(json_string, encoding="UTF-8"))
 
-    def log_request(code='-', size='-'):
+    def log_request(self, code='-', size='-'):
 
         # Override to suppress the automatic logging
 
@@ -874,8 +874,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             with trackingDataWriteLock:
                                 try:
                                     with open(os.path.join("flexible-tracker", "data", data["name"]+".txt"), "r") as f:
-                                            result = f.read()
-                                            self.wfile.write(bytes(json.dumps({"success": True, "text": result}), encoding="UTF-8"))
+                                        result = f.read()
+                                        self.wfile.write(bytes(json.dumps({"success": True, "text": result}), encoding="UTF-8"))
                                 except FileNotFoundError:
                                     print(f"flexible-tracker: retrieveRawText: error: file {data['name']} not found!")
                                     self.wfile.write(bytes(json.dumps({"success": False, "text": ""}), encoding="UTF-8"))
@@ -1094,20 +1094,20 @@ def retrieveSchedule():
                     break
 
             if schedule_to_read is not None:
-                    parser = configparser.ConfigParser(delimiters=("="))
-                    try:
-                        parser.read(schedule_to_read)
-                    except configparser.DuplicateOptionError:
-                        print("Error: Schedule cannot contain two actions with identical times!")
-                    if "SCHEDULE" in parser:
-                        sched = parser["SCHEDULE"]
-                        for key in sched:
-                            time = dateutil.parser.parse(key).time()
-                            eventTime = datetime.datetime.combine(day, time)
-                            action = [s.strip() for s in sched[key].split(",")]
-                            day_schedule.append([eventTime, eventTime.strftime("%-I:%M %p"), action])
-                    else:
-                        print("retrieveSchedule: error: no INI section 'SCHEDULE' found!")
+                parser = configparser.ConfigParser(delimiters=("="))
+                try:
+                    parser.read(schedule_to_read)
+                except configparser.DuplicateOptionError:
+                    print("Error: Schedule cannot contain two actions with identical times!")
+                if "SCHEDULE" in parser:
+                    sched = parser["SCHEDULE"]
+                    for key in sched:
+                        time = dateutil.parser.parse(key).time()
+                        eventTime = datetime.datetime.combine(day, time)
+                        action = [s.strip() for s in sched[key].split(",")]
+                        day_schedule.append([eventTime, eventTime.strftime("%-I:%M %p"), action])
+                else:
+                    print("retrieveSchedule: error: no INI section 'SCHEDULE' found!")
             day_dict["schedule"] = sorted(day_schedule)
             scheduleList.append(day_dict)
     queueNextOnOffEvent()
@@ -1121,7 +1121,7 @@ def queueNextOnOffEvent():
     global nextEvent
 
     now = datetime.datetime.now() # Right now
-    eventDate = datetime.datetime.now().date() # When the event is (start now and we will advance it)
+    # eventDate = datetime.datetime.now().date() # When the event is (start now and we will advance it)
     nextEventDateTime = None
     nextAction = None
     counter = 0
@@ -1478,7 +1478,7 @@ def quit_handler(sig, frame):
     # we can resume from the current state
     with open("current_state.dat", 'wb') as f:
         pickle.dump(componentList, f)
-        a = pickle.dumps(componentList)
+        # a = pickle.dumps(componentList)
 
     #print("Exit1")
     for key in pollingThreadDict:
