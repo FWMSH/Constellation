@@ -34,17 +34,16 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
 
-        # Receive a GET request and respond with a console webpage
+        """Receive a GET request and respond with a console webpage"""
         #print("do_GET: ENTER")
         #print("  ", self.path)
-        #global config
 
         if self.path == "/":
             pass
         elif self.path.lower().endswith(".html"):
             #print("  Handling HTML file", self.path)
             try:
-                f = open(self.path[1:], "r")
+                f = open(self.path[1:], "r", encoding='UTF-8')
             except IOError:
                 self.send_error(404, f"File Not Found: {self.path}")
                 print(f"GET for unexpected file {self.path}")
@@ -79,15 +78,14 @@ class RequestHandler(SimpleHTTPRequestHandler):
             #print(f"  Handling {mimetype}")
             try:
                 #print(f"  Opening file {self.path}")
-                f = open(self.path[1:], 'rb')
-                #print(f"    File opened")
-                self.send_response(200)
-                self.send_header('Content-type', mimetype)
-                self.end_headers()
-                #print(f"    Writing data to client")
-                self.wfile.write(f.read())
-                #print(f"    Write complete")
-                f.close()
+                with open(self.path[1:], 'rb') as f:
+                    #print(f"    File opened")
+                    self.send_response(200)
+                    self.send_header('Content-type', mimetype)
+                    self.end_headers()
+                    #print(f"    Writing data to client")
+                    self.wfile.write(f.read())
+                    #print(f"    Write complete")
                 #print(f"  File closed")
                 #print("do_GET: EXIT")
                 return
@@ -108,13 +106,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
 
-        # Receives pings from client devices and respond with any updated
-        # information
+        """Receives pings from client devices and respond with any updated information"""
+
         # print("do_POST: ENTER")
-        # global configFile
-        # global config
-        # global clipList
-        # global commandList
 
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -136,22 +130,16 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                 root = os.path.dirname(os.path.abspath(__file__))
                 content_path = os.path.join(root, "content")
-                # split = fields.get("exhibit")[0].split(".")
-                # if len(split) > 2:
-                #     exhibit = ".".join(split[:-2])
-                # else:
-                #     exhibit = split[0]
                 filepath = os.path.join(content_path, fields.get("filename")[0])
                 print(f"Saving uploaded file to {filepath}")
                 with open(filepath, "wb") as f:
                     f.write(file)
 
-                responseDict = {"success": True}
-                json_string = json.dumps(responseDict)
-                self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                json_string = json.dumps({"success": True})
             except:
                 json_string = json.dumps({"success": False})
-                self.wfile.write(bytes(json_string, encoding="UTF-8"))
+
+            self.wfile.write(bytes(json_string, encoding="UTF-8"))
 
         elif ctype == "application/json":
 
@@ -161,7 +149,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
             try: # JSON
                 data = json.loads(data_str)
-            except: # not JSON
+            except json.decoder.JSONDecodeError: # not JSON
                 data = {}
                 split = data_str.split("&")
                 for seg in split:
@@ -222,7 +210,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 elif data["action"] == "getCurrentExhibit":
                     self.wfile.write(bytes(config.defaults_dict["current_exhibit"], encoding="UTF-8"))
                 elif data["action"] == "deleteFile":
-                    if ("file" in data):
+                    if "file" in data:
                         deleteFile(data["file"])
                         response = {"success": True}
                     else:
@@ -259,14 +247,14 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     if "clipNumber" in data:
                         config.commandList.append("gotoClip_"+str(data["clipNumber"]))
                 elif data["action"] == "getUpdate":
-                    responseDict = {"commands": config.commandList,
+                    response_dict = {"commands": config.commandList,
                                     "missingContentWarnings": config.missingContentWarningList}
 
                     event_content = checkEventSchedule()
                     if event_content is not None:
-                        responseDict["content"] = event_content
+                        response_dict["content"] = event_content
 
-                    json_string = json.dumps(responseDict)
+                    json_string = json.dumps(response_dict)
                     try:
                         self.wfile.write(bytes(json_string, encoding="UTF-8"))
                     except socket.error as e:
@@ -282,7 +270,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             config.commandList.append("toggleAutoplay")
                 elif data["action"] == "seekVideo":
                     if ("direction" in data) and ("fraction" in data):
-                        config.commandList.append("seekVideo_"+data["direction"]+"_"+str(data["fraction"]))
+                        config.commandList.append(f"seekVideo_{data['direction']}_{data['fraction']}")
                 elif data["action"] == "pauseVideo":
                     config.commandList.append("pauseVideo")
                 elif data["action"] == "playVideo":
@@ -296,9 +284,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         root = os.path.dirname(os.path.abspath(__file__))
                         label_path = os.path.join(root, "labels", config.defaults_dict["current_exhibit"], lang, data["name"])
                         try:
-                            with open(label_path,"r") as f:
+                            with open(label_path,"r", encoding='UTF-8') as f:
                                 label = f.read()
-                        except:
+                        except FileNotFoundError:
                             print(f"Error: Unknown label {data['name']} requested in language {lang} for exhibit {config.defaults_dict['current_exhibit']}")
                             return()
 
@@ -311,7 +299,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
 def reboot():
 
-    # Send an OS-appropriate command to restart the computer
+    """Send an OS-appropriate command to restart the computer"""
 
     reboot_allowed = config.defaults_dict.get("allow_restart", "true")
     if reboot_allowed.lower() in ["true", "yes", '1', 1]:
@@ -327,7 +315,7 @@ def reboot():
 
 def shutdown():
 
-    # Send an OS-appropriate command to shutdown the computer
+    """Send an OS-appropriate command to shutdown the computer"""
 
     shutdown_allowed = config.defaults_dict.get("allow_shutdown", "false")
 
@@ -354,6 +342,9 @@ def sleepDisplays():
             commandProjector("off")
 
 def wakeDisplays():
+
+    """Wake the display up or power it on"""
+
     if config.defaults_dict["display_type"] == "screen":
         if sys.platform == "darwin": # MacOS
             os.system("caffeinate -u -t 2")
@@ -364,10 +355,16 @@ def wakeDisplays():
 
 def commandProjector(cmd):
 
+    """Send commands to a locally-connected projector"""
+
     make = "Optoma"
 
     if make == "Optoma":
-        ser = serial.Serial("/dev/ttyUSB0",9600, timeout=0, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS)
+        ser = serial.Serial("/dev/ttyUSB0", 9600,
+                            timeout=0,
+                            parity=serial.PARITY_NONE,
+                            stopbits=serial.STOPBITS_ONE,
+                            bytesize=serial.EIGHTBITS)
         ser.reset_input_buffer()
         ser.reset_output_buffer()
 
@@ -386,7 +383,7 @@ def commandProjector(cmd):
 
 def deleteFile(file, absolute=False):
 
-    # Function to delete a file
+    """Delete a file"""
 
     if absolute:
         file_path = file
@@ -398,7 +395,7 @@ def deleteFile(file, absolute=False):
 
 def copyFile(filename, fromExhibit, toExhibit):
 
-    # Function to copy a file from one exhibit to another
+    """Copy a file from one exhibit to another"""
 
     root = os.path.dirname(os.path.abspath(__file__))
     file_path_from = os.path.join(root, "content", fromExhibit, filename)
@@ -408,7 +405,7 @@ def copyFile(filename, fromExhibit, toExhibit):
 
 def getAllDirectoryContents():
 
-    # Recursively search for files in the content directory and its subdirectories
+    """Recursively search for files in the content directory and its subdirectories"""
 
     root = os.path.dirname(os.path.abspath(__file__))
     content_path = os.path.join(root, "content")
@@ -418,8 +415,10 @@ def getAllDirectoryContents():
 
 def getDirectoryContents(path, absolute=False):
 
-    # Return the contents of an exhibit directory
-    # if absolute == False, the path is appended to the default content directory
+    """Return the contents of an exhibit directory
+
+    if absolute == False, the path is appended to the default content directory
+    """
 
     if absolute:
         contents = os.listdir(path)
@@ -431,8 +430,7 @@ def getDirectoryContents(path, absolute=False):
 
 def checkDirectoryStructure():
 
-    # Function that makes sure the appropriate content directories are present
-    # and creates them if they are not.
+    """Make sure the appropriate content directories are present and create them if they are not."""
 
     root = os.path.dirname(os.path.abspath(__file__))
     content_path = os.path.join(root, "content")
@@ -443,23 +441,25 @@ def checkDirectoryStructure():
 
         try:
             os.mkdir(content_path)
-        except:
+        except PermissionError:
             print("Error: unable to create directory. Do you have write permission?")
 
 def strToBool(val):
 
-    # Take a string value like "false" and convert it to a bool
+    """Take a string value like "false" and convert it to a bool"""
 
     if isinstance(val, bool):
-        return val
+        val_to_return = val
     else:
         val = str(val).strip()
         if val in ["false", "False", 'FALSE']:
-            return False
+            val_to_return = False
         elif val in ["true", "True", 'TRUE']:
-            return True
+            val_to_return = True
         else:
-            print("strToBool: Error: ambiguous string", val)
+            val_to_return = False
+            print("strToBool: Warning: ambiguous string, returning False", val)
+    return val_to_return
 
 def getSystemStats():
 
@@ -475,8 +475,8 @@ def getSystemStats():
     result["disk_pct_free"] = round((free/total) * 100)
     result["disK_free_GB"] = round(free / (2**30)) # GB
 
-    # Get CPU load
-    cpu_load = [x / psutil.cpu_count() * 100 for x in psutil.getloadavg()] # percent used in the last 1, 5, 15 min
+    # Get CPU load (percent used in the last 1, 5, 15 min)
+    cpu_load = [x / psutil.cpu_count() * 100 for x in psutil.getloadavg()]
     result["cpu_load_pct"] = round(cpu_load[1])
 
     # Get memory usage
@@ -486,23 +486,22 @@ def getSystemStats():
 
 def performManualContentUpdate(content):
 
-    # Take the given list of content and update the control server
+    """Take the given list of content and update the control server"""
 
     # First, update the control server
-    requestDict = {"class": "webpage",
+    request_dict = {"class": "webpage",
                    "id": config.defaults_dict["id"],
                    "action": "setComponentContent",
                    "content": content}
 
     headers = {'Content-type': 'application/json'}
-    r = requests.post("http://" + config.defaults_dict["server_ip_address"] + ":" + config.defaults_dict["server_port"],
-                        headers=headers, json=requestDict)
+    ip_address = config.defaults_dict['server_ip_address']
+    port = config.defaults_dict['server_port']
+    requests.post(f"http://{ip_address}:{port}", headers=headers, json=request_dict)
 
 def retrieveSchedule():
 
-    # Function to search the schedules directory for an appropriate schedule
-
-    #global schedule
+    """Search the schedules directory for an appropriate schedule"""
 
     # Try several possible sources for the schedule with increasing generality
     root = os.path.dirname(os.path.abspath(__file__))
@@ -519,11 +518,11 @@ def retrieveSchedule():
                 print("Found schedule", today_filename, "in", source)
                 schedule_to_read = os.path.join(sched_path, today_filename)
                 break
-            elif today_day_filename in schedules:
+            if today_day_filename in schedules:
                 print("Found schedule", today_day_filename, "in", source)
                 schedule_to_read = os.path.join(sched_path, today_day_filename)
                 break
-            elif "default.ini" in schedules:
+            if "default.ini" in schedules:
                 print("Found schedule default.ini in", source)
                 schedule_to_read = os.path.join(sched_path, "default.ini")
                 break
@@ -546,8 +545,7 @@ def retrieveSchedule():
 
 def readSchedule(schedule_input):
 
-    # Parse the configParser section provided in schedule and convert it for
-    # later use
+    """Parse the configParser section provided in schedule and convert it for later use"""
 
     config.schedule = []
     config.missingContentWarningList = []
@@ -572,11 +570,7 @@ def readSchedule(schedule_input):
 
 def queueNextScheduledEvent():
 
-    # Cycle through the schedule and queue the next event
-
-    #global schedule
-    #global nextEvent
-    #global missingContentWarningList
+    """Cycle through the schedule and queue the next event"""
 
     config.nextEvent = None
 
@@ -602,9 +596,7 @@ def queueNextScheduledEvent():
 
 def checkEventSchedule():
 
-    # Check the nextEvent and see if it is time. If so, set the content
-
-    #global nextEvent
+    """Check the nextEvent and see if it is time. If so, set the content"""
 
     content_to_retrun = None
     if config.nextEvent is not None:
@@ -626,13 +618,13 @@ def checkEventSchedule():
 def readDefaultConfiguration(checkDirectories=True):
 
     # Read defaults.ini
-    #config_object = configparser.ConfigParser(delimiters=("="))
     config.defaults_object = configparser.ConfigParser(delimiters=("="))
     config.defaults_object.read('defaults.ini')
     default = config.defaults_object["CURRENT"]
     config.defaults_dict = dict(default.items())
 
-    if "allow_audio" in config.defaults_dict and strToBool(config.defaults_dict["allow_audio"]) is True:
+    if "allow_audio" in config.defaults_dict \
+             and strToBool(config.defaults_dict["allow_audio"]) is True:
         print("Warning: You have enabled audio. Make sure the file is whitelisted in the browser or media will not play.")
 
     # Make sure we have the appropriate file system set up
@@ -643,11 +635,7 @@ def readDefaultConfiguration(checkDirectories=True):
 
 def updateDefaults(data):
 
-    # Take a dictionary 'data' and write relevant parameters to disk if they
-    # have changed.
-
-    #global config
-    #global configFile
+    """Take a dictionary 'data' and write relevant parameters to disk if they have changed."""
 
     update_made = False
     if "content" in data:
@@ -667,31 +655,31 @@ def updateDefaults(data):
             config.defaults_dict["content"] = content
             update_made = True
     if "current_exhibit" in data:
-        if ("current_exhibit" not in config.defaults_dict) or (data["current_exhibit"] != config.defaults_dict["current_exhibit"]):
+        if ("current_exhibit" not in config.defaults_dict) \
+                or (data["current_exhibit"] != config.defaults_dict["current_exhibit"]):
             config.defaults_object.set("CURRENT", "current_exhibit", data["current_exhibit"])
             config.defaults_dict["current_exhibit"] = data["current_exhibit"]
             update_made = True
 
     # Update file
     if update_made:
-        with open('defaults.ini', 'w') as f:
+        with open('defaults.ini', 'w', encoding='UTF-8') as f:
             config.defaults_object.write(f)
 
 def quit_handler(sig, frame):
+
+    """Called when a user presses ctrl-c to shutdown gracefully"""
     print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
     sys.exit(0)
 
 def loadDictionary():
 
-    # look for a file called dictionary.ini and load it if it exists
+    """Look for a file called dictionary.ini and load it if it exists"""
 
     if "dictionary.ini" in os.listdir():
         config.dictionary_object = configparser.ConfigParser(delimiters=("="))
         config.dictionary_object.optionxform = str # Override the default, which is case-insensitive
         config.dictionary_object.read("dictionary.ini")
-    #     return(parser)
-    # else:
-    #     return(None)
 
 if __name__ == "__main__":
 
