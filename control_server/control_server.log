@@ -2324,3 +2324,4 @@ ERROR, 2021-09-17 15:28:54, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-09-17 15:32:00, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-09-17 15:34:43, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-09-17 15:41:55, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-09-17 15:56:44, there is no configuration available for component with id=W1_KIOSK

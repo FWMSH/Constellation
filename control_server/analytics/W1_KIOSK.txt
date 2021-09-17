@@ -1,2 +1,3 @@
 {"action": "hideAttractor", "target": "attractor", "idle": "false", "datetime": "2021-09-11T10:45:47.843", "exhibit": "weather"}
 {"action": "showAttractor", "target": "attractor", "idle": "true", "datetime": "2021-09-11T10:46:17.846", "exhibit": "weather"}
+{"action": "hideAttractor", "target": "attractor", "idle": "false", "datetime": "2021-09-17T15:56:39.993", "exhibit": "space"}
