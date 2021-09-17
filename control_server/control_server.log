@@ -2311,3 +2311,16 @@ WARNING, 2021-09-17 14:45:09, there is no configuration available for component 
 WARNING, 2021-09-17 14:45:09, there is no configuration available for component with id=WC_INPUT
 WARNING, 2021-09-17 15:03:30, there is no configuration available for component with id=WC_VIEW
 WARNING, 2021-09-17 15:03:30, there is no configuration available for component with id=WC_INPUT
+ERROR, 2021-09-17 15:15:20, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-17 15:15:59, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-17 15:16:10, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-17 15:16:44, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-17 15:16:57, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-17 15:16:59, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-17 15:17:01, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-17 15:22:45, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-17 15:23:38, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-17 15:28:54, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-17 15:32:00, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-17 15:34:43, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-09-17 15:41:55, GET for unexpected file /js/popper.min.js.map
