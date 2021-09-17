@@ -696,10 +696,6 @@ if __name__ == "__main__":
     # Look for an availble schedule and load it
     retrieveSchedule()
 
-    # This is hold information about currently loaded media, e.g., for the player
-    #clipList = {}
-    #commandList = []
-
     print(f'Launching server on port {config.defaults_dict["helper_port"]} to serve {config.defaults_dict["id"]}.')
 
     httpd = HTTPServer(("", int(config.defaults_dict["helper_port"])), RequestHandler)

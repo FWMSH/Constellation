@@ -1,23 +1,22 @@
-# This application sets up a small server to communicate with the screen players
-# and handle interacting with the system (since the browser cannot)
+"""This application sets up a small server to communicate with the screen players
+and handle interacting with the system (since the browser cannot)
+"""
 
 # Standard module imports
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from socketserver import ThreadingMixIn
 import time
-from datetime import datetime
-import configparser
 import json
 import sys
 import os
 import signal
 import threading
 from pathlib import Path
+import mimetypes
 
 # Non-standard modules
 import requests
 from sockio.sio import TCP
-import mimetypes
 
 # Constellation modules
 import helper
@@ -29,9 +28,9 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
-    def log_request(code='-', size='-'):
+    def log_request(self, code='-', size='-'):
 
-        # Override to suppress the automatic logging
+        """Override to suppress the automatic logging"""
 
         pass
 
@@ -48,17 +47,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
         # Open the static file requested and send it
         try:
             mimetype = mimetypes.guess_type(self.path, strict=False)[0]
-            f = open('.' + self.path, 'rb')
             self.send_response(200)
             self.send_header('Content-type', mimetype)
             self.end_headers()
-            self.wfile.write(f.read())
-            f.close()
+            with open('.' + self.path, 'rb') as f:
+                self.wfile.write(f.read())
         except FileNotFoundError:
             print(f"Error: could not find file {self.path}")
         if debug:
             print("GET complete")
-        return
 
     def do_OPTIONS(self):
 
@@ -97,7 +94,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         # Unpack the data
         try: # JSON
             data = json.loads(data_str)
-        except: # not JSON
+        except json.decoder.JSONDecodeError: # not JSON
             data = {}
             split = data_str.split("&")
             for seg in split:
@@ -108,12 +105,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
             if debug:
                 print(f'  {data["action"]}')
             if data["action"] == "getDefaults":
-                configToSend = dict(config.defaults_dict.items())
+                config_to_send = dict(config.defaults_dict.items())
 
                 if config.dictionary_object is not None:
-                    configToSend["dictionary"] = dict(config.dictionary_object.items("CURRENT"))
+                    config_to_send["dictionary"] = dict(config.dictionary_object.items("CURRENT"))
 
-                json_string = json.dumps(configToSend)
+                json_string = json.dumps(config_to_send)
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif data["action"] == "updateDefaults":
                 if debug:
@@ -123,32 +120,32 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 if debug:
                     print("    defaultWriteLock released")
             elif data["action"] == "deleteFile":
-                    if ("file" in data):
-                        deleteFile(os.path.join("/", "home", "sos", "sosrc", data["file"]), absolute=True)
-                        response = {"success": True}
-                    else:
-                        response = {"success": False,
-                                    "reason": "Request missing field 'file'"}
-                    json_string = json.dumps(response)
-                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                if "file" in data:
+                    helper.deleteFile(os.path.join("/", "home", "sos", "sosrc", data["file"]), absolute=True)
+                    response = {"success": True}
+                else:
+                    response = {"success": False,
+                                "reason": "Request missing field 'file'"}
+                json_string = json.dumps(response)
+                self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif data["action"] == "SOS_getCurrentClipName":
-                currentClip = sendSOSCommand("get_clip_number")
-                dataset = sendSOSCommand("get_clip_info " + currentClip)
+                current_clip = sendSOSCommand("get_clip_number")
+                dataset = sendSOSCommand("get_clip_info " + current_clip)
 
                 self.wfile.write(bytes(dataset, encoding="UTF-8"))
             elif data["action"] == "SOS_getClipList":
                 # First, get a list of clips
                 reply = sendSOSCommand("get_clip_info *", multiline=True)
                 split = reply.split('\r\n')
-                clipList = []
+                clip_list = []
                 for segment in split:
                     split2 = segment.split(" ")
-                    clipList.append(" ".join(split2[1:]))
+                    clip_list.append(" ".join(split2[1:]))
 
                 # Then, get other improtant info
                 clipDictList = []
                 counter = 1
-                for clip in clipList:
+                for clip in clip_list:
                     if clip != '':
                         temp = {'name': clip, 'clipNumber': counter}
                         path = sendSOSCommand(f"get_clip_info {counter} clip_filename")
@@ -175,7 +172,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(bytes(playlist, encoding="UTF-8"))
             elif data["action"] == "SOS_openPlaylist":
                 if "name" in data:
-                    SOS_open_playlist(name)
+                    SOS_open_playlist(data["name"])
             elif data["action"] == "SOS_getState":
                 reply = sendSOSCommand("get_state 0")
 
@@ -260,7 +257,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
                     self.wfile.write(bytes(reply, encoding="UTF-8"))
             elif data["action"] == 'getAvailableContent':
-                active_content = [s.strip() for s in config.defaults_dict.get("content", "").split(",")]
+                active_content = \
+                    [s.strip() for s in config.defaults_dict.get("content", "").split(",")]
                 all_content = list(Path("/home/sos/sosrc/").rglob("*.[sS][oO][sS]"))
                 response = {"all_exhibits": [str(os.path.relpath(x, '/home/sos/sosrc/')) for x in all_content],
                             "active_content": active_content,
@@ -275,7 +273,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
 def sendSOSCommand(cmd, multiline=False):
 
-    # Function to send a command to Science on a Sphere adn read its response
+    """Send a command to Science on a Sphere adn read its response"""
 
     if debug:
         print("    sendSOSCommand:", cmd)
@@ -284,7 +282,7 @@ def sendSOSCommand(cmd, multiline=False):
 
     try:
         if not multiline:
-            return(sosSocket.write_readline(bytes(cmd + '\n', encoding='UTF-8')).decode('UTF-8').strip())
+            return sosSocket.write_readline(bytes(cmd + '\n', encoding='UTF-8')).decode('UTF-8').strip()
         else:
             sosSocket.write(bytes(cmd + '\n', encoding='UTF-8'))
             return(sosSocket.read(10000).decode("UTF-8"))
@@ -294,18 +292,20 @@ def sendSOSCommand(cmd, multiline=False):
 
 def sendPing():
 
+    """Send a heartbeat message to the control server and process any response"""
+
     if debug:
         print("Sending ping")
 
     headers = {'Content-type': 'application/json'}
-    requestDict = {"class": "exhibitComponent",
+    request_dict = {"class": "exhibitComponent",
                    "id": config.defaults_dict["id"],
                    "type": config.defaults_dict["type"]}
 
-    server_full_address = "http://" + str(config.defaults_dict["server_ip_address"]) + ":" + str(config.defaults_dict["server_port"])
+    server_full_address = f"http://{str(config.defaults_dict['server_ip_address'])}:{str(config.defaults_dict['server_port'])}"
 
     try:
-        response = requests.post(server_full_address, headers=headers, json=requestDict, timeout=1)
+        response = requests.post(server_full_address, headers=headers, json=request_dict, timeout=1)
     except:
         type, value, traceback = sys.exc_info()
         print("Error sending request", type, value)
@@ -330,8 +330,7 @@ def sendPing():
 
 def sendPingAtInterval():
 
-    # Function to send a ping, then spawn a thread that will call this function
-    # again
+    """Send a ping, then spawn a thread that will call this function again"""
 
     global pingThread
 
@@ -341,14 +340,14 @@ def sendPingAtInterval():
 
 def SOS_open_playlist(content):
 
-    # Send an SOS command to change to the specified playlist
+    """Send an SOS command to change to the specified playlist"""
 
     sendSOSCommand("open_playlist " + content)
     sendSOSCommand("play 1")
 
 def quit_handler(sig, frame):
 
-    # Stop threads, shutdown connections, etc.
+    """Stop threads, shutdown connections, etc."""
 
     print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
 
@@ -360,7 +359,7 @@ def quit_handler(sig, frame):
 
 def connectToSOS():
 
-    #global config
+    """Establish a connection with the Science on a Sphere application"""
 
     while True:
         # Sleep for 5 seconds so that we don't spam the connection
@@ -372,7 +371,7 @@ def connectToSOS():
             sosSocket = TCP(config.defaults_dict["sos_ip_address"], 2468)
             sosSocket.write_readline(b'enable\n')
             print("Connected!")
-            return(sosSocket)
+            return sosSocket
         except:
             print("Error: Connection with Science on a Sphere failed to initialize. Make sure you have specificed sos_ip_address in defaults.ini, both computers are on the same network (or are the same machine), and port 2468 is accessible.")
             sosSocket = None
