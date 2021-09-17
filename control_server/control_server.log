@@ -2303,3 +2303,7 @@ INFO, 2021-09-16 16:49:46, Server shutdown
 INFO, 2021-09-16 16:49:47, Server started
 WARNING, 2021-09-16 16:49:52, there is no configuration available for component with id=WC_VIEW
 WARNING, 2021-09-16 16:49:52, there is no configuration available for component with id=WC_INPUT
+INFO, 2021-09-17 09:11:11, Server shutdown
+INFO, 2021-09-17 09:11:12, Server started
+WARNING, 2021-09-17 09:11:28, there is no configuration available for component with id=WC_VIEW
+WARNING, 2021-09-17 09:11:28, there is no configuration available for component with id=WC_INPUT

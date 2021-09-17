@@ -34,7 +34,7 @@ import projector_control
 
 class Projector:
 
-    # Holds basic data about a projector
+    """Holds basic data about a projector"""
 
     def __init__(self, id, ip, connection_type, mac_address=None, make=None, password=None):
 
@@ -59,7 +59,7 @@ class Projector:
 
     def update(self, full=False):
 
-        # Contact the projector to get the latest state
+        """Contact the projector to get the latest state"""
 
         error = False
         try:
@@ -93,8 +93,10 @@ class Projector:
 
     def queueCommand(self, cmd):
 
-        # Function to spawn a thread that sends a command to the projector.
-        # Named "queueCommand" to match what is used for exhibitComponents
+        """Function to spawn a thread that sends a command to the projector.
+
+        Named "queueCommand" to match what is used for exhibitComponents
+        """
 
         print(f"Queuing command {cmd} for {self.id}")
         th = threading.Thread(target=self.sendCommand, args=[cmd])
@@ -219,14 +221,14 @@ class ExhibitComponent:
 
         # Retreive the latest configuration data from the configParser object
         try:
-            fileConfig = dict(currentExhibitConfiguration.items(self.id))
-            for key in fileConfig:
+            file_config = dict(currentExhibitConfiguration.items(self.id))
+            for key in file_config:
                 if key == 'content':
-                    self.config[key] = [s.strip() for s in fileConfig[key].split(",")]
+                    self.config[key] = [s.strip() for s in file_config[key].split(",")]
                 elif key == "description":
                     pass # This is specified elsewhere
                 else:
-                    self.config[key] = fileConfig[key]
+                    self.config[key] = file_config[key]
         except configparser.NoSectionError:
             print(f"Warning: there is no configuration available for component with id={self.id}")
             with logLock:
@@ -308,14 +310,14 @@ class WakeOnLANDevice:
 
     def queueCommand(self, cmd):
 
-        # Wrapper function to match other exhibit components
+        """Wrapper function to match other exhibit components"""
 
         if cmd in ["power_on", "wakeDisplay"]:
             self.wake()
 
     def wake(self):
 
-        # Function to send a magic packet waking the device
+        """Function to send a magic packet waking the device"""
 
         print(f"Sending wake on LAN packet to {self.id}")
         with logLock:
@@ -331,9 +333,7 @@ class WakeOnLANDevice:
 
     def update(self):
 
-        # If we have an IP address, ping the host to see if it is awake
-
-        global serverWarningDict
+        """If we have an IP address, ping the host to see if it is awake"""
 
         if self.ip is not None:
             try:
@@ -354,15 +354,16 @@ class WakeOnLANDevice:
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
-    # Stub which triggers dispatch of requests into individual threads.
+
+    """Stub which triggers dispatch of requests into individual threads."""
+
     daemon_threads = True
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
     def sendCurrentConfiguration(self, id):
 
-        # Function to respond to a POST with a string defining the current
-        # exhibit configuration
+        """Function to respond to a POST with a string defining the current exhibit configuration"""
 
         json_string = json.dumps(getExhibitComponent(id).config)
         getExhibitComponent(id).config["commands"] = [] # Clear the command list now that we have sent
@@ -463,9 +464,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         if self.path.lower().endswith("html") or self.path == "/":
             if self.path == "/":
-                f = open("webpage.html","r")
+                f = open("webpage.html","r", encoding='UTF-8')
             else:
-                f = open("." + self.path, "r")
+                f = open("." + self.path, "r", encoding='UTF-8')
 
             page = str(f.read())
 
@@ -489,12 +490,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
             # Open the file requested and send it
             mimetype = mimetypes.guess_type(self.path, strict=False)[0]
             try:
-                f = open('.' + self.path, 'rb')
                 self.send_response(200)
                 self.send_header('Content-type', mimetype)
                 self.end_headers()
-                self.wfile.write(f.read())
-                f.close()
+
+                with open('.' + self.path, 'rb') as f:
+                    self.wfile.write(f.read())
                 # print("END GET")
                 # print("+++++++++++++++")
                 return
@@ -558,7 +559,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
             try: # JSON
                 data = json.loads(data_str)
-            except: # not JSON
+            except json.decoder.JSONDecodeError: # not JSON
                 data = {}
                 split = data_str.split("&")
                 for seg in split:
@@ -567,7 +568,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
             try:
                 pingClass = data["class"]
-            except:
+            except KeyError:
                 print("Error: ping received without class field")
                 return # No id or type, so bail out
 
@@ -576,7 +577,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
             if pingClass == "webpage":
                 try:
                     action = data["action"]
-                except:
+                except KeyError:
                     print("Error: webpage ping received without action field")
                     # print("END POST")
                     # print("===============")
@@ -643,17 +644,17 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                                 error = True
                                                 error_message = "An action with this time already exists"
                                 if not error:
-                                    with open(os.path.join(sched_dir, data["name"] + ".ini"), 'a') as f:
+                                    with open(os.path.join(sched_dir, data["name"] + ".ini"), 'a', encoding="UTF-8") as f:
                                         f.write(line_to_set)
                         else:
                             if "timeToReplace" in data:
                                 with scheduleLock:
                                     root = os.path.dirname(os.path.abspath(__file__))
                                     sched_dir = os.path.join(root, "schedules")
-                                    outputText = ""
+                                    output_text = ""
                                     time_to_replace = dateutil.parser.parse(data['timeToReplace']).time()
 
-                                    with open(os.path.join(sched_dir, data["name"] + ".ini"), 'r') as f:
+                                    with open(os.path.join(sched_dir, data["name"] + ".ini"), 'r', encoding='UTF-8') as f:
                                         for line in f.readlines():
                                             split = line.split("=")
                                             if len(split) == 2:
@@ -661,14 +662,14 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                                 time = dateutil.parser.parse(split[0]).time()
                                                 if time != time_to_replace:
                                                     # This line doesn't match, so add it for writing
-                                                    outputText += line
+                                                    output_text += line
                                                 else:
-                                                    outputText += line_to_set
+                                                    output_text += line_to_set
                                             else:
-                                                outputText += line
+                                                output_text += line
 
-                                    with open(os.path.join(sched_dir, data["name"] + ".ini"), 'w') as f:
-                                        f.write(outputText)
+                                    with open(os.path.join(sched_dir, data["name"] + ".ini"), 'w', encoding='UTF-8') as f:
+                                        f.write(output_text)
 
                     else:
                         error = True
@@ -755,7 +756,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         with scheduleLock:
                             root = os.path.dirname(os.path.abspath(__file__))
                             sched_dir = os.path.join(root, "schedules")
-                            outputText = ""
+                            output_text = ""
                             time_to_delete = dateutil.parser.parse(data['time']).time()
 
                             with open(os.path.join(sched_dir, data["from"] + ".ini"), 'r') as f:
@@ -766,11 +767,11 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                         time = dateutil.parser.parse(split[0]).time()
                                         if time != time_to_delete:
                                             # This line doesn't match, so add it for writing
-                                            outputText += line
+                                            output_text += line
                                     else:
-                                        outputText += line
+                                        output_text += line
 
-                            with open(os.path.join(sched_dir, data["from"] + ".ini"), 'w') as f:
+                            with open(os.path.join(sched_dir, data["from"] + ".ini"), 'w', encoding="UTF-8") as f:
                                 f.write(outputText)
 
                     # Reload the schedule from disk
@@ -800,10 +801,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         setComponentContent(data['id'], data['content'])
                 elif action == "getHelpText":
                     try:
-                        with open("README.md", 'r') as f:
+                        with open("README.md", 'r', encoding='UTF-8') as f:
                             text = f.read()
                             self.wfile.write(bytes(text, encoding="UTF-8"))
-                    except:
+                    except FileNotFoundError:
                         with logLock:
                             logging.error("Unable to read README.md")
                 else:
@@ -837,7 +838,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             # print("END POST")
                             # print("===============")
                             return
-                    except:
+                    except KeyError:
                         print("Error: exhibitComponent ping received without id or type field")
                         # print("END POST")
                         # print("===============")
@@ -862,7 +863,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     elif action == "submitData":
                         if "data" in data and "name" in data:
                             with trackingDataWriteLock:
-                                with open(os.path.join("flexible-tracker", "data", data["name"]+".txt"), "a") as f:
+                                with open(os.path.join("flexible-tracker", "data", data["name"]+".txt"), "a", encoding='UTF-8') as f:
                                     try:
                                         json_str = json.dumps(data["data"])
                                         f.write(json_str + "\n")
@@ -884,7 +885,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         if "name" in data:
                             with trackingDataWriteLock:
                                 try:
-                                    with open(os.path.join("flexible-tracker", "data", data["name"]+".txt"), "r") as f:
+                                    with open(os.path.join("flexible-tracker", "data", data["name"]+".txt"), "r", encoding='UTF-8') as f:
                                         result = f.read()
                                         self.wfile.write(bytes(json.dumps({"success": True, "text": result}), encoding="UTF-8"))
                                 except FileNotFoundError:
@@ -924,9 +925,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
 def setComponentContent(id, contentList):
 
-    global currentExhibitConfiguration
-    global currentExhibit
-
     # Loop the content list and build a string to write to the config file
     content = ""
     for i in range(len(contentList)):
@@ -946,37 +944,39 @@ def setComponentContent(id, contentList):
 
     # Write new configuration to file
     with currentExhibitConfigurationLock:
-        with open(os.path.join("exhibits", currentExhibit), 'w') as f:
+        with open(os.path.join("exhibits", currentExhibit), 'w', encoding="UTF-8") as f:
             currentExhibitConfiguration.write(f)
 
-def updateSynchronizationList(id, other_ids):
+def updateSynchronizationList(this_id, other_ids):
 
-    # Function to manage synchronization. synchronizationList is a list of
-    # dictionaries, with one dictionary for every set of synchronized displays.
+    """Function to manage synchronization.
 
-    global synchronizationList
-    print("received sync request:", id)
+    synchronizationList is a list of dictionaries, with one dictionary for every
+    set of synchronized displays.
+    """
+
+    print("received sync request:", this_id)
     print(synchronizationList)
     id_known = False
     index = 0
     match_index = -1
     for item in synchronizationList:
-        if id in item["ids"]:
+        if this_id in item["ids"]:
             id_known = True
             match_index = index
         index += 1
 
-    if id_known == False:
+    if id_known is False:
         # Create a new dictionary
         temp = {}
-        temp["ids"] = [id] + other_ids
+        temp["ids"] = [this_id] + other_ids
         temp["checked_in"] = [False for i in temp["ids"]]
         (temp["checked_in"])[0] = True # Check in the current id
         synchronizationList.append(temp)
     else:
-        index = (synchronizationList[match_index])["ids"].index(id)
+        index = (synchronizationList[match_index])["ids"].index(this_id)
         ((synchronizationList[match_index])["checked_in"])[index] = True
-        if (all((synchronizationList[match_index])["checked_in"])):
+        if all((synchronizationList[match_index])["checked_in"]):
             print("All components have checked in. Dispatching sync command")
             time_to_start = (datetime.datetime.now() + datetime.timedelta(seconds=10)).strftime("%m/%d/%Y %H:%M:%S.%f")
             for item in (synchronizationList[match_index])["ids"]:
