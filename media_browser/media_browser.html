@@ -172,7 +172,8 @@
               <div class="simple-keyboard"></div>
           </div>
           <div id="filterRegion" class="col-3">
-              <div class="row">
+              <center><H1>Filter Options</H1></center>
+              <div id="filterOptionsRow" class="row">
               </div>
           </div>
       </div>
@@ -292,6 +293,35 @@
       $("#imageLightbox").animate({opacity: 0, queue: false}, {complete: temp, duration: 100});
     }
 
+    function populateFilterOptions() {
+
+      // Read the filterKeys and create a dropdown for each
+
+      if (filterKeys == undefined) {
+        return;
+      }
+      $("#filterOptionsRow").empty();
+
+      filterKeys.forEach((key, i) => {
+        var newCol = document.createElement("div");
+        newCol.className = "col";
+        $("#filterOptionsRow").append(newCol);
+
+        var newSelect = document.createElement("select");
+        newSelect.className = "form-select";
+
+        let uniqueValues = [...new Set(data.map(entry => entry[key]))];
+        var newOption;
+        uniqueValues.forEach((value, j) => {
+          newOption = document.createElement("option");
+          newOption.value = value;
+          newOption.innerHTML = value;
+          newSelect.appendChild(newOption);
+        });
+        newCol.appendChild(newSelect)
+      });
+    }
+
     function _populateResultsRow(currentKey) {
 
       // Empty and repopulate the results row based on the given filters
@@ -400,7 +430,7 @@
 
     currentPage = 0;
     populateResultsRow();
-
+    populateFilterOptions();
 
   </script>
 
