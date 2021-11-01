@@ -19,32 +19,96 @@
         -moz-user-select: none;/* Firefox all */
         -ms-user-select: none;
       }
+      body {
+        overflow: hidden;
+      }
+      .card-body {
+      }
+      .cardCol {
+      }
+      .card-img-top {
+        width: 100%;
+        max-height: 250px;
+        object-fit: contain;
+      }
       .container-fluid {
         touch-action: manipulation;
       }
+      .hg-button {
+        height: 60px!important;
+      }
+      .hg-standardBtn {
+        height: 60px!important;
+      }
       .input {
         font-size: 30px;
+        border: 0px;
+      }
+      .resultCard {
+      }
+      .selectedInput {
+        /* border: 5px solid blue; */
+        background-color: #bdbeff;
+        border: 0px;
+        outline: none;
       }
       #filterRegion {
-        height: 50vh;
+        height: 100%;
         align-items: flex-end;
+      }
+      #imageLightbox {
+        position: absolute;
+        height: 100vh;
+        width: 100vw;
+        top: 0vh;
+        left: 0px;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        display: none;
+        align-items: center;
+        opacity: 0;
+      }
+      #imageLightboxCaption {
+        font-size: 40px;
+        color: white;
+        height: 500px;
+        overflow-y: scroll;
+      }
+      #imageLightboxCredit {
+        font-size: 30px;
+        color: white;
+        padding-top: 10px;
+        height: 40px;
+      }
+      #imageLightboxImage {
+        max-height: 10%;
+        max-width: 100%;
+        display: block;
+        margin: auto;
+        object-fit: contain;
+      }
+      #imageLightboxTitle {
+        text-align: center;
+        font-size: 50px;
+        /* background-color: rgba(0, 0, 0, 0.9); */
+        color: white;
+        height: 70px;
       }
       #keyboard {
       }
       #keyboardRegion {
-        height: 20vh;
-        align-items: flex-end;
+        height: 100%;
       }
       #logoRegion {
-        height: 30vh;
+        height: 100%;
       }
       #resultsPane {
-        background-color: blue;
-        height: 100vh;
+        /* background-color: blue; */
+        /* height: 100vh; */
       }
       #searchPane {
         background-color: gray;
-        height: 100vh;
+        /* height: 100vh; */
       }
 
     </style>
@@ -55,34 +119,53 @@
 
   <body>
     <div class="container-fluid">
-      <div class="row">
-        <div id='searchPane' class='col-3'>
-          <div id="logoRegion" class="row">
-          </div>
-          <div id="filterRegion" class="row">
-            <div class="col">
-              <div class="row">
-                <div class="col-6">
-                  <input id="firstNameInput" class="input w-100" placeholder="First name" />
-                </div>
-                <div class="col-6">
-                  <input id="lastNameInput" class="input w-100" placeholder="Last name" />
-                </div>
+
+      <div id="imageLightbox">
+        <div style='width: 100%; height: 100vh;'>
+          <div class='row' style="height: 100%;">
+            <div class='offset-2 col-8 px-4 pt-4 pb-2 d-flex flex-column' style="max-height: 100%;">
+              <div style="flex-basis: 20%; flex-grow: 1;">
+                <img id="imageLightboxImage">
+                </img>
+              </div>
+              <div id='imageLightboxTitle'>
+              </div>
+              <div id='imageLightboxCaption'>
+              </div>
+              <div id='imageLightboxCredit'>
               </div>
             </div>
-          </div>
-          <div id="keyboardRegion" class="row">
-            <div class="col">
-              <div class="simple-keyboard"></div>
+            <div class="offset-1 col-1">
+              <button class='btn btn-lg btn-secondary' style="font-size: 50px;" onclick="hideImageLightBox();">╳</button>
             </div>
           </div>
-
-
         </div>
-        <div id="resultsPane" class="col-9">
+      </div>
+
+      <div class="row w-100 align-items-center" style="height:70vh; overflow: scroll;">
+
+        <div class="col-1 text-center">
+          <button class='btn btn-lg btn-secondary' onclick="changePage(-1)"><--</button>
+        </div>
+        <div id="resultsPane" class="col-10">
           <div id="resultsRow" class="row">
           </div>
         </div>
+        <div class="col-1 text-center">
+          <button class='btn btn-lg btn-secondary' onclick="changePage(1)">--></button>
+        </div>
+      </div>
+      <div class="row" style="height:30vh;">
+          <div id="logoRegion" class="col-3">
+          </div>
+          <div id="keyboardRegion" class="col-6">
+            <input id="searchInput" class="input w-100" placeholder="Begin typing to search"/>
+              <div class="simple-keyboard"></div>
+          </div>
+          <div id="filterRegion" class="col-3">
+              <div class="row">
+              </div>
+          </div>
       </div>
     </div>
 
@@ -95,18 +178,12 @@
   <script type="text/javascript" src="data.js"></script>
   <script>
     let Keyboard = window.SimpleKeyboard.default;
-    let selectedInput;
 
     // Add a listener to each input so we direct keyboard input to the right one
     document.querySelectorAll(".input").forEach(input => {
       input.addEventListener("focus", onInputFocus);
-      // Optional: Use if you want to track input changes
-      // made without simple-keyboard
-      input.addEventListener("input", onInputChange);
     });
     function onInputFocus(event) {
-      selectedInput = `#${event.target.id}`;
-
       keyboard.setOptions({
         inputName: event.target.id
       });
@@ -116,12 +193,14 @@
     }
     function onKeyPress(button) {
       if (button === "{lock}" || button === "{shift}") handleShiftButton();
+      currentPage = 0;
+      populateResultsRow(button);
     }
     document.querySelector(".input").addEventListener("input", event => {
     keyboard.setInput(event.target.value);
     });
     function onChange(input) {
-      document.querySelector(selectedInput || ".input").value = input;
+      document.querySelector("#searchInput").value = input;
     }
 
     let keyboard = new Keyboard({
@@ -132,10 +211,150 @@
         'Q W E R T Y U I O P',
         'A S D F G H J K L',
         'Z X C V B N M {bksp}',
+        '{space}'
       ]
     }
     });
 
+    function changePage(val) {
+
+      switch (val) {
+        case 0:
+          currentPage = 0;
+          break;
+        case 1:
+          currentPage += 1;
+          if (currentPage*12 > data.length) {
+            currentPage -= 1;
+          }
+          break;
+        case -1:
+          currentPage -= 1;
+          if (currentPage < 0) {
+            currentPage = 0;
+          }
+          break;
+        default:
+      }
+      populateResultsRow();
+    }
+
+    function createCard(obj) {
+
+      // Take a JSON object and turn it into a card in the resultsRow
+
+      let thumb = "thumbs/" + String(obj["Entry Number"]) + ".jpeg";
+      let name = obj["First"].trim() + " " + obj["Last Name"].trim();
+
+      var html = `
+      <div class='cardCol col-2 align-items-stretch d-flex'>
+        <div class="resultCard card my-2 w-100" onclick="displayMedia('${String(obj["Entry Number"])}')">
+          <img class="card-img-top" src="${thumb}" id=Entry_${String(obj["Entry Number"])}>
+          <div class="card-body">
+            <center>
+              <h3 class="card-title">${name}</h3>
+            </center>
+          </div>
+        </div>
+      </div>
+      `
+
+      $("#resultsRow").append(html);
+    }
+
+    function hideImageLightBox() {
+
+      // Fade out the lightbox, and then hide it so it doesn't steal touches
+
+      var temp = function() {$("#imageLightbox").css("display", "none");};
+      $("#imageLightbox").animate({opacity: 0, queue: false}, {complete: temp, duration: 100});
+    }
+
+    function _populateResultsRow(currentKey) {
+
+      // Empty and repopulate the results row based on the given filters
+      // currentKey accounts for the key being pressed right now, which is not
+      // yet part of the input value
+
+      $("#resultsRow").empty();
+
+      var input = $("#searchInput").val();
+
+      var search_terms = (input).split(" ");
+      var filteredData = [];
+      data.forEach((item, i) => {
+        var matchCount = 0;
+        search_terms.forEach((term, i) => {
+          if (term != "" || (term == "" && search_terms.length == 1)) {
+            // Strip out non-letters, since the keyboard doesn't allow them
+            if (item.searchData.replace(/[^A-Za-z\s]/ig, "").toLowerCase().includes(term.replace(/[^A-Za-z]/ig, "").toLowerCase())) {
+              matchCount += 1;
+            }
+          }
+        });
+        if (matchCount > 0) {
+          item.matchCount = matchCount;
+          filteredData.push(item);
+        }
+      });
+      // Sort by the number of matches, so better results rise to the top.
+      filteredData.sort((a, b) => b.matchCount - a.matchCount);
+
+      // Make sure we have no more than 12 results to display
+      displayedResults = filteredData.slice(12*currentPage,12*(currentPage+1));
+      // Create a card for each item and add it to the display
+      displayedResults.forEach((item, i) => {
+        createCard(item);
+      });
+      $("#resultsRow").fadeIn(200);
+
+    }
+
+    function populateResultsRow(currentKey="") {
+
+      // Stub function to do the fade, then call the helper function
+
+      $("#resultsRow").fadeOut(200, complete=function(){_populateResultsRow(currentKey)});
+    }
+
+    function displayMedia(id) {
+
+      // Take the given id and display the media in the overlay.
+
+      var obj = data.filter(function(item){
+        return item["Entry Number"] == id
+      })[0];
+
+      showImageInLightBox(String(obj["Entry Number"]) + ".jpeg", obj["Entry Title"], "This is a caption.This is a caption.This is a caption.This is a caption.This is a caption.This is a caption.This is a caption.This is a caption.This is a caption.This is a caption.This is a caption.This is a caption.This is a caption.This is a caption.This is a caption.This is a caption.", "Image makers")
+
+    }
+
+    function showImageInLightBox(image, title="", caption="", credit="") {
+
+      // Set the img source to the provided image, set the caption, and reveal
+      // the light box. The desired image must be located in the media directory
+
+      document.getElementById("imageLightboxImage").src = "media/" + image;
+      document.getElementById("imageLightboxTitle").innerHTML = title;
+      document.getElementById("imageLightboxCaption").innerHTML = caption;
+      if (credit != "" && credit != undefined) {
+        document.getElementById("imageLightboxCredit").innerHTML = "Credit: " + credit;
+      } else {
+        document.getElementById("imageLightboxCredit").innerHTML = "";
+      }
+
+      $("#imageLightbox").css("display", "flex").animate({opacity: 1, queue: false}, 100);
+    }
+
+    // Create a new property searchData for each data element that includes
+    // everything we can search against as a string.
+
+    data.forEach((item, i) => {
+      item.searchData = item["Last Name"] + " " + item["First"]
+    });
+
+    currentPage = 0;
+    populateResultsRow();
 
 
   </script>
