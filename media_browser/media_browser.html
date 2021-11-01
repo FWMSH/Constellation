@@ -265,7 +265,8 @@
         title = obj[titleKey];
       }
 
-      var id = String(Date.now());
+      var id = String(Math.round(Date.now()*Math.random()));
+
       obj.uniqueMediaBrowserID = id;
       var html = `
       <div class='cardCol col-2 align-items-stretch d-flex'>
@@ -371,7 +372,7 @@
       document.getElementById("imageLightboxImage").src = "media/" + image;
       document.getElementById("imageLightboxTitle").innerHTML = title;
       document.getElementById("imageLightboxCaption").innerHTML = caption;
-      
+
       if (credit != "" && credit != undefined) {
         document.getElementById("imageLightboxCredit").innerHTML = "Credit: " + credit;
       } else {
@@ -390,9 +391,11 @@
 
     // Create a new property searchData for each data element that includes
     // everything we can search against as a string.
-
     data.forEach((item, i) => {
-      item.searchData = item["Last Name"] + " " + item["First"]
+      item.seachDate = "";
+      searchKeys.forEach((key, j) => {
+        item.searchData += String(item[key]) + " "
+      });
     });
 
     currentPage = 0;
