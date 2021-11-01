@@ -252,16 +252,28 @@
 
       // Take a JSON object and turn it into a card in the resultsRow
 
-      let thumb = "thumbs/" + String(obj["Entry Number"]) + ".jpeg";
-      let name = obj["First"].trim() + " " + obj["Last Name"].trim();
+      var thumb;
 
+      if (thumbnailKey != undefined && thumbnailKey != "") {
+        thumb = "thumbs/" + String(obj[thumbnailKey]);
+      } else {
+        thumb = "thumbs/" + String(obj[mediaKey]);
+      }
+
+      var title = "";
+      if (titleKey != undefined && titleKey != "") {
+        title = obj[titleKey];
+      }
+
+      var id = String(Date.now());
+      obj.uniqueMediaBrowserID = id;
       var html = `
       <div class='cardCol col-2 align-items-stretch d-flex'>
-        <div class="resultCard card my-2 w-100" onclick="displayMedia('${String(obj["Entry Number"])}')">
-          <img class="card-img-top" src="${thumb}" id=Entry_${String(obj["Entry Number"])}>
+        <div class="resultCard card my-2 w-100" onclick="displayMedia('${id}')">
+          <img class="card-img-top" src="${thumb}" id=Entry_${id}>
           <div class="card-body">
             <center>
-              <h3 class="card-title">${name}</h3>
+              <h3 class="card-title">${title}</h3>
             </center>
           </div>
         </div>
@@ -331,10 +343,23 @@
       // Take the given id and display the media in the overlay.
 
       var obj = data.filter(function(item){
-        return item["Entry Number"] == id
+        return item.uniqueMediaBrowserID == id
       })[0];
 
-      showImageInLightBox(String(obj["Entry Number"]) + ".jpeg", obj["Entry Title"], "", "Image makers")
+      var title = "";
+      if (titleKey != undefined && titleKey != "") {
+        title = obj[titleKey];
+      }
+
+      var caption = "";
+      if (captionKey != undefined && captionKey != "") {
+        caption = obj[captionKey];
+      }
+      var credit = "";
+      if (creditKey != undefined && creditKey != "") {
+        credit = obj[creditKey];
+      }
+      showImageInLightBox(String(obj[mediaKey]), title, caption, credit)
 
     }
 
@@ -346,6 +371,7 @@
       document.getElementById("imageLightboxImage").src = "media/" + image;
       document.getElementById("imageLightboxTitle").innerHTML = title;
       document.getElementById("imageLightboxCaption").innerHTML = caption;
+      
       if (credit != "" && credit != undefined) {
         document.getElementById("imageLightboxCredit").innerHTML = "Credit: " + credit;
       } else {
