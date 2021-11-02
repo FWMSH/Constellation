@@ -34,6 +34,9 @@
       .container-fluid {
         touch-action: manipulation;
       }
+      .filterSelect {
+        font-size: 20px;
+      }
       .hg-button {
         height: 60px!important;
       }
@@ -293,6 +296,11 @@
       $("#imageLightbox").animate({opacity: 0, queue: false}, {complete: temp, duration: 100});
     }
 
+    function onFilterOptionChange() {
+      currentPage = 0;
+      populateResultsRow();
+    }
+
     function populateFilterOptions() {
 
       // Read the filterKeys and create a dropdown for each
@@ -304,13 +312,15 @@
 
       filterKeys.forEach((key, i) => {
         var newCol = document.createElement("div");
-        newCol.className = "col";
+        newCol.className = "col-6";
         $("#filterOptionsRow").append(newCol);
 
         var newSelect = document.createElement("select");
-        newSelect.className = "form-select";
+        newSelect.className = "form-select filterSelect";
+        newSelect.multiple = true;
+        newSelect.setAttribute("data-filterKey", key);
 
-        let uniqueValues = [...new Set(data.map(entry => entry[key]))];
+        let uniqueValues = [...new Set(data.map(entry => entry[key]))].sort();
         var newOption;
         uniqueValues.forEach((value, j) => {
           newOption = document.createElement("option");
@@ -318,7 +328,8 @@
           newOption.innerHTML = value;
           newSelect.appendChild(newOption);
         });
-        newCol.appendChild(newSelect)
+        newCol.appendChild(newSelect);
+        newSelect.addEventListener("change", onFilterOptionChange);
       });
     }
 
@@ -332,8 +343,9 @@
 
       var input = $("#searchInput").val();
 
+      // Filter on search terms
       var search_terms = (input).split(" ");
-      var filteredData = [];
+      var searchedData = [];
       data.forEach((item, i) => {
         var matchCount = 0;
         search_terms.forEach((term, i) => {
@@ -346,9 +358,47 @@
         });
         if (matchCount > 0) {
           item.matchCount = matchCount;
+          searchedData.push(item);
+        }
+      });
+
+
+      // Filter on filter options
+      let filters = $.makeArray($(".filterSelect"));
+      var filteredData = [];
+      var thisKey, selectedValues, filterMathces;
+      // Iterate through the remaining data and make sure it matches at least
+      // one filtered value.
+      searchedData.forEach((item, i) => {
+        filterMathces = {};
+        filters.forEach((filter, j) => {
+          thisKey = filter.getAttribute("data-filterKey");
+          selectedValues = $(filter).val();
+          if (selectedValues.length > 0) {
+            if (selectedValues.includes(item[thisKey])) {
+              filterMathces[thisKey] = 1;
+              item.matchCount += 1;
+            } else {
+              filterMathces[thisKey] = 0;
+            }
+          } else {
+            // If no values are selected for this filter, pass all matches through
+            filterMathces[thisKey] = 1;
+          }
+
+        });
+        // Iterate through the matches to make sure we've matched on every filter
+        var totalMathces = 0;
+        for (let [matchKey, matchValue] of Object.entries(filterMathces)){
+          if (matchValue == 1) {
+            totalMathces += 1;
+          }
+        }
+        if (totalMathces == filters.length) {
           filteredData.push(item);
         }
       });
+
       // Sort by the number of matches, so better results rise to the top.
       filteredData.sort((a, b) => b.matchCount - a.matchCount);
 
@@ -419,7 +469,7 @@
       $("#imageLightbox").css("display", "flex").animate({opacity: 1, queue: false}, 100);
     }
 
-    // Create a new property searchData for each data element that includes
+    // Create a new property, searchData, for each data element that includes
     // everything we can search against as a string.
     data.forEach((item, i) => {
       item.seachDate = "";
