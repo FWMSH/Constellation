@@ -41,12 +41,13 @@
       }
       .filterSelect {
         font-size: 20px;
+        outline: none;
       }
       .hg-button {
-        height: 60px!important;
+        height: 5.5vh!important;
       }
       .hg-standardBtn {
-        height: 60px!important;
+        height: 5.5vh!important;
       }
       .imageLightboxImageShort {
         height: 60%;
@@ -61,6 +62,7 @@
       .pageButton {
         font-size: min(8vw, 60px);
         background-color: RGBA(97,92,92,0.5)!important;
+        outline: none;
       }
       .resultCard {
       }
@@ -76,12 +78,6 @@
       }
       .resultTitleLarge {
         font-size: 25px;
-      }
-      .selectedInput {
-        /* border: 5px solid blue; */
-        background-color: #bdbeff;
-        border: 0px;
-        outline: none;
       }
       #filterRegion {
         height: 100%;
@@ -136,6 +132,9 @@
         /* background-color: blue; */
         /* height: 70vh; */
       }
+      #searchInput {
+        outline: none;
+      }
       #searchPane {
         background-color: gray;
         /* height: 100vh; */
@@ -189,8 +188,15 @@
           <div id="logoRegion" class="col-3">
           </div>
           <div id="keyboardRegion" class="col-6">
-            <input id="searchInput" class="input w-100" placeholder="Begin typing to search" readonly/>
-              <div class="simple-keyboard"></div>
+            <div class="row">
+              <div class='col-10'>
+                <input id="searchInput" class="input w-100" placeholder="Begin typing to search" readonly/>
+              </div>
+              <div class='col-2'>
+                <button id="clearButton" class='btn btn-secondary w-100'>Clear all</button>
+              </div>
+            </div>
+            <div class="simple-keyboard"></div>
           </div>
           <div id="filterRegion" class="col-3">
               <center><H1>Filter Options</H1></center>
@@ -267,6 +273,14 @@
           break;
         default:
       }
+      populateResultsRow();
+    }
+
+    function clear() {
+
+      currentPage = 0;
+      $("#searchInput").val("");
+      $(".filterSelect").val(null);
       populateResultsRow();
     }
 
@@ -527,10 +541,11 @@
     });
 
 
+    currentPage = 0;
     var cardsPerPage;
     setCardCount();
     window.addEventListener('resize', setCardCount);
-    currentPage = 0;
+    document.getElementById("clearButton").addEventListener("click", clear)
     populateFilterOptions();
 
   </script>
