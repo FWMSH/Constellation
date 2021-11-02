@@ -201,7 +201,7 @@ var data = [
   "Short Answer": "",
   "Classroom Entry": "",
   "Classroom Division": "",
-  "Entry Title": "\"Flower Texas\"",
+  "Entry Title": "\"A Really Long Title With Lots of Words\"",
   "For 3D ONLY - Description of entry": "",
   "Please Check One": [
      "Disagree",
