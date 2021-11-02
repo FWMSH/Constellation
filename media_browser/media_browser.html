@@ -156,14 +156,14 @@
 
       <div class="row w-100 align-items-center" style="height:70vh; overflow: scroll;">
 
-        <div class="col-1 text-center">
+        <div class="col-2 col-lg-1 text-center">
           <button class='pageButton btn btn-lg btn-secondary' onclick="changePage(-1)">←</button>
         </div>
-        <div id="resultsPane" class="col-10">
+        <div id="resultsPane" class="col-8 col-offset-2 col-offset-lg-0 col-lg-10">
           <div id="resultsRow" class="row">
           </div>
         </div>
-        <div class="col-1 text-center">
+        <div class="col-2 col-lg-1 text-center">
           <button class='pageButton btn btn-lg btn-secondary' onclick="changePage(1)">→</button>
         </div>
       </div>
@@ -237,7 +237,7 @@
           break;
         case 1:
           currentPage += 1;
-          if (currentPage*12 > data.length) {
+          if (currentPage*cardsPerPage > data.length) {
             currentPage -= 1;
           }
           break;
@@ -273,7 +273,7 @@
 
       obj.uniqueMediaBrowserID = id;
       var html = `
-      <div class='cardCol col-2 align-items-stretch d-flex'>
+      <div class='cardCol col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 align-items-stretch d-flex'>
         <div class="resultCard card my-2 w-100" onclick="displayMedia('${id}')">
           <img class="card-img-top" src="${thumb}" id=Entry_${id}>
           <div class="card-body">
@@ -339,6 +339,7 @@
       // currentKey accounts for the key being pressed right now, which is not
       // yet part of the input value
 
+      // var startTime = performance.now();
       $("#resultsRow").empty();
 
       var input = $("#searchInput").val();
@@ -403,11 +404,12 @@
       filteredData.sort((a, b) => b.matchCount - a.matchCount);
 
       // Make sure we have no more than 12 results to display
-      displayedResults = filteredData.slice(12*currentPage,12*(currentPage+1));
+      displayedResults = filteredData.slice(cardsPerPage*currentPage,cardsPerPage*(currentPage+1));
       // Create a card for each item and add it to the display
       displayedResults.forEach((item, i) => {
         createCard(item);
       });
+      // console.log("populateResultsRow runetime:", performance.now()-startTime)
       $("#resultsRow").fadeIn(200);
 
     }
@@ -444,6 +446,26 @@
 
     }
 
+    function setCardCount() {
+
+      // Based on the window size and the Bootstrap grid, calculate the number of
+      // cards we will be showing per page.
+
+      const windowWidth = window.innerWidth;
+      if (windowWidth >= 1200) {
+        cardsPerPage = 12;
+      } else if (windowWidth >= 992) {
+        cardsPerPage = 8;
+      } else if (windowWidth >= 768) {
+        cardsPerPage = 6;
+      } else if (windowWidth >= 576) {
+        cardsPerPage = 4;
+      } else {
+        cardsPerPage = 2;
+      }
+      populateResultsRow();
+    }
+
     function showImageInLightBox(image, title="", caption="", credit="") {
 
       // Set the img source to the provided image, set the caption, and reveal
@@ -478,8 +500,11 @@
       });
     });
 
+
+    var cardsPerPage;
+    setCardCount();
+    window.addEventListener('resize', setCardCount);
     currentPage = 0;
-    populateResultsRow();
     populateFilterOptions();
 
   </script>
