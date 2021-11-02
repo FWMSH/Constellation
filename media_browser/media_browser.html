@@ -25,11 +25,15 @@
       .card-body {
       }
       .cardCol {
+        height: 35vh;
       }
       .card-img-top {
         width: 100%;
-        max-height: 250px;
+        max-height: 50%;
         object-fit: contain;
+      }
+      .cardTitle {
+        margin-top: 15px;
       }
       .container-fluid {
         touch-action: manipulation;
@@ -54,10 +58,14 @@
         border: 0px;
       }
       .pageButton {
-        font-size: 75px;
-        background-color: RGBA(97,92,92, 0.5)!important;
+        font-size: min(8vw, 60px);
+        background-color: RGBA(97,92,92,0.5)!important;
       }
       .resultCard {
+      }
+      .resultImg {
+        max-width: 100%;
+        max-height: 25vh;
       }
       .selectedInput {
         /* border: 5px solid blue; */
@@ -116,7 +124,7 @@
       }
       #resultsPane {
         /* background-color: blue; */
-        /* height: 100vh; */
+        height: 70vh;
       }
       #searchPane {
         background-color: gray;
@@ -272,17 +280,27 @@
       var id = String(Math.round(Date.now()*Math.random()));
 
       obj.uniqueMediaBrowserID = id;
+      // var html = `
+      // <div class='cardCol col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 align-items-stretch d-flex'>
+      //   <div class="resultCard card my-2 w-100" onclick="displayMedia('${id}')">
+      //     <img class="card-img-top" src="${thumb}" id=Entry_${id}>
+      //     <div class="card-body">
+      //       <center>
+      //         <h3 class="card-title">${title}</h3>
+      //       </center>
+      //     </div>
+      //   </div>
+      // </div>
+      // `
       var html = `
-      <div class='cardCol col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 align-items-stretch d-flex'>
-        <div class="resultCard card my-2 w-100" onclick="displayMedia('${id}')">
-          <img class="card-img-top" src="${thumb}" id=Entry_${id}>
-          <div class="card-body">
+        <div class='cardCol col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 align-items-center justify-content-top d-flex'>
+          <div class="resultCard my-2 w-100" onclick="displayMedia('${id}')">
             <center>
-              <h3 class="card-title">${title}</h3>
+              <img class='resultImg' src="${thumb}" id=Entry_${id}>
+              <H2 class='cardTitle'>${title}</H2>
             </center>
           </div>
         </div>
-      </div>
       `
 
       $("#resultsRow").append(html);
