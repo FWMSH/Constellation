@@ -189,7 +189,7 @@
           <div id="logoRegion" class="col-3">
           </div>
           <div id="keyboardRegion" class="col-6">
-            <input id="searchInput" class="input w-100" placeholder="Begin typing to search"/>
+            <input id="searchInput" class="input w-100" placeholder="Begin typing to search" readonly/>
               <div class="simple-keyboard"></div>
           </div>
           <div id="filterRegion" class="col-3">
@@ -378,7 +378,7 @@
         search_terms.forEach((term, i) => {
           if (term != "" || (term == "" && search_terms.length == 1)) {
             // Strip out non-letters, since the keyboard doesn't allow them
-            if (item.searchData.replace(/[^A-Za-z\s]/ig, "").toLowerCase().includes(term.replace(/[^A-Za-z]/ig, "").toLowerCase())) {
+            if (item.searchData.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z\s]/ig, "").toLowerCase().includes(term.replace(/[^A-Za-z]/ig, "").toLowerCase())) {
               matchCount += 1;
             }
           }
