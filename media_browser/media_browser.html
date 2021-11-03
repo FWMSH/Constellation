@@ -517,7 +517,11 @@
       // Set the img source to the provided image, set the caption, and reveal
       // the light box. The desired image must be located in the media directory
 
-      document.getElementById("imageLightboxImage").src = "media/" + image;
+      // Load the image with a callback to fade it in when it is loaded
+      $("#imageLightboxImage").hide();
+      $("#imageLightboxImage").one("load", function(){$("#imageLightboxImage").fadeIn()}).attr("src", "media/" + image)
+      // document.getElementById("imageLightboxImage").src = "media/" + image;
+
       document.getElementById("imageLightboxTitle").innerHTML = title;
       document.getElementById("imageLightboxCaption").innerHTML = caption;
 
