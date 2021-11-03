@@ -517,9 +517,8 @@
       // Set the img source to the provided image, set the caption, and reveal
       // the light box. The desired image must be located in the media directory
 
-      // Load the image with a callback to fade it in when it is loaded
-      $("#imageLightboxImage").hide();
-      $("#imageLightboxImage").one("load", function(){$("#imageLightboxImage").fadeIn()}).attr("src", "media/" + image)
+      // Hide elements until image is loaded
+      $("#imageLightboxImage, #imageLightboxTitle, #imageLightboxCaption, #imageLightboxCredit").hide();
       // document.getElementById("imageLightboxImage").src = "media/" + image;
 
       document.getElementById("imageLightboxTitle").innerHTML = title;
@@ -530,13 +529,19 @@
       } else {
         document.getElementById("imageLightboxCredit").innerHTML = "";
       }
-      if (caption == "") {
-        $("#imageLightboxImage").addClass("imageLightboxImageTall").removeClass("imageLightboxImageShort");
-        $("#imageLightboxCaption").hide();
-      } else {
-        $("#imageLightboxImage").removeClass("imageLightboxImageTall").addClass("imageLightboxImageShort");
-        $("#imageLightboxCaption").show();
-      }
+
+
+      // Load the image with a callback to fade it in when it is loaded
+      $("#imageLightboxImage").one("load", function(){
+        $("#imageLightboxImage, #imageLightboxTitle, #imageLightboxCredit").fadeIn();
+        if (caption == "") {
+          $("#imageLightboxImage").addClass("imageLightboxImageTall").removeClass("imageLightboxImageShort");
+          $("#imageLightboxCaption").hide();
+        } else {
+          $("#imageLightboxImage").removeClass("imageLightboxImageTall").addClass("imageLightboxImageShort");
+          $("#imageLightboxCaption").fadeIn();
+        }
+      }).attr("src", "media/" + image)
 
       $("#imageLightbox").css("display", "flex").animate({opacity: 1, queue: false}, 100);
     }
