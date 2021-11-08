@@ -1,18 +1,31 @@
+"""
+Tools to assist in creating maps for display on Science on a Sphere.
+"""
+
+import time
+import datetime
+import subprocess
+
+from dateutil import parser
 import pandas as pd
 import numpy as np
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 from matplotlib import cm
-import matplotlib.patches as patches
+from matplotlib import patches
+# import matplotlib.patches as patches
 from matplotlib.collections import PatchCollection
 from mpl_toolkits.basemap import Basemap
 import shapefile
-import time
+import netCDF4
+
 
 def progress_bar(now, total, start_time=None):
 
-    # Draw a progress bar. Now is the number of ticks we have completed,
-    # total is the maximum number of ticks
+    """Draw a progress bar.
+
+    Now is the number of ticks we have completed, total is the maximum number of ticks
+    """
 
     bar_str = "|"
     for i in range(25):
@@ -57,7 +70,8 @@ def createContourMap(input,
             print("createContourMap: Error: latitude column not found. Specify with latkey=")
             return()
     if lonKey == "":
-        possible_keys = ["longitude", 'Longitude', 'long', 'lon', 'Long', 'Lon', 'LON', 'LONG', "LONGITUDE", 'reclon', 'reclong']
+        possible_keys = ["longitude", 'Longitude', 'long', 'lon', 'Long', 'Lon',
+                         'LON', 'LONG', "LONGITUDE", 'reclon', 'reclong']
         for key in possible_keys:
             if key in keys:
                 lonKey = key
@@ -79,14 +93,121 @@ def createContourMap(input,
                 llcrnrlon=-180,urcrnrlon=180,resolution='l')
 
     if not transparent:
-         m.drawcoastlines()
-    plt.tricontourf(df[lonKey].astype(float).values, df[latKey].astype(float).values, df[dataKey].astype(float).values, levels, cmap=colormap)
+        m.drawcoastlines()
+    plt.tricontourf(df[lonKey].astype(float).values,
+                    df[latKey].astype(float).values,
+                    df[dataKey].astype(float).values,
+                    levels, cmap=colormap)
 
     plt.gcf().subplots_adjust(left=0, right=1, top=1, bottom=0)
     plt.gca().axis("off")
 
     if filename != "":
         plt.savefig(filename, dpi=256, transparent=transparent)
+
+def movieFromFrames(frames, filename,
+                    fps=5,
+                    quality=1,
+                    silent=True):
+
+    """Wrapper for ffmpeg to turn a series of frames into a video formatted for Science on a Sphere.
+    """
+
+    if not "*" in frames:
+        print(f"Error: filename must contain the wildcard character *. E.g., 'file_dir/*.jpg'")
+        return
+
+    try:
+        process = subprocess.run(["ffmpeg", '-y', '-r', str(fps), '-pattern_type', 'glob',
+                                    '-i', frames, '-c:v', 'mpeg4', '-q:v',
+                                    str(quality), filename],
+                                     capture_output=True, check=True)
+        if not silent:
+            print(f"File {filename} written")
+    except subprocess.CalledProcessError as e:
+        print(str(e.stderr, "UTF-8"))
+
+def createContourMapFromNOAAPSL(input, index,
+                                baseColor=None,
+                                baseTexture=None,
+                                colormap="coolwarm",
+                                dataKey="",
+                                debug=False,
+                                filename="",
+                                levels=100,
+                                transparent=False):
+
+    """Take a NetCDF file from the NOAA Physical Sciences Lab and turn it into a contour map.
+    """
+
+    if isinstance(input, netCDF4.Dataset):
+        data = input
+    elif isinstance(input, str): # We probably got a CSV filename
+        data = netCDF4.Dataset(input)
+    else:
+        print("createContourMapFromNOAAPSL: Error: You must pass either a NetCDF filename or a netCDF4 Dataset instance")
+        return()
+
+    if dataKey == "":
+        possible_keys = ["tmax", 'tmin', 'precip']
+
+        for key in possible_keys:
+            if key in data.variables:
+                dataKey = key
+                break
+        if dataKey == "": # If we haven't matched anything, user will need to supply latKey
+            print("createContourMapFromNOAAPSL: Error: data key not recognized. Specify with dataKey=")
+            return()
+
+    plt.rcParams["figure.figsize"] = (16,8)
+
+    if baseTexture is not None:
+        m = Basemap(projection='cyl',llcrnrlat=-90,urcrnrlat=90,\
+                    llcrnrlon=0.25,urcrnrlon=359.75,resolution='l')
+        m.warpimage(baseTexture)
+    elif baseColor is not None:
+        fig.patch.set_facecolor(baseColor)
+
+    if not transparent:
+        m.drawcoastlines()
+
+    lat = data.variables['lat'][:]
+    lon = data.variables['lon'][:]
+    this_time = data.variables['time'][:]
+    values = data.variables[dataKey][:]
+
+    lons, lats = np.meshgrid(lon , lat)
+
+    # Convert time from hours since epoch 1900-01-01
+    epoch = datetime.datetime(1900, 1, 1, 0, 0)
+    date = epoch + (datetime.timedelta(hours=1) * this_time)
+
+    index_to_use = None
+    if isinstance(index, (float, int)):
+        index_to_use = round(index)
+        if index_to_use >= len(date):
+            print("createContourMapFromNOAAPSL: Error: index not present.")
+            return()
+    elif isinstance(index, str):
+        try:
+            index_to_use = np.where(date == parser.parse(index))[0][0]
+        except IndexError:
+            print("createContourMapFromNOAAPSL: Error: index not present.")
+            return()
+    else:
+        print("createContourMapFromNOAAPSL: Error: index not recognized. Provide either a numeric index or a date")
+        return()
+
+    if debug:
+        print("Dataset min value:", np.min(values[index_to_use, :, :]), "\nDataset max value:", np.max(values[index_to_use, :, :]))
+    plt.contourf(lons, lats, values[index_to_use, :, :], levels, cmap=colormap)
+
+    plt.gcf().subplots_adjust(left=0, right=1, top=1, bottom=0)
+    plt.gca().axis("off")
+
+    if filename != "":
+        plt.savefig(filename, dpi=256, transparent=transparent)
+
 
 def createScatterMap(input,
     add_to_map=None,
@@ -102,8 +223,8 @@ def createScatterMap(input,
     return_map = True,
     transparent=False):
 
-    # Function to take a pandas DataFrame or a CSV file containing Lon/Lat values
-    # and build a Science on a Sphere texture from it
+    """Function to take a pandas DataFrame or a CSV file containing Lon/Lat values and build a Science on a Sphere texture from it
+    """
 
     if isinstance(input, pd.DataFrame):
         df = input
@@ -124,7 +245,8 @@ def createScatterMap(input,
             print("createScatterMap: Error: latitude column not found. Specify with latkey=")
             return()
     if lonKey == "":
-        possible_keys = ["longitude", 'Longitude', 'long', 'lon', 'Long', 'Lon', 'LON', 'LONG', "LONGITUDE", 'reclon', 'reclong']
+        possible_keys = ["longitude", 'Longitude', 'long', 'lon', 'Long', 'Lon',
+                         'LON', 'LONG', "LONGITUDE", 'reclon', 'reclong']
         for key in possible_keys:
             if key in keys:
                 lonKey = key
@@ -140,7 +262,7 @@ def createScatterMap(input,
                     llcrnrlon=-180,urcrnrlon=180,resolution='l')
 
     if not transparent:
-         m.drawcoastlines()
+        m.drawcoastlines()
 
     # If marker_size_key != "", interpret it as a DataFrame key and create
     # an array of sizes, with maximum size marker_size
@@ -166,29 +288,43 @@ def createScatterMap(input,
         plt.savefig(filename, dpi=256, transparent=transparent)
 
     if return_map:
-        return(m)
+        return m
 
 def createCountryMap(input,
     baseColor=None,
     baseTexture=None,
     colormap="Greens",
+    countryKey="",
+    dataKey="",
     filename="",
-    isWorldBank=True,
+    isWorldBank=False,
+    max_year=3000,
+    min_year=0,
     printMissingCountries=False,
     range_min=None,
     range_max=None,
-    transparent=False):
+    transparent=False,
+    yearKey=""):
 
-    # Function to take a pandas DataFrame or CSV file containing country-based
-    # data and build a Science on a Sphere texture from it
-
+    """Function to take a CSV file containing country-based data and build a Science on a Sphere texture from it.
+    """
     if isinstance(input, pd.DataFrame):
         df = input
+    elif isinstance(input, list):
+        df = pd.DataFrame()
+        df["Country"] = input
+        df["Data"] = 1
     elif isinstance(input, str): # We probably got a CSV filename
-        df = getOptimizedDatasetWorldBank(input)
+        df = getOptimizedDataset(input,
+                                 countryKey=countryKey,
+                                 dataKey=dataKey,
+                                 isWorldBank=isWorldBank,
+                                 max_year=max_year,
+                                 min_year=min_year,
+                                 yearKey=yearKey)
     else:
-        print("createCountryMap: Error: You must pass either a CSV filename or a pandas DataFrame")
-        return()
+        print("createCountryMap: Error: You must pass a CSV filename or a pandas DataFrame, or a list of countries")
+        return
 
 
     # Matplotlib setup
@@ -205,11 +341,11 @@ def createCountryMap(input,
         fig.patch.set_facecolor(baseColor)
 
     colormap = cm.get_cmap(colormap)
-    if range_min != None:
+    if range_min is not None:
         vmin = range_min
     else:
         vmin = np.min(df["Data"])
-    if range_max != None:
+    if range_max is not None:
         vmax = range_max
     else:
         vmax = np.max(df["Data"])
@@ -275,10 +411,13 @@ def createCountryMap(input,
 
     #return(fig)
 
-def createAnimatedCountryMap(csv, min_year, max_year, filename, isWorldBank=True, **kwargs):
+def createAnimatedCountryMap(df, min_year, max_year, filename,
+                             isWorldBank=False,
+                             createLabels=False,
+                             **kwargs):
 
-    # Takes a pandas CSV file and creates an output PNG for each
-    # year that can be used as an animation
+    """Takes a pandas DataFrane or CSV file and creates an output PNG for each year that can be used as an animation.
+    """
 
     # Break the extension off the filename for later use
     filename_split = filename.split('.')
@@ -286,41 +425,67 @@ def createAnimatedCountryMap(csv, min_year, max_year, filename, isWorldBank=True
     filename_ext = "." + filename_split[-1]
 
     years = np.arange(min_year, max_year+1, 1)
+    num_years = len(years)
+    counter = 0
+    start_time = time.time()
+    labels = []
     for year in years:
-        if isWorldBank:
-            df = getOptimizedDatasetWorldBank(csv, max_year=year)
-            temp = createCountryMap(df, filename=filename_root+"_"+str(year)+filename_ext, **kwargs)
-        else:
-            print("createAnimatedCountryMap: Error: Only World Bank data is currently supported. Set isWorldBank=True")
-            return()
+        progress_bar(counter, num_years, start_time=start_time)
+        counter += 1
+
+        createCountryMap(df,
+                         filename=filename_root+"_"+str(year)+filename_ext,
+                         min_year=min_year,
+                         max_year=year,
+                         **kwargs)
+        labels.append(str(year))
+
+    if createLabels:
+        # Create string from list
+        label_str = ""
+        for label in labels:
+            label_str += label + "\n"
+        with open("labels.txt", 'w', encoding="UTF-8") as f:
+            f.write(label_str)
 
 def countryNameNormalize(name, silent=True):
 
-    # Function to correct names on the map to their correct generic name
+    """Function to correct names on the map to their correct generic name."""
 
     name_dict = {
+        "Bahamas": "The Bahamas",
+        "Bahamas, The": "The Bahamas",
+        "Bolivia (Plurinational State of)": "Bolivia",
         "Burma": "Myanmar",
         "Byelarus": "Belarus",
         "Cape Verde": "Cabo Verde",
         "Czechia": "Czech Republic",
+        "Democratic Republic of Congo": "Democratic Republic of the Congo",
+        "Gambia": "The Gambia",
+        "Gambia, The": "The Gambia",
         "Gaza Strip": "West Bank and Gaza",
         "Ivory Coast": "Cote d'Ivoire",
         "Kyrgyzstan": "Kyrgyz Republic",
         "Macedonia": "North Macedonia",
         "Man, Isle of": "Isle of Man",
+        "Micronesia": "Federated States of Micronesia",
         "Myanmar (Burma)": "Myanmar",
         "Pacific Islands (Palau)": "Palau",
+        "St. Kitts and Nevis": "Saint Kitts and Nevis",
+        "St. Lucia": "Saint Lucia",
+        "St. Vincent and the Grenadines": "Saint Vincent and the Grenadines",
+        "Swaziland": "Eswatini",
         "Tanzania, United Republic of": "Tanzania",
         "Western Samoa": "Samoa",
+        "Zaire": "Democratic Republic of the Congo",
     }
 
     if isinstance(name, str):
         if name in name_dict:
-            return(name_dict[name])
-        else:
-            if not silent:
-                print(f"countryNameNormalize: name not found: {name}")
-            return(name)
+            return name_dict[name]
+        if not silent:
+            print(f"countryNameNormalize: name not found: {name}")
+        return name
     elif isinstance(name, list):
         fixed_list = []
         for entry in name:
@@ -330,7 +495,7 @@ def countryNameNormalize(name, silent=True):
                 if not silent:
                     print(f"countryNameNormalize: name not found: {name}")
                 fixed_list.append(entry)
-        return(fixed_list)
+        return fixed_list
     elif isinstance(name, np.ndarray):
         fixed_list = []
         for entry in name:
@@ -343,12 +508,11 @@ def countryNameNormalize(name, silent=True):
         return(np.asarray(fixed_list))
     else:
         print("countryNameNormalize: Error: input format not recognized")
-        return(name)
+        return name
 
 def countryNameToWorldBank(name, silent=True):
 
-    # Function that takes a country name and returns it formatted for comparison
-    # to World Bank Databank data
+    """Take a country name and return it formatted for comparison to World Bank Databank data."""
 
     name_dict = {
         "Brunei": "Brunei Darussalam",
@@ -383,11 +547,10 @@ def countryNameToWorldBank(name, silent=True):
 
     if isinstance(name, str):
         if name in name_dict:
-            return(name_dict[name])
-        else:
-            if not silent:
-                print(f"countryNameToWorldBank: name not found: {name}")
-            return(name)
+            return name_dict[name]
+        if not silent:
+            print(f"countryNameToWorldBank: name not found: {name}")
+        return name
     elif isinstance(name, list):
         fixed_list = []
         for entry in name:
@@ -397,7 +560,7 @@ def countryNameToWorldBank(name, silent=True):
                 if not silent:
                     print(f"countryNameToWorldBank: name not found: {name}")
                 fixed_list.append(entry)
-        return(fixed_list)
+        return fixed_list
     elif isinstance(name, np.ndarray):
         fixed_list = []
         for entry in name:
@@ -410,14 +573,101 @@ def countryNameToWorldBank(name, silent=True):
         return(np.asarray(fixed_list))
     else:
         print("countryNameNormalize: Error: input format not recognized")
-        return(name)
+        return name
+
+def getOptimizedDataset(input,
+                        countryKey="",
+                        dataKey="",
+                        isWorldBank=False,
+                        max_year=3000,
+                        min_year=0,
+                        yearKey=""):
+
+    """Take a csv file, read it, and build a new DataFrame that
+    matches each country with the latest available year of data
+    for that country.
+
+    Years before min_year and after max_year are ignored.
+    """
+
+    if isWorldBank:
+        getOptimizedDatasetWorldBank(input, max_year=max_year, min_year=min_year)
+    else:
+
+        if isinstance(input, pd.DataFrame):
+            df = input
+        elif isinstance(input, str): # We probably got a CSV filename
+            df = pd.read_csv(input)
+        else:
+            print("getOptimizedDataset: Error: You must pass either a CSV filename or a pandas DataFrame")
+            return
+
+        # Make sure we have a valid key for everything we need
+        keys = df.keys().to_list()
+
+        if yearKey == "":
+            possible_keys = ["year", 'Year', "YEAR", 'yr', 'Yr', 'YR']
+            for key in possible_keys:
+                if key in keys:
+                    yearKey = key
+            if yearKey == "": # If we haven't matched anything, user will need to supply latKey
+                print("getOptimizedDataset: Error: year column not found. Specify with yearKey=")
+                return
+
+        if countryKey == "":
+            possible_keys = ["country", "Country", "COUNTRY", "Nation", "State", "STATE", "state"]
+            for key in possible_keys:
+                if key in keys:
+                    countryKey = key
+            if countryKey == "": # If we haven't matched anything, user will need to supply latKey
+                print("getOptimizedDataset: Error: country column not found. Specify with country=")
+                return
+
+        if dataKey == "":
+            possible_keys = ["data", "DATA"]
+            for key in possible_keys:
+                if key in keys:
+                    dataKey = key
+            if dataKey == "": # If we haven't matched anything, user will need to supply datakey
+                print("getOptimizedDataset: Error: data column not found. Specify with datakey=")
+                return
+
+        df[yearKey] = df[yearKey].astype(float)
+
+        # Trim by the min_year and max_year
+        df = df[df[yearKey] >= min_year]
+        df = df[df[yearKey] <= max_year]
+
+        # Now iterate through the DataFrame and get the latest year of data for each
+        # country
+        country_list = []
+        data_list = []
+        year_of_data = [] # Holds the year that data in data_list comes from
+
+        countries_to_match = df[countryKey].unique()
+        for country in countries_to_match:
+            temp = df[df[countryKey] == country]
+            row_to_use = temp[temp[yearKey] == temp[yearKey].max()]
+            country_list.append(row_to_use[countryKey].values[0])
+            year_of_data.append(row_to_use[yearKey].values[0])
+            data_list.append(row_to_use[dataKey].values[0])
+
+        output = pd.DataFrame()
+        output["Country"] = country_list
+        output["Data"] = data_list
+        output["Data year"] = year_of_data
+
+        return output
+
 
 def getOptimizedDatasetWorldBank(csv, max_year=3000, min_year=0):
 
-    # Takes a csv file, read it, and build a new DataFrame that
-    # matches each country with the latest available year of data
-    # for that country.
-    # Years before min_year and after max_year are ignored.
+    """Take a csv file, read it, and build a new DataFrame that
+    matches each country with the latest available year of data
+    for that country.
+
+    Years before min_year and after max_year are ignored.
+    """
 
     data = pd.read_csv(csv, na_values="..")
 
@@ -457,4 +707,4 @@ def getOptimizedDatasetWorldBank(csv, max_year=3000, min_year=0):
     output["Data"] = data_list
     output["Data year"] = year_of_data
 
-    return(output)
+    return output
