@@ -64,248 +64,9 @@
   </div>
 
 <script src="config.js"></script>
+<script src="SOS_screen_player.js"></script>
 
   <script>
-
-    function sleepDisplays() {
-
-      // Send a message to the local helper process and ask it to sleep the
-      // displays
-
-      requestString = `action=sleepDisplays`;
-
-      var xhr = new XMLHttpRequest();
-      xhr.timeout = 1000;
-      xhr.open("POST", helperIP, true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.onreadystatechange = function () {
-        if (this.readyState != 4) return;
-
-        if (this.status == 200) {
-        }
-    };
-      xhr.send(requestString);
-    }
-
-    function wakeDisplays() {
-
-      // Send a message to the local helper process and ask it to sleep the
-      // displays
-
-      requestString = `action=wakeDisplays`;
-
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", helperIP, true);
-      xhr.timeout = 1000;
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.onreadystatechange = function () {
-        if (this.readyState != 4) return;
-
-        if (this.status == 200) {
-        }
-    };
-      xhr.send(requestString);
-    }
-
-    function commandProjector(cmd) {
-
-      // Send a message to the local helper process to control the projector
-
-      requestString = `action=commandProjector&command=${cmd}`;
-
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", helperIP, true);
-      xhr.timeout = 1000;
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.onreadystatechange = function () {
-        if (this.readyState != 4) return;
-
-        if (this.status == 200) {
-        }
-    };
-      xhr.send(requestString);
-    }
-
-    function readUpdate(responseText) {
-
-      // Function to read a message from the server and take action based
-      // on the contents
-
-      var update = JSON.parse(responseText);
-      //sendConfigUpdate(update); // Send to server to update the default config
-
-      // if ("content" in update) {
-      //   if (source != update["content"]) {
-      //     source = (update["content"])[0];
-      //     changeMedia(source);
-      //   }
-      // }
-      if ('commands' in update) {
-        for (var i=0; i<update["commands"].length; i++) {
-          var cmd = (update["commands"])[i];
-
-          if (cmd == "sleepDisplay") {
-            sleepDisplays();
-          } else if (cmd == "wakeDisplay") {
-            wakeDisplays();
-          } else {
-            console.log(`Command not recognized: ${cmd}`);
-          }
-        }
-      }
-      if ("id" in update) {
-        id = update["id"];
-      }
-      if ("type" in update) {
-        type = update["type"]
-      }
-      if (("server_ip_address" in update) && ("server_port" in update)) {
-        serverAddress = "http://" + update["server_ip_address"] + ":" + update["server_port"];
-      }
-      if ("sos_address" in update) {
-        sosAddress = "http://" + update["sos_address"]
-      }
-      if ("dictionary" in update) {
-        dictionary = update["dictionary"];
-      }
-    }
-
-    function changeMedia(source) {
-
-      var video = document.getElementById("fullscreenVideo");
-      var videoContainer = document.getElementById("videoOverlay");
-      var image = document.getElementById("fullscreenImage");
-      var imageContainer = document.getElementById("imageOverlay");
-
-      // Split off the extension
-      var split = source.split(".");
-      var ext = split[split.length-1];
-
-      if (["mp4", "mpeg", "m4v", "webm", "mov", "ogg"].includes(ext.toLowerCase())) {
-        video.pause();
-        video.src = source;
-        video.load();
-        video.play();
-        videoContainer.style.opacity = 1;
-        imageContainer.style.opacity = 0;
-      } else if (["png", "jpg", "jpeg", "tiff", "bmp", "heic", "webp"].includes(ext.toLowerCase())) {
-        video.pause();
-        videoContainer.style.opacity = 0;
-        image.src = source;
-        imageContainer.style.opacity = 1;
-      }
-
-    }
-
-    function askForDefaults() {
-
-      // Send a message to the local helper and ask for the latest configuration
-      // defaults, then use them.
-
-      requestString = `action=getDefaults`;
-
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", helperIP, true);
-      xhr.timeout = 2000;
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.onreadystatechange = function () {
-
-        if (this.readyState != 4) return;
-
-        if (this.status == 200) {
-          readUpdate(this.responseText);
-        }
-    };
-      xhr.send(requestString);
-    }
-
-    function sendPing() {
-
-      // Contact the control server and ask for any updates
-
-      if (serverAddress != "") {
-        requestDict = {"class":"exhibitComponent",
-                       "id": id,
-                       "type": type}
-        if (errorString != null) {
-          requestDict["error"] = errorString;
-        }
-        requestString = JSON.stringify(requestDict);
-
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", serverAddress, true);
-        xhr.timeout = 1000;
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.onerror = function() {
-        }
-        xhr.onreadystatechange = function () {
-
-          if (this.readyState != 4) return;
-
-          if (this.status == 200) {
-            readUpdate(this.responseText);
-          }
-      };
-        xhr.send(requestString);
-      }
-    }
-
-    function showDefaultImage() {
-
-      var img = document.getElementById("fullscreenImage");
-
-      // Make sure we don't go into an infinite loop
-      if (img.src != 'playlists/default/default.jpeg') {
-        changeMedia('playlists/default/default.jpeg');
-      }
-    }
-
-    function pollSOS() {
-
-      // Function to ask SOS for the current dataset and switch the displayed
-      // media based on the response.
-
-      requestString = `action=SOS_getCurrentClipName`;
-
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", sosAddress, true);
-      xhr.timeout = 1000;
-
-      var errorFunc = function() {
-        if (pollSOSErrorTicks > 1) {
-          if (currentObject != null) {
-            changeMedia("playlists/default/"+dictionary["default"]);
-          }
-          currentObject = null;
-          errorString = "SOS connection offline";
-        }
-        pollSOSErrorTicks += 1;
-      }
-      xhr.onerror = errorFunc;
-      xhr.ontimeout = errorFunc;
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.onreadystatechange = function () {
-        if (this.readyState != 4) return;
-
-        if (this.status == 200) {
-          pollSOSErrorTicks = 0;
-          if (this.response != currentObject) {
-            var filename = "";
-            if (this.response in dictionary) {
-              filename = dictionary[this.response];
-            } else {
-              filename = dictionary["default"];
-            }
-
-            changeMedia("playlists/default/"+filename);
-            currentObject = this.response;
-            errorString = null;
-          }
-
-        }
-      };
-      xhr.send(requestString);
-    }
 
     // These will be replaced by the values specified in defaults.ini
     var id = 'UNKNOWN';
@@ -315,16 +76,16 @@
 
     var source = "";
     var dictionary = null; // will hold the dictionary used to translate between SOS dataset names and filenames
+    var allowedActionsDict = {"refresh": "true"};
 
     var currentObject = "";
     var errorString = null;
-    var pollSOSErrorTicks = 0
+    var pollSOSErrorTicks = 0;
 
     askForDefaults();
     sendPing();
     setInterval(sendPing, 5000);
     setInterval(pollSOS, 500);
-
   </script>
 
   </body>

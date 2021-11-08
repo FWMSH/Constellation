@@ -18,21 +18,21 @@ import mimetypes
 import requests
 from sockio.sio import TCP
 
-# Constellation modules
+# Constellation modules -- copy these from the system_helper module
 import helper
 import config
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
-    # Stub which triggers dispatch of requests into individual threads.
+    """Stub which triggers dispatch of requests into individual threads."""
     daemon_threads = True
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
+    """Handle incoming server requests"""
+
     def log_request(self, code='-', size='-'):
 
         """Override to suppress the automatic logging"""
-
-        pass
 
     def do_GET(self):
 
@@ -41,7 +41,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         if debug:
             print("GET received: ", self.path)
 
-        if self.path=="/":
+        if self.path == "/":
             self.path="/SOS_kiosk.html"
 
         # Open the static file requested and send it
@@ -59,6 +59,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
     def do_OPTIONS(self):
 
+        """Respond to OPTIONS requests"""
+
         if debug:
             print("DO_OPTIONS")
 
@@ -74,8 +76,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
 
-        # Receives pings from client devices and respond with any updated
-        # information
+        """Receives pings from client devices and respond with any updated information"""
 
         if debug:
             print("POST Received", flush=True)
@@ -143,7 +144,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     clip_list.append(" ".join(split2[1:]))
 
                 # Then, get other improtant info
-                clipDictList = []
+                clip_dict_list = []
                 counter = 1
                 for clip in clip_list:
                     if clip != '':
@@ -161,9 +162,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         # Cache the icon locally for use by the app.
                         os.system(f'cp "{icon_path}" ./thumbnails/{filename}')
 
-                        clipDictList.append(temp)
+                        clip_dict_list.append(temp)
                     counter += 1
-                json_string = json.dumps(clipDictList)
+                json_string = json.dumps(clip_dict_list)
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif data["action"] == "SOS_getPlaylistName":
                 reply = sendSOSCommand("get_playlist_name")
@@ -210,43 +211,43 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 if ("dLat" in data) and ("dLon" in data):
                     tilt = sendSOSCommand("get_tilt")
                     split = tilt.split(' ')
-                    tiltX = float(split[0])
-                    tiltY = float(split[1])
-                    tiltZ = float(split[2])
+                    tilt_x = float(split[0])
+                    tilt_y = float(split[1])
+                    tilt_z = float(split[2])
                     dLat = float(data["dLat"])
                     dLon = float(data["dLon"])
 
-                    sendSOSCommand(f"set_tilt {tiltX} {tiltY + dLat/2} {tiltZ + dLon/2}")
+                    sendSOSCommand(f"set_tilt {tilt_x} {tilt_y + dLat/2} {tilt_z + dLon/2}")
             elif data["action"] == "SOS_rotateX":
                 if "increment" in data:
                     tilt = sendSOSCommand("get_tilt")
                     split = tilt.split(' ')
-                    tiltX = float(split[0])
-                    tiltY = float(split[1])
-                    tiltZ = float(split[2])
+                    tilt_x = float(split[0])
+                    tilt_y = float(split[1])
+                    tilt_z = float(split[2])
                     dX = float(data['increment'])
 
-                    sendSOSCommand(f"set_tilt {tiltX + dX} {tiltY} {tiltZ}")
+                    sendSOSCommand(f"set_tilt {tilt_x + dX} {tilt_y} {tilt_z}")
             elif data["action"] == "SOS_rotateY":
                 if "increment" in data:
                     tilt = sendSOSCommand("get_tilt")
                     split = tilt.split(' ')
-                    tiltX = float(split[0])
-                    tiltY = float(split[1])
-                    tiltZ = float(split[2])
+                    tilt_x = float(split[0])
+                    tilt_y = float(split[1])
+                    tilt_z = float(split[2])
                     dY = float(data['increment'])
 
-                    sendSOSCommand(f"set_tilt {tiltX} {tiltY + dY} {tiltZ}")
+                    sendSOSCommand(f"set_tilt {tilt_x} {tilt_y + dY} {tilt_z}")
             elif data["action"] == "SOS_rotateZ":
                 if "increment" in data:
                     tilt = sendSOSCommand("get_tilt")
                     split = tilt.split(' ')
-                    tiltX = float(split[0])
-                    tiltY = float(split[1])
-                    tiltZ = float(split[2])
+                    tilt_x = float(split[0])
+                    tilt_y = float(split[1])
+                    tilt_z = float(split[2])
                     dZ = float(data['increment'])
 
-                    sendSOSCommand(f"set_tilt {tiltX} {tiltY} {tiltZ + dZ}")
+                    sendSOSCommand(f"set_tilt {tilt_x} {tilt_y} {tilt_z + dZ}")
             elif data["action"] == "SOS_startAutorun":
                 sendSOSCommand("set_auto_presentation_mode 1")
             elif data["action"] == "SOS_stopAutorun":
@@ -283,9 +284,8 @@ def sendSOSCommand(cmd, multiline=False):
     try:
         if not multiline:
             return sosSocket.write_readline(bytes(cmd + '\n', encoding='UTF-8')).decode('UTF-8').strip()
-        else:
-            sosSocket.write(bytes(cmd + '\n', encoding='UTF-8'))
-            return(sosSocket.read(10000).decode("UTF-8"))
+        sosSocket.write(bytes(cmd + '\n', encoding='UTF-8'))
+        return(sosSocket.read(10000).decode("UTF-8"))
     except Exception as e:
         print(e)
         sosSocket = connectToSOS()
@@ -328,14 +328,14 @@ def sendPing():
         print("    defaultWriteLock released")
         print("Ping complete")
 
-def sendPingAtInterval():
+def send_ping_at_interval():
 
     """Send a ping, then spawn a thread that will call this function again"""
 
     global pingThread
 
     sendPing()
-    pingThread = threading.Timer(5, sendPingAtInterval)
+    pingThread = threading.Timer(5, send_ping_at_interval)
     pingThread.start()
 
 def SOS_open_playlist(content):
@@ -345,7 +345,7 @@ def SOS_open_playlist(content):
     sendSOSCommand("open_playlist " + content)
     sendSOSCommand("play 1")
 
-def quit_handler(sig, frame):
+def quit_handler(*args):
 
     """Stop threads, shutdown connections, etc."""
 
@@ -353,7 +353,7 @@ def quit_handler(sig, frame):
 
     if pingThread is not None:
         pingThread.cancel()
-    if sosSocket != None:
+    if sosSocket is not None:
         sosSocket.write(b'exit\n')
     sys.exit(0)
 
@@ -368,13 +368,15 @@ def connectToSOS():
 
         try:
             # Send Science on a Sphere command to begin communication
-            sosSocket = TCP(config.defaults_dict["sos_ip_address"], 2468)
-            sosSocket.write_readline(b'enable\n')
+            socket = TCP(config.defaults_dict["sos_ip_address"], 2468)
+            socket.write_readline(b'enable\n')
             print("Connected!")
-            return sosSocket
-        except:
+        except Exception as e:
             print("Error: Connection with Science on a Sphere failed to initialize. Make sure you have specificed sos_ip_address in defaults.ini, both computers are on the same network (or are the same machine), and port 2468 is accessible.")
-            sosSocket = None
+            if debug:
+                print(e)
+            socket = None
+        return socket
 
 signal.signal(signal.SIGINT, quit_handler)
 
@@ -388,7 +390,7 @@ helper.readDefaultConfiguration(checkDirectories=False)
 helper.loadDictionary()
 
 sosSocket = connectToSOS()
-sendPingAtInterval()
+send_ping_at_interval()
 
 httpd = ThreadedHTTPServer(("", int(config.defaults_dict["helper_port"])), RequestHandler)
 httpd.serve_forever()
