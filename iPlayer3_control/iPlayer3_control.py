@@ -107,5 +107,4 @@ def fade_to_bright(connection):
         connection.write(bytes(command, 'UTF-8'))
         time.sleep(0.03)
         i += 1
-        
     return True
