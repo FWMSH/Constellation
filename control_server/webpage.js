@@ -66,14 +66,15 @@
             }
             if ("error_status" in response) {
               thisInstance.state.error_status = response.error_status;
+              let errorList = {}
               Object.keys(response.error_status).forEach((item, i) => {
                 if ((response.error_status)[item] != "ok") {
-                  errorDict[thisInstance.id.toUpperCase() + ": " + item] = (response.error_status)[item]
-                  rebuildErrorList();
-                } else {
-                  delete errorDict[thisInstance.id.toUpperCase() + ": " + item];
+                  errorList[item] = (response.error_status)[item];
                 }
               });
+              errorDict[thisInstance.id] = errorList;
+              rebuildErrorList();
+
             }
           }
         }
@@ -804,10 +805,7 @@
         obj.description = component.description;
       }
       if ("error" in component) {
-        errorDict[obj.id + ": "] = component.error;
-        rebuildErrorList();
-      } else if (obj.id + ": " in errorDict) {
-        delete errorDict[obj.id + ": "];
+        errorDict[obj.id] = JSON.parse(component.error);
         rebuildErrorList();
       }
     } else {
@@ -1373,15 +1371,36 @@
       $("#errorDisplayRow").append(html);
     }
 
+    // Iterate through the items in the errorDict. Each item should correspond
+    // to one component with an error.
     Object.keys(errorDict).forEach((item, i) => {
-      html = `
-        <div class="col-auto mt-3">
-          <button class='btn btn-danger btn-block'>${item + " " + errorDict[item]}</btn>
-        </div>
-      `;
-      $("#errorDisplayRow").append(html);
-    });
+      // Then, iterate through the errors on that given item
+      Object.keys(errorDict[item]).forEach((itemError, j) => {
+        let itemErrorMsg = (errorDict[item])[itemError];
+        if (itemErrorMsg.length > 0) {
+          // By default, errors are bad
+          let labelName = item + ": " + itemError + ": " + itemErrorMsg;
+          let labelClass = "btn-danger"
 
+          // But, if we are indicating an available update, make that less bad
+          if (itemError == "helperSoftwareUpdateAvailable") {
+            labelName = item + ": System Helper software update available";
+            labelClass = "btn-info";
+          } else if (itemError == "softwareUpdateAvailable") {
+            labelName = item + ": Software update available";
+            labelClass = "btn-info";
+          }
+          // Create and add the button
+          html = `
+            <div class="col-auto mt-3">
+              <button class='btn ${labelClass} btn-block'>${labelName}</btn>
+            </div>
+          `;
+          $("#errorDisplayRow").append(html);
+        }
+
+      });
+    });
   }
 
   function askForScheduleRefresh() {
@@ -1427,6 +1446,7 @@
     };
     xhr.send(requestString);
   }
+
 
   function askForUpdate() {
 

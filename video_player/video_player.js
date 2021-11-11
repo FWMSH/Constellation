@@ -1,5 +1,23 @@
 /*jshint esversion: 6 */
 
+function checkForSoftwareUpdate() {
+
+  var xhr = new XMLHttpRequest();
+  xhr.timeout = 2000;
+  xhr.open('GET', 'https://raw.githubusercontent.com/FWMSH/Constellation/main/video_player/version.txt', true);
+  xhr.onreadystatechange = function () {
+
+    if (this.readyState != 4) return;
+
+    if (this.status == 200) {
+      if(parseFloat(this.responseText) > SOFTWARE_VERSION) {
+        errorDict.softwareUpdateAvailable = "true";
+      }
+    }
+  };
+  xhr.send(null);
+}
+
 function sleepDisplays() {
 
   // Send a message to the local helper process and ask it to sleep the
@@ -188,6 +206,12 @@ function readUpdate(responseText) {
   if ("allow_shutdown" in update) {
     allowedActionsDict.shutdown = update.allow_shutdown;
   }
+  if ("helperSoftwareUpdateAvailable" in update) {
+    if (update.helperSoftwareUpdateAvailable == "true")
+    errorDict.helperSoftwareUpdateAvailable = "true";
+  }
+
+
 
   // This should be last to make sure the path has been updated
   if ("content" in update) {
@@ -417,14 +441,9 @@ function sendPing() {
                    "type": type,
                    "helperPort": helperAddress.split(":")[2],
                    "allowed_actions": allowedActionsDict};
+
     // See if there is an error to report
-    var errorKeys = Object.keys(errorDict);
-    var errorString = "";
-    for (i=0; i< errorKeys.length; i++) {
-      if (errorDict[errorKeys[i]].length > 0) {
-        errorString += `${errorKeys[i]}: ${errorDict[errorKeys[i]]}`;
-      }
-    }
+    let errorString = JSON.stringify(errorDict);
     if (errorString != "") {
       requestDict.error = errorString;
     }

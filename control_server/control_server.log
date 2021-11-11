@@ -2444,3 +2444,67 @@ INFO, 2021-11-11 15:59:19, Server started
 INFO, 2021-11-11 15:59:49, Server shutdown
 INFO, 2021-11-11 15:59:51, Server started
 ERROR, 2021-11-11 16:00:15, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-11-11 16:23:35, there is no configuration available for component with id=WC_VIEW
+ERROR, 2021-11-11 16:25:27, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:25:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:25:35, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:26:17, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:26:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:28:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:28:53, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:30:02, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:32:50, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:33:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:34:14, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:35:59, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:36:24, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:37:01, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:37:33, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:37:44, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-11-11 16:50:42, Server shutdown
+INFO, 2021-11-11 16:50:43, Server started
+WARNING, 2021-11-11 16:50:50, there is no configuration available for component with id=WC_VIEW
+ERROR, 2021-11-11 16:51:08, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-11-11 16:53:08, Server shutdown
+INFO, 2021-11-11 16:53:09, Server started
+WARNING, 2021-11-11 16:53:16, there is no configuration available for component with id=WC_VIEW
+INFO, 2021-11-11 16:53:27, Server shutdown
+INFO, 2021-11-11 16:54:04, Server started
+WARNING, 2021-11-11 16:54:22, there is no configuration available for component with id=WC_VIEW
+INFO, 2021-11-11 16:54:40, Server shutdown
+INFO, 2021-11-11 16:54:41, Server started
+WARNING, 2021-11-11 16:54:58, there is no configuration available for component with id=WC_VIEW
+ERROR, 2021-11-11 16:56:04, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:56:18, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:57:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:57:48, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:59:11, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:59:23, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 16:59:49, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:00:24, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:00:44, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:00:58, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:01:08, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:01:19, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:01:36, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:01:47, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:01:59, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:02:15, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:02:35, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:02:45, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:02:59, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:03:15, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:03:26, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:04:24, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:05:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:05:38, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:06:33, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:07:49, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:07:54, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:09:54, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:10:11, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:10:26, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:11:22, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:11:55, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:12:47, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-11 17:15:04, GET for unexpected file /js/popper.min.js.map

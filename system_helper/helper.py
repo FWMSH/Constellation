@@ -178,6 +178,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     if "allow_restart" not in configToSend:
                         configToSend["allow_restart"] = "true"
 
+                    # Add the current update availability to pass to the control server
+                    configToSend["helperSoftwareUpdateAvailable"] = str(config.helper_software_update_available).lower()
+
                     # Reformat this content list as an array
                     configToSend['content'] = [s.strip() for s in configToSend['content'].split(",")]
 
@@ -304,7 +307,7 @@ def checkForSoftwareUpdate():
 
     print("Checking for update... ", end="")
     try:
-        for line in urllib.request.urlopen("https://raw.githubusercontent.com/FWMSH/Constellation/main/control_server/version.txt"):
+        for line in urllib.request.urlopen("https://raw.githubusercontent.com/FWMSH/Constellation/main/system_helper/version.txt"):
             if float(line.decode('utf-8')) > config.HELPER_SOFTWARE_VERSION:
                 config.helper_software_update_available = True
                 break
@@ -714,6 +717,9 @@ if __name__ == "__main__":
 
     # Look for an availble schedule and load it
     retrieveSchedule()
+
+    # Check the Github server for an available software update
+    checkForSoftwareUpdate()
 
     print(f'Launching server on port {config.defaults_dict["helper_port"]} to serve {config.defaults_dict["id"]}.')
 
