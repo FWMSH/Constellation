@@ -22,6 +22,7 @@ import threading
 import _thread
 import pickle
 import dateutil.parser
+import urllib.request
 
 # Non-standard modules
 import wakeonlan
@@ -1499,11 +1500,20 @@ def error_handler(*exc_info):
         logging.error(f'"{text}"')
     print(f"Error: see control_server.log for more details ({datetime.datetime.now()})")
 
+def checkForSoftwareUpdate():
+
+    """Download the version.txt file from Github and check if there is an update"""
+
+    for line in urllib.request.urlopen():
+        print(line.decode('utf-8')) #utf-8 or iso8859-1 or whatever the page encoding scheme is
+
 
 serverPort = 8080 # Default; should be set in exhibit INI file
 ip_address = "localhost" # Default; should be set in exhibit INI file
 ADDR = "" # Accept connections from all interfaces
 gallery_name = ""
+SOFTWARE_VERSION = 1.0
+software_update_available = False
 
 componentList = []
 projectorList = []
