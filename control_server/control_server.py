@@ -427,6 +427,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         temp["currentExhibit"] = currentExhibit
         temp["availableExhibits"] = exhibitList
         temp["galleryName"] = gallery_name
+        temp["updateAvailable"] = str(software_update_available).lower()
 
         componentDictList.append(temp)
 
@@ -1504,9 +1505,21 @@ def checkForSoftwareUpdate():
 
     """Download the version.txt file from Github and check if there is an update"""
 
-    for line in urllib.request.urlopen():
-        print(line.decode('utf-8')) #utf-8 or iso8859-1 or whatever the page encoding scheme is
+    global software_update_available
 
+    print("Checking for update... ", end="")
+    try:
+        for line in urllib.request.urlopen("https://raw.githubusercontent.com/FWMSH/Constellation/main/control_server/version.txt"):
+            if float(line.decode('utf-8')) > software_update_available:
+                software_update_available = True
+                break
+    except urllib.error.HTTPError:
+        print("cannot connect to update server")
+        return
+    if software_update_available:
+        print("update available!")
+    else:
+        print("the server is up to date.")
 
 serverPort = 8080 # Default; should be set in exhibit INI file
 ip_address = "localhost" # Default; should be set in exhibit INI file
@@ -1566,6 +1579,7 @@ loadDefaultConfiguration()
 pollEventSchedule()
 pollProjectors()
 pollWakeOnLANDevices()
+checkForSoftwareUpdate()
 
 
 httpd = ThreadedHTTPServer((ADDR, serverPort), RequestHandler)

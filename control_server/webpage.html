@@ -374,6 +374,7 @@
       var markdownConverter = new showdown.Converter();
       markdownConverter.setFlavor('github');
       var scheduleUpdateTime = 0;
+      var serverSoftwareUpdateAvailable = false;
 
       askForUpdate();
       setInterval(askForUpdate, 5000);

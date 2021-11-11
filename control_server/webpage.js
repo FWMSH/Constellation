@@ -1362,9 +1362,19 @@
 
     // Clear the existing buttons
     $("#errorDisplayRow").empty();
+    var html;
+
+    if (serverSoftwareUpdateAvailable) {
+      html = `
+        <div class="col-auto mt-3">
+          <button class='btn btn-info btn-block'>Server software update available</btn>
+        </div>
+      `;
+      $("#errorDisplayRow").append(html);
+    }
 
     Object.keys(errorDict).forEach((item, i) => {
-      var html = `
+      html = `
         <div class="col-auto mt-3">
           <button class='btn btn-danger btn-block'>${item + " " + errorDict[item]}</btn>
         </div>
@@ -1436,7 +1446,7 @@
 
       if (this.status == 200) {
         if (this.responseText != "") {
-          var update = JSON.parse(this.responseText);
+          let update = JSON.parse(this.responseText);
           var n_comps = 0;
           var n_online = 0;
           for (var i=0; i<update.length; i++) {
@@ -1454,6 +1464,12 @@
                 if ("galleryName" in component) {
                   $("#galleryNameField").html(component.galleryName);
                   document.title = component.galleryName;
+                }
+                if ("updateAvailable" in component) {
+                  if (component.updateAvailable == "true") {
+                    serverSoftwareUpdateAvailable = true;
+                    rebuildErrorList();
+                  }
                 }
               } else if (component.class == "schedule") {
                 if (scheduleUpdateTime != component.updateTime) {
