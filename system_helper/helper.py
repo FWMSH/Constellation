@@ -13,10 +13,11 @@ import signal
 import cgi
 import shutil
 import socket
-import psutil
+import mimetypes
+import urllib
 
 # Non-standard modules
-import mimetypes
+import psutil
 import dateutil.parser
 import requests
 import serial
@@ -296,6 +297,24 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 else:
                     print("Error: unrecognized action:", data["action"])
         #print("do_POST: EXIT")
+
+def checkForSoftwareUpdate():
+
+    """Download the version.txt file from Github and check if there is an update"""
+
+    print("Checking for update... ", end="")
+    try:
+        for line in urllib.request.urlopen("https://raw.githubusercontent.com/FWMSH/Constellation/main/control_server/version.txt"):
+            if float(line.decode('utf-8')) > config.HELPER_SOFTWARE_VERSION:
+                config.helper_software_update_available = True
+                break
+    except urllib.error.HTTPError:
+        print("cannot connect to update server")
+        return
+    if config.helper_software_update_available:
+        print("update available!")
+    else:
+        print("up to date.")
 
 def reboot():
 

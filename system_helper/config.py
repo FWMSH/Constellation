@@ -9,3 +9,5 @@ dictionary_object = None # Optionally-loaded configparser object from dictionary
 missingContentWarningList = [] # Holds a list of warning about missing content
 nextEvent = None # A tuple with the next event to occur and the time is happens
 schedule = [] # List of upcoming actions and their datetimes
+HELPER_SOFTWARE_VERSION = 1.0
+helper_software_update_available = False
