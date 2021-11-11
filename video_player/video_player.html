@@ -75,6 +75,7 @@
     var id = 'UNKNOWN';
     var type = 'UNKNOWN';
     var serverAddress = ""; // The address of the main control server
+    const SOFTWARE_VERSION = 1.0
 
     var activeIndex = 0; // Index of the file from the source list currently showing
     var sourceList = [];
@@ -90,6 +91,7 @@
     var debug = true;
 
     askForDefaults();
+    checkForSoftwareUpdate();
     sendPing();
     setInterval(sendPing, 5000);
     setInterval(checkForHelperUpdates, 100);
