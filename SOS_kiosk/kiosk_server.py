@@ -41,6 +41,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
         if debug:
             print("GET received: ", self.path)
 
+        print(f" Active threads: {threading.active_count()}      ", end="\r", flush=True)
+
         if self.path == "/":
             self.path="/SOS_kiosk.html"
 
@@ -80,6 +82,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         if debug:
             print("POST Received", flush=True)
+
+        print(f" Active threads: {threading.active_count()}      ", end="\r", flush=True)
 
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")

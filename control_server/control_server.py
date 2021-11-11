@@ -1510,7 +1510,7 @@ def checkForSoftwareUpdate():
     print("Checking for update... ", end="")
     try:
         for line in urllib.request.urlopen("https://raw.githubusercontent.com/FWMSH/Constellation/main/control_server/version.txt"):
-            if float(line.decode('utf-8')) > software_update_available:
+            if float(line.decode('utf-8')) > SOFTWARE_VERSION:
                 software_update_available = True
                 break
     except urllib.error.HTTPError:
