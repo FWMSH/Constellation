@@ -135,11 +135,11 @@ class ExhibitComponent:
 
     """Holds basic data about a component in the exhibit"""
 
-    def __init__(self, id, type):
+    def __init__(self, id, this_type):
         global wakeOnLANList
 
         self.id = id
-        self.type = type
+        self.type = this_type
         self.ip = "" # IP address of client
         self.helperPort = 8000 # port of the localhost helper for this component
 
@@ -774,7 +774,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                         output_text += line
 
                             with open(os.path.join(sched_dir, data["from"] + ".ini"), 'w', encoding="UTF-8") as f:
-                                f.write(outputText)
+                                f.write(output_text)
 
                     # Reload the schedule from disk
                     retrieveSchedule()
@@ -834,7 +834,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 else: # it's a ping
                     try:
                         id = data["id"]
-                        type = data["type"]
+                        # type = data["type"]
                         if id == "UNKNOWN":
                             #print(f"Warning: exhibitComponent ping with id=UNKNOWN coming from {self.address_string()}")
                             # print("END POST")

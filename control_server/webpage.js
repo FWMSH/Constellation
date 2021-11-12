@@ -66,7 +66,7 @@
             }
             if ("error_status" in response) {
               thisInstance.state.error_status = response.error_status;
-              let errorList = {}
+              let errorList = {};
               Object.keys(response.error_status).forEach((item, i) => {
                 if ((response.error_status)[item] != "ok") {
                   errorList[item] = (response.error_status)[item];
@@ -393,9 +393,10 @@
         $("#projectorInfoModel").html("-");
       }
 
+      var lamp_html = "";
       if ("lamp_status" in obj.state && obj.state.lamp_status != "") {
         var lampList = obj.state.lamp_status;
-        var lamp_html = "";
+
         for (var i=0; i<lampList.length; i++) {
           lamp = lampList[i];
           var statusStr = "";
@@ -919,11 +920,12 @@
     // be sent to the component the next time it pings the server
 
     var obj = getExhibitComponent(id);
+    var requestDict, xhr;
     if (["shutdown", "restart"].includes(cmd)) {
       // We send these commands directly to the helper
-      var requestDict = {"action": cmd};
+      requestDict = {"action": cmd};
 
-      var xhr = new XMLHttpRequest();
+      xhr = new XMLHttpRequest();
       xhr.timeout = 2000;
       console.log(`http://${obj.ip}:${obj.helperPort}`);
       xhr.open("POST", `http://${obj.ip}:${obj.helperPort}`, true);
@@ -944,12 +946,12 @@
           cmdType = "queueCommand";
       }
 
-      var requestDict = {"class": "webpage",
+      requestDict = {"class": "webpage",
                          "id": id,
                          "command": cmd,
                          "action": cmdType};
 
-      var xhr = new XMLHttpRequest();
+      xhr = new XMLHttpRequest();
       xhr.timeout = 2000;
       xhr.open("POST", serverIP, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
@@ -1134,8 +1136,9 @@
 
     var nextEvent = schedule.nextEvent;
     var html = '';
+    var action;
     if (nextEvent.action.length == 1) {
-      var action = (nextEvent.action)[0];
+      action = (nextEvent.action)[0];
       if (action == "reload_schedule") {
         html = "No more actions today";
       } else if (action == "power_on") {
@@ -1144,7 +1147,7 @@
         html = `Power off at ${nextEvent.time}`;
       }
     } else if (nextEvent.action.length == 2) {
-      var action = nextEvent.action[0];
+      action = nextEvent.action[0];
       var target = nextEvent.action[1];
       if (action == 'set_exhibit') {
         html = `Set exhibit to ${target} at ${nextEvent.time}`;
@@ -1380,7 +1383,7 @@
         if (itemErrorMsg.length > 0) {
           // By default, errors are bad
           let labelName = item + ": " + itemError + ": " + itemErrorMsg;
-          let labelClass = "btn-danger"
+          let labelClass = "btn-danger";
 
           // But, if we are indicating an available update, make that less bad
           if (itemError == "helperSoftwareUpdateAvailable") {
@@ -1517,10 +1520,11 @@
     // Clear the componentGroupsRow and rebuild it
 
     document.getElementById('componentGroupsRow').innerHTML = "";
-    for (var i=0; i<componentGroups.length; i++) {
+    var i;
+    for (i=0; i<componentGroups.length; i++) {
       componentGroups[i].buildHTML();
     }
-    for (var i=0; i<exhibitComponents.length; i++) {
+    for (i=0; i<exhibitComponents.length; i++) {
       exhibitComponents[i].buildHTML();
     }
   }
