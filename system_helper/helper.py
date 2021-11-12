@@ -226,7 +226,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif data["action"] == 'copyFile':
                     if ("file" in data) and ("fromExhibit" in data) and ("toExhibit" in data):
-                        copyFile(data["file"], data["fromExhibit"], data["toExhibit"])
+                        copy_file(data["file"], data["fromExhibit"], data["toExhibit"])
                         response = {"success": True}
                     else:
                         response = {"success": False,
@@ -421,7 +421,7 @@ def delete_file(file, absolute=False):
     print("Deleting file:", file_path)
     os.remove(file_path)
 
-def copyFile(filename, fromExhibit, toExhibit):
+def copy_file(filename, fromExhibit, toExhibit):
 
     """Copy a file from one exhibit to another"""
 
@@ -456,7 +456,7 @@ def getDirectoryContents(path, absolute=False):
         contents = os.listdir(os.path.join(content_path, path))
     return([x for x in contents if x[0] != "."]) # Don't return hidden files
 
-def checkDirectoryStructure():
+def check_directory_structure():
 
     """Make sure the appropriate content directories are present and create them if they are not."""
 
@@ -659,7 +659,7 @@ def read_default_configuration(checkDirectories=True):
 
     # Make sure we have the appropriate file system set up
     if checkDirectories:
-        checkDirectoryStructure()
+        check_directory_structure()
 
     #return(config_object, config_dict)
 
