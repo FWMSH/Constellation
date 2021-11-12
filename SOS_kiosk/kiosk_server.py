@@ -38,13 +38,13 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         # Receive a GET request and respond appropriately
 
-        if debug:
+        if DEBUG:
             print("GET received: ", self.path)
 
         print(f" Active threads: {threading.active_count()}      ", end="\r", flush=True)
 
         if self.path == "/":
-            self.path="/SOS_kiosk.html"
+            self.path = "/SOS_kiosk.html"
 
         # Open the static file requested and send it
         try:
@@ -56,14 +56,14 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(f.read())
         except FileNotFoundError:
             print(f"Error: could not find file {self.path}")
-        if debug:
+        if DEBUG:
             print("GET complete")
 
     def do_OPTIONS(self):
 
         """Respond to OPTIONS requests"""
 
-        if debug:
+        if DEBUG:
             print("DO_OPTIONS")
 
         self.send_response(200, "OK")
@@ -73,14 +73,14 @@ class RequestHandler(SimpleHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Credentials', 'true')
         self.end_headers()
 
-        if debug:
+        if DEBUG:
             print("DO_OPTIONS complete")
 
     def do_POST(self):
 
         """Receives pings from client devices and respond with any updated information"""
 
-        if debug:
+        if DEBUG:
             print("POST Received", flush=True)
 
         print(f" Active threads: {threading.active_count()}      ", end="\r", flush=True)
@@ -107,7 +107,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 data[split2[0]] = split2[1]
 
         if "action" in data:
-            if debug:
+            if DEBUG:
                 print(f'  {data["action"]}')
             if data["action"] == "getDefaults":
                 config_to_send = dict(config.defaults_dict.items())
@@ -118,15 +118,20 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 json_string = json.dumps(config_to_send)
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif data["action"] == "updateDefaults":
-                if debug:
+                if DEBUG:
                     print("    waiting for defaultWriteLock")
                 with defaultWriteLock:
-                    helper.updateDefaults(data)
-                if debug:
+                    helper.update_defaults(data)
+                if DEBUG:
                     print("    defaultWriteLock released")
             elif data["action"] == "deleteFile":
                 if "file" in data:
-                    helper.deleteFile(os.path.join("/", "home", "sos", "sosrc", data["file"]), absolute=True)
+                    helper.delete_file(os.path.join("/",
+                                                    "home",
+                                                    "sos",
+                                                    "sosrc",
+                                                    data["file"]),
+                                       absolute=True)
                     response = {"success": True}
                 else:
                     response = {"success": False,
@@ -134,13 +139,13 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 json_string = json.dumps(response)
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif data["action"] == "SOS_getCurrentClipName":
-                current_clip = sendSOSCommand("get_clip_number")
-                dataset = sendSOSCommand("get_clip_info " + current_clip)
+                current_clip = send_SOS_command("get_clip_number")
+                dataset = send_SOS_command("get_clip_info " + current_clip)
 
                 self.wfile.write(bytes(dataset, encoding="UTF-8"))
             elif data["action"] == "SOS_getClipList":
                 # First, get a list of clips
-                reply = sendSOSCommand("get_clip_info *", multiline=True)
+                reply = send_SOS_command("get_clip_info *", multiline=True)
                 split = reply.split('\r\n')
                 clip_list = []
                 for segment in split:
@@ -153,7 +158,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 for clip in clip_list:
                     if clip != '':
                         temp = {'name': clip, 'clipNumber': counter}
-                        path = sendSOSCommand(f"get_clip_info {counter} clip_filename")
+                        path = send_SOS_command(f"get_clip_info {counter} clip_filename")
                         split = path.split('/')
                         if split[-2] == "playlist":
                             icon_root = '/'.join(split[:-2])
@@ -171,7 +176,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 json_string = json.dumps(clip_dict_list)
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif data["action"] == "SOS_getPlaylistName":
-                reply = sendSOSCommand("get_playlist_name")
+                reply = send_SOS_command("get_playlist_name")
                 playlist = reply.split("/")[-1]
 
                 self.wfile.write(bytes(playlist, encoding="UTF-8"))
@@ -179,7 +184,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 if "name" in data:
                     SOS_open_playlist(data["name"])
             elif data["action"] == "SOS_getState":
-                reply = sendSOSCommand("get_state 0")
+                reply = send_SOS_command("get_state 0")
 
                 # Parse the response (with nested braces) and build a dictionary
                 state_dict = {}
@@ -210,10 +215,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             elif data["action"] == "SOS_gotoClip":
                 if "clipNumber" in data:
-                    sendSOSCommand("play " + data["clipNumber"])
+                    send_SOS_command("play " + data["clipNumber"])
             elif data["action"] == "SOS_moveSphere":
                 if ("dLat" in data) and ("dLon" in data):
-                    tilt = sendSOSCommand("get_tilt")
+                    tilt = send_SOS_command("get_tilt")
                     split = tilt.split(' ')
                     tilt_x = float(split[0])
                     tilt_y = float(split[1])
@@ -221,44 +226,44 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     dLat = float(data["dLat"])
                     dLon = float(data["dLon"])
 
-                    sendSOSCommand(f"set_tilt {tilt_x} {tilt_y + dLat/2} {tilt_z + dLon/2}")
+                    send_SOS_command(f"set_tilt {tilt_x} {tilt_y + dLat/2} {tilt_z + dLon/2}")
             elif data["action"] == "SOS_rotateX":
                 if "increment" in data:
-                    tilt = sendSOSCommand("get_tilt")
+                    tilt = send_SOS_command("get_tilt")
                     split = tilt.split(' ')
                     tilt_x = float(split[0])
                     tilt_y = float(split[1])
                     tilt_z = float(split[2])
                     dX = float(data['increment'])
 
-                    sendSOSCommand(f"set_tilt {tilt_x + dX} {tilt_y} {tilt_z}")
+                    send_SOS_command(f"set_tilt {tilt_x + dX} {tilt_y} {tilt_z}")
             elif data["action"] == "SOS_rotateY":
                 if "increment" in data:
-                    tilt = sendSOSCommand("get_tilt")
+                    tilt = send_SOS_command("get_tilt")
                     split = tilt.split(' ')
                     tilt_x = float(split[0])
                     tilt_y = float(split[1])
                     tilt_z = float(split[2])
                     dY = float(data['increment'])
 
-                    sendSOSCommand(f"set_tilt {tilt_x} {tilt_y + dY} {tilt_z}")
+                    send_SOS_command(f"set_tilt {tilt_x} {tilt_y + dY} {tilt_z}")
             elif data["action"] == "SOS_rotateZ":
                 if "increment" in data:
-                    tilt = sendSOSCommand("get_tilt")
+                    tilt = send_SOS_command("get_tilt")
                     split = tilt.split(' ')
                     tilt_x = float(split[0])
                     tilt_y = float(split[1])
                     tilt_z = float(split[2])
                     dZ = float(data['increment'])
 
-                    sendSOSCommand(f"set_tilt {tilt_x} {tilt_y} {tilt_z + dZ}")
+                    send_SOS_command(f"set_tilt {tilt_x} {tilt_y} {tilt_z + dZ}")
             elif data["action"] == "SOS_startAutorun":
-                sendSOSCommand("set_auto_presentation_mode 1")
+                send_SOS_command("set_auto_presentation_mode 1")
             elif data["action"] == "SOS_stopAutorun":
-                sendSOSCommand("set_auto_presentation_mode 0")
+                send_SOS_command("set_auto_presentation_mode 0")
             elif data["action"] == "SOS_readPlaylist":
                 if "playlistName" in data:
-                    reply = sendSOSCommand(f"playlist_read {data['playlistName']}", multiline=True)
+                    reply = send_SOS_command(f"playlist_read {data['playlistName']}", multiline=True)
 
                     self.wfile.write(bytes(reply, encoding="UTF-8"))
             elif data["action"] == 'getAvailableContent':
@@ -272,33 +277,34 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(bytes(json_string, encoding="UTF-8"))
             else:
                 print(f"Warning: action {data['action']} not recognized!")
-        if debug:
+        if DEBUG:
             print("POST complete")
 
 
-def sendSOSCommand(cmd, multiline=False):
+def send_SOS_command(cmd, multiline=False):
 
     """Send a command to Science on a Sphere adn read its response"""
 
-    if debug:
-        print("    sendSOSCommand:", cmd)
+    if DEBUG:
+        print("    send_SOS_command:", cmd)
 
-    global sosSocket
+    global SOS_SOCKET
 
     try:
         if not multiline:
-            return sosSocket.write_readline(bytes(cmd + '\n', encoding='UTF-8')).decode('UTF-8').strip()
-        sosSocket.write(bytes(cmd + '\n', encoding='UTF-8'))
-        return(sosSocket.read(10000).decode("UTF-8"))
+            return SOS_SOCKET.write_readline(bytes(cmd + '\n', encoding='UTF-8')).decode('UTF-8').strip()
+        SOS_SOCKET.write(bytes(cmd + '\n', encoding='UTF-8'))
+        return(SOS_SOCKET.read(10000).decode("UTF-8"))
     except Exception as e:
         print(e)
-        sosSocket = connectToSOS()
+        SOS_SOCKET = connect_to_SOS()
+    return ""
 
 def sendPing():
 
     """Send a heartbeat message to the control server and process any response"""
 
-    if debug:
+    if DEBUG:
         print("Sending ping")
 
     headers = {'Content-type': 'application/json'}
@@ -324,11 +330,11 @@ def sendPing():
             print("new content detected:", content)
             SOS_open_playlist(content)
 
-    if debug:
+    if DEBUG:
         print("    waiting for defaultWriteLock")
     with defaultWriteLock:
-        helper.updateDefaults(updates)
-    if debug:
+        helper.update_defaults(updates)
+    if DEBUG:
         print("    defaultWriteLock released")
         print("Ping complete")
 
@@ -336,18 +342,18 @@ def send_ping_at_interval():
 
     """Send a ping, then spawn a thread that will call this function again"""
 
-    global pingThread
+    global PING_THREAD
 
     sendPing()
-    pingThread = threading.Timer(5, send_ping_at_interval)
-    pingThread.start()
+    PING_THREAD = threading.Timer(5, send_ping_at_interval)
+    PING_THREAD.start()
 
 def SOS_open_playlist(content):
 
     """Send an SOS command to change to the specified playlist"""
 
-    sendSOSCommand("open_playlist " + content)
-    sendSOSCommand("play 1")
+    send_SOS_command("open_playlist " + content)
+    send_SOS_command("play 1")
 
 def quit_handler(*args):
 
@@ -355,13 +361,13 @@ def quit_handler(*args):
 
     print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
 
-    if pingThread is not None:
-        pingThread.cancel()
-    if sosSocket is not None:
-        sosSocket.write(b'exit\n')
+    if PING_THREAD is not None:
+        PING_THREAD.cancel()
+    if SOS_SOCKET is not None:
+        SOS_SOCKET.write(b'exit\n')
     sys.exit(0)
 
-def connectToSOS():
+def connect_to_SOS():
 
     """Establish a connection with the Science on a Sphere application"""
 
@@ -377,23 +383,23 @@ def connectToSOS():
             print("Connected!")
         except Exception as e:
             print("Error: Connection with Science on a Sphere failed to initialize. Make sure you have specificed sos_ip_address in defaults.ini, both computers are on the same network (or are the same machine), and port 2468 is accessible.")
-            if debug:
+            if DEBUG:
                 print(e)
             socket = None
         return socket
 
 signal.signal(signal.SIGINT, quit_handler)
 
-debug = False
+DEBUG = False
 
 # Threading resources
-pingThread = None
+PING_THREAD = None
 defaultWriteLock = threading.Lock()
 
-helper.readDefaultConfiguration(checkDirectories=False)
-helper.loadDictionary()
+helper.read_default_configuration(checkDirectories=False)
+helper.load_dictionary()
 
-sosSocket = connectToSOS()
+SOS_SOCKET = connect_to_SOS()
 send_ping_at_interval()
 
 httpd = ThreadedHTTPServer(("", int(config.defaults_dict["helper_port"])), RequestHandler)

@@ -13,3 +13,6 @@ content = testfile4.mp4
 [HEADER]
 content = /home/pi/Downloads/header_video.mp4
 
+[WC_VIEW]
+content = 2048.jpg
+

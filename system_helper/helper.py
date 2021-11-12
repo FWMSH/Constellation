@@ -1,5 +1,4 @@
-# This application sets up a small server to communicate with user-facing interfaces
-# and handle interacting with the system (since the browser cannot)
+"""A small server to communicate with user-facing interfaces and handle interacting with the system (since the browser cannot)"""
 
 # Standard modules
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -27,6 +26,8 @@ import config
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
+    """Respond to requests from the client"""
+
     def log_request(self, code='-', size='-'):
 
         # Override to suppress the automatic logging
@@ -44,35 +45,32 @@ class RequestHandler(SimpleHTTPRequestHandler):
         elif self.path.lower().endswith(".html"):
             #print("  Handling HTML file", self.path)
             try:
-                f = open(self.path[1:], "r", encoding='UTF-8')
+                with open(self.path[1:], "r", encoding='UTF-8') as f:
+
+                    page = str(f.read())
+                    # Build the address that the webpage should contact to reach this helper
+                    if self.address_string() == "127.0.0.1":
+                        # Request is coming from this machine too
+                        address_to_insert = \
+                            f"'http://localhost:{config.defaults_dict['helper_port']}'"
+                    else: # Request is coming from the network
+                        address_to_insert = "'http://" \
+                                            + socket.gethostbyname(socket.gethostname()) \
+                                            + config.defaults_dict["helper_port"] \
+                                            + "'"
+                    # Then, insert that into the document
+                    page = page.replace("INSERT_HELPERIP_HERE", address_to_insert)
+
+                    self.send_response(200)
+                    self.send_header("Content-type", "text/html")
+                    self.end_headers()
+                    self.wfile.write(bytes(page, encoding="UTF-8"))
+
+                    #print("do_GET: EXIT")
             except IOError:
                 self.send_error(404, f"File Not Found: {self.path}")
                 print(f"GET for unexpected file {self.path}")
                 #print("do_GET: EXIT")
-                return()
-
-                #logging.error(f"GET for unexpected file {self.path}")
-
-            page = str(f.read())
-            # Build the address that the webpage should contact to reach this helper
-            if self.address_string() == "127.0.0.1": # Request is coming from this machine too
-                address_to_insert = "'http://localhost:" + config.defaults_dict["helper_port"] + "'"
-            else: # Request is coming from the network
-                address_to_insert = "'http://" \
-                                    + socket.gethostbyname(socket.gethostname()) \
-                                    + config.defaults_dict["helper_port"] \
-                                    + "'"
-            # Then, insert that into the document
-            page = page.replace("INSERT_HELPERIP_HERE", address_to_insert)
-
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
-            self.wfile.write(bytes(page, encoding="UTF-8"))
-
-            f.close()
-            #print("do_GET: EXIT")
-            return()
         else:
             # Open the file requested and send it
             mimetype = mimetypes.guess_type(self.path, strict=False)[0]
@@ -91,7 +89,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 #print("do_GET: EXIT")
                 return
             except IOError:
-                self.send_error(404, "File Not Found: %s" % self.path)
+                self.send_error(404, f"File Not Found: {self.path}")
                 #logging.error(f"GET for unexpected file {self.path}")
         #print("do_GET: EXIT")
 
@@ -173,16 +171,17 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     if "command" in data:
                         commandProjector(data["command"])
                 elif data["action"] == "getDefaults":
-                    #configToSend = dict(config.items())
-                    configToSend = config.defaults_dict.copy()
-                    if "allow_restart" not in configToSend:
-                        configToSend["allow_restart"] = "true"
+                    config_to_send = config.defaults_dict.copy()
+                    if "allow_restart" not in config_to_send:
+                        config_to_send["allow_restart"] = "true"
 
                     # Add the current update availability to pass to the control server
-                    configToSend["helperSoftwareUpdateAvailable"] = str(config.helper_software_update_available).lower()
+                    config_to_send["helperSoftwareUpdateAvailable"] = \
+                        str(config.helper_software_update_available).lower()
 
                     # Reformat this content list as an array
-                    configToSend['content'] = [s.strip() for s in configToSend['content'].split(",")]
+                    config_to_send['content'] = \
+                        [s.strip() for s in config_to_send['content'].split(",")]
 
                     if config.dictionary_object is not None:
                         # If there are multiple sections, build a meta-dictionary
@@ -191,18 +190,20 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             for item in config.dictionary_object.items():
                                 name = item[0]
                                 meta_dict[name] = dict(config.dictionary_object.items(name))
-                            configToSend["dictionary"] = meta_dict
+                            config_to_send["dictionary"] = meta_dict
                         else:
-                            configToSend["dictionary"] = dict(config.dictionary_object.items("CURRENT"))
-                    configToSend["availableContent"] = {"all_exhibits": getAllDirectoryContents()}
+                            config_to_send["dictionary"] = \
+                                dict(config.dictionary_object.items("CURRENT"))
+                    config_to_send["availableContent"] = \
+                        {"all_exhibits": getAllDirectoryContents()}
 
                     root = os.path.dirname(os.path.abspath(__file__))
                     content_path = os.path.join(root, "content")
-                    configToSend["contentPath"] = content_path
-                    json_string = json.dumps(configToSend)
+                    config_to_send["contentPath"] = content_path
+                    json_string = json.dumps(config_to_send)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif data["action"] == "updateDefaults":
-                    updateDefaults(data)
+                    update_defaults(data)
                 elif data["action"] == "getAvailableContent":
                     active_content = [s.strip() for s in config.defaults_dict["content"].split(",")]
                     response = {"all_exhibits": getAllDirectoryContents(),
@@ -212,10 +213,11 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     json_string = json.dumps(response)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif data["action"] == "getCurrentExhibit":
-                    self.wfile.write(bytes(config.defaults_dict["current_exhibit"], encoding="UTF-8"))
+                    self.wfile.write(bytes(config.defaults_dict["current_exhibit"],
+                                           encoding="UTF-8"))
                 elif data["action"] == "deleteFile":
                     if "file" in data:
-                        deleteFile(data["file"])
+                        delete_file(data["file"])
                         response = {"success": True}
                     else:
                         response = {"success": False,
@@ -286,7 +288,11 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         lang = "en"
                     if "name" in data:
                         root = os.path.dirname(os.path.abspath(__file__))
-                        label_path = os.path.join(root, "labels", config.defaults_dict["current_exhibit"], lang, data["name"])
+                        label_path = os.path.join(root,
+                                                  "labels",
+                                                  config.defaults_dict["current_exhibit"],
+                                                  lang,
+                                                  data["name"])
                         try:
                             with open(label_path,"r", encoding='UTF-8') as f:
                                 label = f.read()
@@ -301,7 +307,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     print("Error: unrecognized action:", data["action"])
         #print("do_POST: EXIT")
 
-def checkForSoftwareUpdate():
+def check_for_software_update():
 
     """Download the version.txt file from Github and check if there is an update"""
 
@@ -403,7 +409,7 @@ def commandProjector(cmd):
         else:
             print(f"commandProjector: Error: Unknown command: {cmd}")
 
-def deleteFile(file, absolute=False):
+def delete_file(file, absolute=False):
 
     """Delete a file"""
 
@@ -521,7 +527,7 @@ def performManualContentUpdate(content):
     port = config.defaults_dict['server_port']
     requests.post(f"http://{ip_address}:{port}", headers=headers, json=request_dict)
 
-def retrieveSchedule():
+def retrieve_schedule():
 
     """Search the schedules directory for an appropriate schedule"""
 
@@ -557,7 +563,7 @@ def retrieveSchedule():
         if "SCHEDULE" in parser:
             readSchedule(parser["SCHEDULE"])
         else:
-            print("retrieveSchedule: error: no INI section 'SCHEDULE' found!")
+            print("retrieve_schedule: error: no INI section 'SCHEDULE' found!")
     else:
         # Check again tomorrow
         config.schedule = []
@@ -594,7 +600,7 @@ def queueNextScheduledEvent():
 
     """Cycle through the schedule and queue the next event"""
 
-    config.nextEvent = None
+    config.NEXT_EVENT = None
 
     if config.schedule is not None:
         sorted_sched = sorted(config.schedule)
@@ -613,31 +619,33 @@ def queueNextScheduledEvent():
                         # It now exists; remove it from the warning list
                         config.missingContentWarningList = [ x for x in config.missingContentWarningList if x != item]
             if now < event_time:
-                config.nextEvent = event
+                config.NEXT_EVENT = event
                 break
 
 def checkEventSchedule():
 
-    """Check the nextEvent and see if it is time. If so, set the content"""
+    """Check the NEXT_EVENT and see if it is time. If so, set the content"""
 
     content_to_retrun = None
-    if config.nextEvent is not None:
-        event_time, content = config.nextEvent
+    if config.NEXT_EVENT is not None:
+        event_time, content = config.NEXT_EVENT
         #print("Checking for scheduled event:", content)
         #print(f"Now: {datetime.now().time()}, Event time: {time}, Time for event: {datetime.now().time() > time}")
         if datetime.datetime.now().time() > event_time: # It is time for this event!
             print("Scheduled event occurred:", event_time, content)
             if content == "reload_schedule":
-                retrieveSchedule()
+                retrieve_schedule()
             else:
                 performManualContentUpdate(content)
                 content_to_retrun = content
-            config.nextEvent = None
+            config.NEXT_EVENT = None
 
     queueNextScheduledEvent()
     return content_to_retrun
 
-def readDefaultConfiguration(checkDirectories=True):
+def read_default_configuration(checkDirectories=True):
+
+    """Load configuration parameters from defaults.ini"""
 
     # Read defaults.ini
     config.defaults_object = configparser.ConfigParser(delimiters=("="))
@@ -655,7 +663,7 @@ def readDefaultConfiguration(checkDirectories=True):
 
     #return(config_object, config_dict)
 
-def updateDefaults(data):
+def update_defaults(data):
 
     """Take a dictionary 'data' and write relevant parameters to disk if they have changed."""
 
@@ -694,7 +702,7 @@ def quit_handler(sig, frame):
     print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
     sys.exit(0)
 
-def loadDictionary():
+def load_dictionary():
 
     """Look for a file called dictionary.ini and load it if it exists"""
 
@@ -707,19 +715,19 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, quit_handler)
 
-    schedule = None # Will be filled in during readDefaultConfiguration() if needed
-    nextEvent = None
-    missingContentWarningList = [] # Will hold one entry for every piece of content that is scheduled but not available
-    readDefaultConfiguration()
+    # schedule = None # Will be filled in during read_default_configuration() if needed
+    # NEXT_EVENT = None
+    # missingContentWarningList = [] # Will hold one entry for every piece of content that is scheduled but not available
+    read_default_configuration()
 
     # If it exists, load the dictionary that maps one value into another
-    loadDictionary()
+    load_dictionary()
 
     # Look for an availble schedule and load it
-    retrieveSchedule()
+    retrieve_schedule()
 
     # Check the Github server for an available software update
-    checkForSoftwareUpdate()
+    check_for_software_update()
 
     print(f'Launching server on port {config.defaults_dict["helper_port"]} to serve {config.defaults_dict["id"]}.')
 
