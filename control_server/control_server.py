@@ -20,12 +20,12 @@ import traceback
 import threading
 import _thread
 import pickle
-import dateutil.parser
 import urllib.request
 
 # Non-standard modules
 import wakeonlan
 import icmplib
+import dateutil.parser
 
 # Constellation modules
 import projector_control
@@ -134,6 +134,7 @@ class ExhibitComponent:
     """Holds basic data about a component in the exhibit"""
 
     def __init__(self, id, this_type):
+
         global wakeOnLANList
 
         self.id = id
@@ -218,7 +219,7 @@ class ExhibitComponent:
 
     def update_configuration(self):
 
-        # Retreive the latest configuration data from the configParser object
+        """Retreive the latest configuration data from the configParser object"""
         try:
             file_config = dict(currentExhibitConfiguration.items(self.id))
             for key in file_config:
