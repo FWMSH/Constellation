@@ -4,7 +4,7 @@ function checkForSoftwareUpdate() {
 
   var xhr = new XMLHttpRequest();
   xhr.timeout = 2000;
-  xhr.open('GET', 'https://raw.githubusercontent.com/FWMSH/Constellation/main/video_player/version.txt', true);
+  xhr.open('GET', 'https://raw.githubusercontent.com/FWMSH/Constellation/main/media_player/version.txt', true);
   xhr.onreadystatechange = function () {
 
     if (this.readyState != 4) return;
