@@ -313,7 +313,7 @@ def check_for_software_update():
 
     print("Checking for update... ", end="")
     try:
-        for line in urllib.request.urlopen("https://raw.githubusercontent.com/FWMSH/Constellation/main/system_helper/version.txt"):
+        for line in urllib.request.urlopen("https://raw.githubusercontent.com/FWMSH/Constellation/main/system_helper/version.txt", timeout=1):
             if float(line.decode('utf-8')) > config.HELPER_SOFTWARE_VERSION:
                 config.helper_software_update_available = True
                 break
