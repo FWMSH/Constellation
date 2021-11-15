@@ -320,6 +320,9 @@ def check_for_software_update():
     except urllib.error.HTTPError:
         print("cannot connect to update server")
         return
+    except urllib.error.URLError:
+        print("network connection unavailable")
+        return
     if config.helper_software_update_available:
         print("update available!")
     else:
