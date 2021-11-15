@@ -157,11 +157,17 @@ function askForDefaults() {
     "action": "getDefaults"
   };
   let requestString = JSON.stringify(requestDict);
-  // requestString = `action=getDefaults`;
+
+  let checkAgain = function() {
+    console.log("Could not get defaults... checking again");
+    setTimeout(askForDefaults, 500);
+  };
 
   let xhr = new XMLHttpRequest();
   xhr.open("POST", helperAddress, true);
   xhr.timeout = 2000;
+  xhr.ontimeout = checkAgain;
+  xhr.onerror = checkAgain;
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.onreadystatechange = function () {
 
