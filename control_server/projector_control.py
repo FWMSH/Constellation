@@ -1,14 +1,24 @@
-import serial
-import pypjlink
+"""Communicate with projectos using PJLink or serial commands"""
+
+# Standard imports
 import platform
 
-def serial_connect_with_url(ip, baudrate=9600, make=None, port=None, protocol='socket', timeout=4):
+# Non-standard imports
+import serial
+import pypjlink
 
-    # Function to establish a serial connection over TCP/IP
+def serial_connect_with_url(ip,
+                            baudrate=9600,
+                            make=None,
+                            port=None,
+                            protocol='socket',
+                            timeout=4):
+
+    """Establish a serial connection over TCP/IP"""
 
     if (port is None) and (make is None):
         raise Exception("Must specifiy either a port or a make")
-    elif port is None:
+    if port is None:
 
         port_dict = {"barco": 1025,
                      "christie": 3002,
@@ -17,10 +27,13 @@ def serial_connect_with_url(ip, baudrate=9600, make=None, port=None, protocol='s
         if make.lower() in port_dict:
             port = port_dict[make.lower()]
 
-    connection = serial.serial_for_url(protocol + "://" + ip + ":" + str(port),
-                                baudrate=baudrate,
-                                timeout=timeout)
-    return(connection)
+    try:
+        connection = serial.serial_for_url(protocol + "://" + ip + ":" + str(port),
+                                    baudrate=baudrate,
+                                    timeout=timeout)
+        return connection
+    except serial.serialutil.SerialException:
+        return None
 
 
 def serial_connect(baudrate=9600,
@@ -30,7 +43,7 @@ def serial_connect(baudrate=9600,
                    stopbits=serial.STOPBITS_ONE,
                    timeout=2):
 
-    # Connect to a serial device connected to the machine
+    """Connect to a serial device connected to the machine"""
 
     if port is None:
         # Assume we're using the default USB port for our platform
@@ -45,14 +58,21 @@ def serial_connect(baudrate=9600,
         else:
             raise Exception(f"Platform {system} is unknown: you must specify port=")
 
-    connection = serial.Serial(port, baudrate, timeout=timeout, parity=parity, stopbits=stopbits, bytesize=bytesize)
-    return(connection)
+    try:
+        connection = serial.Serial(port,
+                                   baudrate,
+                                   timeout=timeout,
+                                   parity=parity,
+                                   stopbits=stopbits,
+                                   bytesize=bytesize)
+        return connection
+    except serial.serialutil.SerialException:
+        return None
 
 
 def serial_send_command(connection, command, char_to_read=None, debug=False, make=None):
 
-    # Function to send a command to a projector, wait for a response and
-    # return that response
+    """Send a command to a projector, wait for a response and return that response"""
 
     command_dict = {
         "error_status": {
@@ -156,21 +176,25 @@ def serial_send_command(connection, command, char_to_read=None, debug=False, mak
         raise Exception("You must specify a projector make to use a command alias")
 
     command_to_send = None
-    if debug: print(command)
+    if debug:
+        print(command)
     if command.lower() in command_dict:
-        if debug: print("Command in command_dict")
+        if debug:
+            print("Command in command_dict")
         # First look up the command alias
         cmd_alias = command_dict[command.lower()]
         # Then, find the make-specific command
         if make.lower() in cmd_alias:
-            if debug: print(f"Make {make} in cmd_alias")
+            if debug:
+                print(f"Make {make} in cmd_alias")
             command_to_send = cmd_alias[make.lower()]
-            if debug: print(f"command_to_send: {command_to_send}")
+            if debug:
+                print(f"command_to_send: {command_to_send}")
             # If this command is a function, call it instead of continuing
             if callable(command_to_send):
                 connection.reset_input_buffer()
                 response = command_to_send(connection)
-                return(response)
+                return response
     else:
         # We've been given a custom command
         command_to_send = command
@@ -195,15 +219,15 @@ def serial_send_command(connection, command, char_to_read=None, debug=False, mak
     else:
         if debug:
             print(f"Command alias {command} not found for make {make}")
-        return("")
+        return ""
 
-    return(response)
+    return response
 
 
 def serial_barco_lamp_status(connection):
 
-    # Function to build the lamp status list for a Barco projector
-    # This list has format [(lamp1_hours, lamp1_on), (lamp2_hours, lamp2_on)]
+    """Build the lamp status list for a Barco projector
+    This list has format [(lamp1_hours, lamp1_on), (lamp2_hours, lamp2_on)]"""
 
     connection.reset_input_buffer()
 
@@ -232,12 +256,12 @@ def serial_barco_lamp_status(connection):
     if l2_state != '5':
         lamp_status.append((l2_hours, lamp_status_codes[l2_state]))
 
-    return(lamp_status)
+    return lamp_status
 
 
 def serial_barco_get_source(connection):
 
-    # Iterate through the Barco inputs to find the one that is active
+    """Iterate through the Barco inputs to find the one that is active"""
 
     connection.reset_input_buffer()
 
@@ -246,22 +270,21 @@ def serial_barco_get_source(connection):
                 ("IDHH", "Dual Head HDMI"),("IDHX", "Dual Head XP2"), ("IXP2", "XP2"),
                 ("IYPP", "Component")]
 
-    for input in inputs:
-        code, name = input
-        #print(":"+code+"?\r")
-        response = serial_send_command(connection, ":"+code+"?\r")
+    for this_input in inputs:
+        code, name = this_input
+        response = serial_send_command(connection, ":" + code + "?\r")
         if len(response) > 0:
             num = response[-1]
             if num != "0":
-                return(name + " " + num)
+                return name + " " + num
 
-    return("")
+    return ""
 
 
 def serial_christie_lamp_status(connection):
 
-    # Function to build the lamp status list for a Christie projector
-    # This list has format [(lamp1_hours, lamp1_on), (lamp2_hours, lamp2_on)]
+    """Build the lamp status list for a Christie projector
+    This list has format [(lamp1_hours, lamp1_on), (lamp2_hours, lamp2_on)]"""
 
     connection.reset_input_buffer()
 
@@ -273,87 +296,88 @@ def serial_christie_lamp_status(connection):
     except Exception as e:
         print(e)
         l1_hours = -1
-    return([(l1_hours, None)])
+    return [(l1_hours, None)]
 
 
 def serial_christie_power_state(connection):
 
-    # Function to poll a Christie projector for its power state and parse the
-    # response
+    """Ask a Christie projector for its power state and parse the response"""
 
     connection.reset_input_buffer()
 
     response = serial_send_command(connection, "(PWR?)", char_to_read=21)
+    result = None
     if len(response) > 0:
         if "PWR!001" in response:
-            return("on")
-        elif "PWR!000" in response:
-            return("off")
-        elif "PWR!010" in response:
-            return("powering_off")
-        elif "PWR!011" in response:
-            return("powering_on")
+            result = "on"
+        if "PWR!000" in response:
+            result = "off"
+        if "PWR!010" in response:
+            result = "powering_off"
+        if "PWR!011" in response:
+            result = "powering_on"
+    return result
 
 
 def serial_christie_shutter_state(connection):
 
-    # Function to poll a Christie projector for the status of its shutter
+    """Ask a Christie projector for the status of its shutter"""
 
     connection.reset_input_buffer()
 
     response = serial_send_command(connection, "(SHU?)", char_to_read=21)
-
+    result = "unknown"
     if "SHU!000" in response:
-        return("open")
-    elif "SHU!001" in response:
-        return("closed")
-    else:
-        return("unknown")
+        result = "open"
+    if "SHU!001" in response:
+        result = "closed"
+    return result
 
 
 def serial_christie_video_mute_state(connection):
 
-    # Function to poll a Christie projector for the status of its video mute
+    """Ask a Christie projector for the status of its video mute"""
 
     connection.reset_input_buffer()
 
     response = serial_send_command(connection, "(PMT?)", char_to_read=21)
-
+    result = "unknown"
     if "PMT!000" in response:
-        return("unmuted")
-    elif "PMT!001" in response:
-        return("muted")
-    else:
-        return("unknown")
+        result = "unmuted"
+    if "PMT!001" in response:
+        result = "muted"
+    return result
 
 
 def pjlink_connect(ip, password=None, timeout=2):
 
-    # Function to connect to a PJLink projector using pypjlink
+    """Connect to a PJLink projector using pypjlink"""
 
     projector = pypjlink.Projector.from_address(ip, timeout=timeout)
     projector.authenticate(password=password)
 
-    return(projector)
+    return projector
 
 
 def pjlink_send_command(connection, command):
 
-    # Function to send a command using the PJLink protocol
+    """Send a command using the PJLink protocol"""
 
+    result = None
     if command == "error_status":
-        return(connection.get_errors())
+        result = connection.get_errors()
     elif command == "get_model":
-        return(connection.get_manufacturer() + " " + connection.get_product_name())
+        result = connection.get_manufacturer() + " " + connection.get_product_name()
     elif command == "lamp_status":
-        return(connection.get_lamps())
+        result = connection.get_lamps()
     elif command == "power_off":
         connection.set_power("off")
-        return("off")
+        result = "off"
     elif command == "power_on":
         connection.set_power("on")
-        return("on")
+        result = "on"
     elif command == "power_state":
-        return(connection.get_power())
+        result = connection.get_power()
     else:
         print(f"Command alias {command} not found for PJLink")
+    return result
