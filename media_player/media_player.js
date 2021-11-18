@@ -184,12 +184,12 @@ function readUpdate(responseText) {
   if ("missingContentWarnings" in update) {
     errorDict.missingContentWarnings = update.missingContentWarnings;
   }
-  if ("allow_audio" in update) {
+  if ("autoplay_audio" in update) {
     // If desired, unmute the video
     // Note that the file will need to be whitelisted by the browser; otherwise,
     // it will not autoplay
 
-    if (update.allow_audio.toLowerCase() === "true") {
+    if (update.autoplay_audio.toLowerCase() === "true") {
       document.getElementById("fullscreenVideo").muted = false;
     } else {
       document.getElementById("fullscreenVideo").muted = true;
@@ -213,8 +213,6 @@ function readUpdate(responseText) {
     if (update.helperSoftwareUpdateAvailable == "true")
     errorDict.helperSoftwareUpdateAvailable = "true";
   }
-
-
 
   // This should be last to make sure the path has been updated
   if ("content" in update) {
@@ -245,6 +243,10 @@ function seekVideoByFraction(direction, fraction) {
     timeToGoTo -= video.duration;
   }
   video.currentTime = timeToGoTo;
+}
+
+function unmute() {
+  document.getElementById("fullscreenVideo").muted = false;
 }
 
 function updateClipList(list) {

@@ -2594,3 +2594,5 @@ ERROR, 2021-11-18 14:14:57, GET for unexpected file /js/popper.min.js.map
 INFO, 2021-11-18 14:16:22, Server shutdown
 INFO, 2021-11-18 14:16:32, Server started
 INFO, 2021-11-18 14:16:33, Server shutdown
+INFO, 2021-11-18 15:17:40, Server started
+ERROR, 2021-11-18 15:18:19, GET for unexpected file /js/popper.min.js.map

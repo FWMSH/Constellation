@@ -984,7 +984,6 @@ def update_synchronization_list(this_id, other_ids):
         ((synchronizationList[match_index])["checked_in"])[index] = True
         if all((synchronizationList[match_index])["checked_in"]):
             print("All components have checked in. Dispatching sync command")
-            # time_to_start = (datetime.datetime.now() + datetime.timedelta(seconds=10)).strftime("%m/%d/%Y %H:%M:%S.%f")
             time_to_start = str(round(time.time()*1000) + 10000)
             for item in (synchronizationList[match_index])["ids"]:
                 get_exhibit_Component(item).queue_command(f"beginSynchronization_{time_to_start}")

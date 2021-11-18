@@ -87,9 +87,11 @@
     var autoplayEnabled = true;
     var image_duration = 30000; // milliseconds; the amount of time an image will be displayed before going to the next one
     var allowedActionsDict = {"refresh": "true"};
+    var allowAudio = false;
 
     var errorDict = {};
     var debug = true;
+    document.addEventListener("click", unmute);
 
     askForDefaults();
     checkForSoftwareUpdate();

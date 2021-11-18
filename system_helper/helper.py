@@ -47,7 +47,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
         '''Like shutil.copyfileobj, but only copy a range of the streams.
         Both start and stop are inclusive.
         '''
-        if start is not None: infile.seek(start)
+        if start is not None:
+            infile.seek(start)
         while 1:
             to_read = min(bufsize, stop + 1 - infile.tell() if stop else bufsize)
             buf = infile.read(to_read)
@@ -65,21 +66,23 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         m = BYTE_RANGE_RE.match(byte_range)
         if not m:
-            raise ValueError('Invalid byte range %s' % byte_range)
+            raise ValueError(f'Invalid byte range {byte_range}')
 
         first, last = [x and int(x) for x in m.groups()]
         if last and last < first:
-            raise ValueError('Invalid byte range %s' % byte_range)
+            raise ValueError(f'Invalid byte range {byte_range}')
         return first, last
 
     def handle_range_request(self, f):
 
-        # We need to handle an HTTP range request
-        # https://github.com/danvk/RangeHTTPServer
+        """Handle a GET request using a byte range.
+
+        Inspired by https://github.com/danvk/RangeHTTPServer
+        """
 
         try:
             self.range = self.parse_byte_range(self.headers['Range'])
-        except ValueError as e:
+        except ValueError:
             self.send_error(400, 'Invalid byte range')
             return
         first, last = self.range
@@ -112,7 +115,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
         """Receive a GET request and respond with a console webpage"""
         #print("do_GET: ENTER")
         self.path = self.path.replace("%20", " ")
-        print("GET", self.path)
         #print("  ", self.path)
 
         print(f" Active threads: {threading.active_count()}       ", end="\r", flush=True)
@@ -747,8 +749,8 @@ def read_default_configuration(checkDirectories=True):
     default = config.defaults_object["CURRENT"]
     config.defaults_dict = dict(default.items())
 
-    if "allow_audio" in config.defaults_dict \
-             and strToBool(config.defaults_dict["allow_audio"]) is True:
+    if "autoplay_audio" in config.defaults_dict \
+             and strToBool(config.defaults_dict["autoplay_audio"]) is True:
         print("Warning: You have enabled audio. Make sure the file is whitelisted in the browser or media will not play.")
 
     # Make sure we have the appropriate file system set up
