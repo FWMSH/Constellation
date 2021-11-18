@@ -85,7 +85,8 @@ function synchronize(timeToPlay) {
 
   // Function to set a timeout to begin playing the synchronized video
 
-  setTimeout(function(){console.log("Play"); changeMedia("", false, true);}, Date.parse(timeToPlay) - Date.now());
+  console.log("Playing video at:", timeToPlay);
+  setTimeout(function(){console.log("Actual time:" , Date.now()); changeMedia("", false, true);}, parseInt(timeToPlay) - Date.now());
 }
 
 function askToSynchronize(other_ids) {
@@ -130,7 +131,9 @@ function readUpdate(responseText) {
       } else if (cmd == "wakeDisplays") {
           wakeDisplays();
       } else if (cmd == "refresh_page") {
+        if ("refresh" in allowedActionsDict && allowedActionsDict.refresh == "true") {
           location.reload();
+        }
       } else if (cmd == "reloadDefaults"){
           askForDefaults();
       } else if (cmd.startsWith("beginSynchronization")){
@@ -174,8 +177,8 @@ function readUpdate(responseText) {
   if ("current_exhibit" in update) {
     currentExhibit = update.current_exhibit;
   }
-  if ("synchornize_with" in update) {
-    askToSynchronize(update.synchornize_with);
+  if ("synchronize_with" in update) {
+    askToSynchronize(update.synchronize_with);
     waitingForSynchronization = true;
   }
   if ("missingContentWarnings" in update) {

@@ -251,6 +251,10 @@
         onCmdName = "Wake all displays";
         offCmdName = "Sleep all displays";
       }
+      let displayRefresh = "block";
+      if (["PROJECTOR", "WAKE_ON_LAN"].includes(this.type) == true) {
+        displayRefresh = 'none'
+      }
 
       // Allow groups with lots of components to display with double width
       var classString;
@@ -268,6 +272,7 @@
               <span class="sr-only">Toggle Dropdown</span>
             </button>
             <div class="dropdown-menu">
+              <a class="dropdown-item handCursor" style="display:${displayRefresh};" onclick="sendGroupCommand('${this.type}', 'refresh_page')">Refresh all components</a>
               <a class="dropdown-item handCursor" onclick="sendGroupCommand('${this.type}', 'wakeDisplay')">${onCmdName}</a>
               <a class="dropdown-item handCursor" onclick="sendGroupCommand('${this.type}', 'sleepDisplay')">${offCmdName}</a>
             </div>
