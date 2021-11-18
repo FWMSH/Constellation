@@ -2523,3 +2523,62 @@ ERROR, 2021-11-15 09:51:56, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-11-15 09:52:00, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-11-15 09:52:48, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-11-15 09:54:15, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-18 09:11:41, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-11-18 09:13:13, Server shutdown
+INFO, 2021-11-18 09:13:15, Server started
+WARNING, 2021-11-18 09:15:04, there is no configuration available for component with id=IPAD_TEST
+ERROR, 2021-11-18 09:25:29, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-18 09:29:34, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-18 09:30:52, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-11-18 09:31:02, Server shutdown
+INFO, 2021-11-18 09:31:08, Server started
+ERROR, 2021-11-18 09:31:20, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-18 09:31:23, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-11-18 09:31:32, there is no configuration available for component with id=IPAD_TEST
+INFO, 2021-11-18 09:31:50, Server shutdown
+INFO, 2021-11-18 09:31:51, Server started
+WARNING, 2021-11-18 09:32:02, there is no configuration available for component with id=IPAD_TEST
+ERROR, 2021-11-18 09:32:12, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-18 09:32:14, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-18 09:32:15, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-11-18 09:32:17, Server shutdown
+INFO, 2021-11-18 09:32:20, Server started
+ERROR, 2021-11-18 09:32:32, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-11-18 09:32:39, there is no configuration available for component with id=IPAD_TEST
+ERROR, 2021-11-18 09:35:00, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-11-18 09:35:06, Server shutdown
+INFO, 2021-11-18 09:35:09, Server started
+ERROR, 2021-11-18 09:35:41, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-11-18 09:36:00, there is no configuration available for component with id=IPAD_TEST
+ERROR, 2021-11-18 09:38:10, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-18 09:53:46, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-11-18 09:54:21, there is no configuration available for component with id=W1_KIOSK
+INFO, 2021-11-18 09:55:05, Server shutdown
+INFO, 2021-11-18 09:55:08, Server started
+WARNING, 2021-11-18 09:55:21, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-11-18 09:55:47, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-11-18 09:55:50, there is no configuration available for component with id=IPAD_TEST
+ERROR, 2021-11-18 09:55:50, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-18 09:55:59, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-11-18 09:56:03, Server shutdown
+INFO, 2021-11-18 09:56:05, Server started
+WARNING, 2021-11-18 09:56:10, there is no configuration available for component with id=IPAD_TEST
+ERROR, 2021-11-18 09:56:15, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-11-18 09:56:27, there is no configuration available for component with id=W1_KIOSK
+ERROR, 2021-11-18 10:00:19, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-18 10:02:07, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-11-18 10:02:24, Server shutdown
+INFO, 2021-11-18 10:02:28, Server started
+ERROR, 2021-11-18 10:02:37, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-18 10:02:38, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-18 10:02:39, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-18 10:06:15, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-11-18 10:06:20, Server shutdown
+INFO, 2021-11-18 10:06:22, Server started
+ERROR, 2021-11-18 10:06:47, GET for unexpected file /js/popper.min.js.map
+WARNING, 2021-11-18 10:11:36, there is no configuration available for component with id=UNKNWON
+INFO, 2021-11-18 10:17:38, Server shutdown
+INFO, 2021-11-18 10:22:01, Server started
+INFO, 2021-11-18 10:22:07, Server shutdown
+INFO, 2021-11-18 10:22:09, Server started
+INFO, 2021-11-18 10:34:24, Server shutdown

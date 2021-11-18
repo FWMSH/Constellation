@@ -2,6 +2,8 @@
 
 # Standard modules
 from http.server import HTTPServer, SimpleHTTPRequestHandler
+from socketserver import ThreadingMixIn
+import threading
 import time
 import datetime
 import configparser
@@ -14,6 +16,7 @@ import shutil
 import socket
 import mimetypes
 import urllib
+import re
 
 # Non-standard modules
 import psutil
@@ -23,6 +26,12 @@ import serial
 
 # Constellation modules
 import config
+
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+
+    """Stub which triggers dispatch of requests into individual threads."""
+
+    daemon_threads = True
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
@@ -34,16 +43,84 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         pass
 
+    def copy_byte_range(self, infile, start=None, stop=None, bufsize=16*1024):
+        '''Like shutil.copyfileobj, but only copy a range of the streams.
+        Both start and stop are inclusive.
+        '''
+        if start is not None: infile.seek(start)
+        while 1:
+            to_read = min(bufsize, stop + 1 - infile.tell() if stop else bufsize)
+            buf = infile.read(to_read)
+            if not buf:
+                break
+            self.wfile.write(buf)
+
+    def parse_byte_range(self, byte_range):
+        '''Returns the two numbers in 'bytes=123-456' or throws ValueError.
+        The last number or both numbers may be None.
+        '''
+        BYTE_RANGE_RE = re.compile(r'bytes=(\d+)-(\d+)?$')
+        if byte_range.strip() == '':
+            return None, None
+
+        m = BYTE_RANGE_RE.match(byte_range)
+        if not m:
+            raise ValueError('Invalid byte range %s' % byte_range)
+
+        first, last = [x and int(x) for x in m.groups()]
+        if last and last < first:
+            raise ValueError('Invalid byte range %s' % byte_range)
+        return first, last
+
+    def handle_range_request(self, f):
+
+        # We need to handle an HTTP range request
+        # https://github.com/danvk/RangeHTTPServer
+
+        try:
+            self.range = self.parse_byte_range(self.headers['Range'])
+        except ValueError as e:
+            self.send_error(400, 'Invalid byte range')
+            return
+        first, last = self.range
+
+        fs = os.fstat(f.fileno())
+        file_len = fs[6]
+        if first >= file_len:
+            self.send_error(416, 'Requested Range Not Satisfiable')
+            return None
+
+        ctype = self.guess_type(self.translate_path(self.path))
+        self.send_response(206)
+        self.send_header('Content-type', ctype)
+        self.send_header('Accept-Ranges', 'bytes')
+
+        if last is None or last >= file_len:
+            last = file_len - 1
+        response_length = last - first + 1
+
+        self.send_header('Content-Range',
+                         'bytes %s-%s/%s' % (first, last, file_len))
+        self.send_header('Content-Length', str(response_length))
+        self.send_header('Last-Modified', self.date_time_string(fs.st_mtime))
+        self.end_headers()
+        self.copy_byte_range(f)
+
+
     def do_GET(self):
 
         """Receive a GET request and respond with a console webpage"""
         #print("do_GET: ENTER")
+        self.path = self.path.replace("%20", " ")
+        print("GET", self.path)
         #print("  ", self.path)
 
+        print(f" Active threads: {threading.active_count()}       ", end="\r", flush=True)
         if self.path == "/":
             pass
         elif self.path.lower().endswith(".html"):
             #print("  Handling HTML file", self.path)
+            config.HELPING_REMOTE_CLIENT = True
             try:
                 with open(self.path[1:], "r", encoding='UTF-8') as f:
 
@@ -79,11 +156,14 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 #print(f"  Opening file {self.path}")
                 with open(self.path[1:], 'rb') as f:
                     #print(f"    File opened")
-                    self.send_response(200)
-                    self.send_header('Content-type', mimetype)
-                    self.end_headers()
-                    #print(f"    Writing data to client")
-                    self.wfile.write(f.read())
+                    if "Range" in self.headers:
+                        self.handle_range_request(f)
+                    else:
+                        self.send_response(200)
+                        self.send_header('Content-type', mimetype)
+                        self.end_headers()
+                        #print(f"    Writing data to client")
+                        self.wfile.write(f.read())
                     #print(f"    Write complete")
                 #print(f"  File closed")
                 #print("do_GET: EXIT")
@@ -107,7 +187,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         """Receives pings from client devices and respond with any updated information"""
 
+        print(f" Active threads: {threading.active_count()}       ", end="\r", flush=True)
+
         # print("do_POST: ENTER")
+        # print(f"POST from: {self.client_address[0]}")
 
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -131,8 +214,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 content_path = os.path.join(root, "content")
                 filepath = os.path.join(content_path, fields.get("filename")[0])
                 print(f"Saving uploaded file to {filepath}")
-                with open(filepath, "wb") as f:
-                    f.write(file)
+                with config.content_file_lock:
+                    with open(filepath, "wb") as f:
+                        f.write(file)
 
                 json_string = json.dumps({"success": True})
             except:
@@ -197,8 +281,13 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     config_to_send["availableContent"] = \
                         {"all_exhibits": getAllDirectoryContents()}
 
-                    root = os.path.dirname(os.path.abspath(__file__))
-                    content_path = os.path.join(root, "content")
+                    if config.HELPING_REMOTE_CLIENT:
+                        # Files will be dispatched by the server
+                        content_path = "content"
+                    else:
+                        # Files will be loaded directly by the client
+                        root = os.path.dirname(os.path.abspath(__file__))
+                        content_path = os.path.join(root, "content")
                     config_to_send["contentPath"] = content_path
                     json_string = json.dumps(config_to_send)
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
@@ -422,7 +511,8 @@ def delete_file(file, absolute=False):
         root = os.path.dirname(os.path.abspath(__file__))
         file_path = os.path.join(root, "content", file)
     print("Deleting file:", file_path)
-    os.remove(file_path)
+    with config.content_file_lock:
+        os.remove(file_path)
 
 def copy_file(filename, fromExhibit, toExhibit):
 
@@ -432,7 +522,8 @@ def copy_file(filename, fromExhibit, toExhibit):
     file_path_from = os.path.join(root, "content", fromExhibit, filename)
     file_path_to = os.path.join(root, "content", toExhibit, filename)
     print("Copying file", file_path_from, "to", file_path_to)
-    shutil.copyfile(file_path_from, file_path_to)
+    with config.content_file_lock:
+        shutil.copyfile(file_path_from, file_path_to)
 
 def getAllDirectoryContents():
 
@@ -696,14 +787,17 @@ def update_defaults(data):
 
     # Update file
     if update_made:
-        with open('defaults.ini', 'w', encoding='UTF-8') as f:
-            config.defaults_object.write(f)
+        with config.defaults_file_lock:
+            with open('defaults.ini', 'w', encoding='UTF-8') as f:
+                config.defaults_object.write(f)
 
 def quit_handler(sig, frame):
 
     """Called when a user presses ctrl-c to shutdown gracefully"""
     print('\nKeyboard interrupt detected. Cleaning up and shutting down...')
-    sys.exit(0)
+    with config.defaults_file_lock:
+        with config.content_file_lock:
+            sys.exit(0)
 
 def load_dictionary():
 
@@ -734,5 +828,5 @@ if __name__ == "__main__":
 
     print(f'Launching server on port {config.defaults_dict["helper_port"]} to serve {config.defaults_dict["id"]}.')
 
-    httpd = HTTPServer(("", int(config.defaults_dict["helper_port"])), RequestHandler)
+    httpd = ThreadedHTTPServer(("", int(config.defaults_dict["helper_port"])), RequestHandler)
     httpd.serve_forever()

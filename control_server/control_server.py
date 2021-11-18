@@ -140,7 +140,8 @@ class ExhibitComponent:
         self.id = id
         self.type = this_type
         self.ip = "" # IP address of client
-        self.helperPort = 8000 # port of the localhost helper for this component
+        self.helperPort = 8000 # port of the localhost helper for this component DEPRECIATED
+        self.helperAddress = None # full IP and port of helper
 
         self.macAddress = None # Added below if we have specified a Wake on LAN device
         self.broadcastAddress = "255.255.255.255"
@@ -392,6 +393,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
             temp["status"] = item.current_status()
             temp["ip_address"] = item.ip
             temp["helperPort"] = item.helperPort
+            temp["helperAddress"] = item.helperAddress
             componentDictList.append(temp)
 
         for item in projectorList:
@@ -1397,6 +1399,8 @@ def update_exhibit_component_status(data, ip):
     component.ip = ip
     if "helperPort" in data:
         component.helperPort = data["helperPort"]
+    if "helperAddress" in data:
+        component.helperAddress = data["helperAddress"]
     component.update_last_contact_datetime()
     if "currentInteraction" in data:
         if data["currentInteraction"].lower() == "true":

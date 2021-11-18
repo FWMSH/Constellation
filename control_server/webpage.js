@@ -8,6 +8,7 @@
       this.content = null;
       this.ip = ""; // Default; will be replaced when component pings in
       this.helperPort = 8000; // Default; will be replaced when component pings in
+      this.helperAddress = null; // Full address to the helper
       this.state = {};
       this.status = "OFFLINE";
       this.allowed_actions = [];
@@ -452,7 +453,11 @@
       var requestString = JSON.stringify({"action": "getAvailableContent"});
 
       var xhr = new XMLHttpRequest();
-      xhr.open("POST", `http://${obj.ip}:${obj.helperPort}`, true);
+      if (obj.helperAddress != null) {
+        xhr.open("POST", obj.helperAddress, true);
+      } else {
+        xhr.open("POST", `http://${obj.ip}:${obj.helperPort}`, true);
+      }
       xhr.timeout = 10000; // 10 seconds
       xhr.ontimeout = showFailureMessage;
       xhr.onerror = showFailureMessage;
@@ -625,7 +630,11 @@
 
       var xhr = new XMLHttpRequest();
       xhr.timeout = 2000;
-      xhr.open("POST", `http://${obj.ip}:${obj.helperPort}`, true);
+      if (obj.helperAddress != null) {
+        xhr.open("POST", obj.helperAddress, true);
+      } else {
+        xhr.open("POST", `http://${obj.ip}:${obj.helperPort}`, true);
+      }
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.send(requestString);
       xhr.onreadystatechange = function () {
@@ -691,7 +700,11 @@
       formData.append("file", file);
 
       var xhr = new XMLHttpRequest();
-      xhr.open("POST", `http://${component.ip}:${component.helperPort}`, true);
+      if (component.helperAddress != null) {
+        xhr.open("POST", component.helperAddress, true);
+      } else {
+        xhr.open("POST", `http://${component.ip}:${component.helperPort}`, true);
+      }
       xhr.onreadystatechange = function () {
         if (this.readyState != 4) return;
         if (this.status == 200) {
@@ -798,6 +811,9 @@
       }
       if ("helperPort" in component) {
         obj.helperPort = component.helperPort;
+      }
+      if ("helperAddress" in component) {
+        obj.helperAddress = component.helperAddress;
       }
       if ("allowed_actions" in component) {
         obj.allowed_actions = component.allowed_actions;
@@ -927,8 +943,13 @@
 
       xhr = new XMLHttpRequest();
       xhr.timeout = 2000;
-      console.log(`http://${obj.ip}:${obj.helperPort}`);
-      xhr.open("POST", `http://${obj.ip}:${obj.helperPort}`, true);
+      // console.log(`http://${obj.ip}:${obj.helperPort}`);
+      if (obj.helperAddress != null) {
+        xhr.open("POST", obj.helperAddress, true);
+      } else {
+        xhr.open("POST", `http://${obj.ip}:${obj.helperPort}`, true);
+      }
+
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.send(JSON.stringify(requestDict));
 

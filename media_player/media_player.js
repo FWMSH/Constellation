@@ -446,7 +446,8 @@ function sendPing() {
     requestDict = {"class": "exhibitComponent",
                    "id": id,
                    "type": type,
-                   "helperPort": helperAddress.split(":")[2],
+                   "helperPort": helperAddress.split(":")[2], // DEPRECIATED
+                   "helperAddress": helperAddress,
                    "allowed_actions": allowedActionsDict};
 
     // See if there is an error to report
