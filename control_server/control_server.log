@@ -2597,3 +2597,24 @@ INFO, 2021-11-18 14:16:33, Server shutdown
 INFO, 2021-11-18 15:17:40, Server started
 ERROR, 2021-11-18 15:18:19, GET for unexpected file /js/popper.min.js.map
 ERROR, 2021-11-19 09:19:19, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-19 09:35:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-19 09:41:44, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-19 09:42:24, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-11-19 09:43:04, command_all_exhibit_components: refresh_page
+ERROR, 2021-11-19 09:43:20, GET for unexpected file /js/popper.min.js.map
+ERROR, 2021-11-19 09:44:39, GET for unexpected file /js/popper.min.js.map
+INFO, 2021-11-19 09:56:30, Server shutdown
+INFO, 2021-11-19 09:56:32, Server started
+INFO, 2021-11-19 09:56:41, Server shutdown
+INFO, 2021-11-19 09:56:58, Server started
+ERROR, 2021-11-19 09:56:58, "Traceback (most recent call last):<newline>  File 'control_server.py', line 1581, in <module><newline>    load_default_configuration()<newline>  File 'control_server.py', line 1204, in load_default_configuration<newline>    pjlink_projectors = config['PJLINK_PROJECTORS']<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 958, in __getitem__<newline>    raise KeyError(key)<newline>KeyError: 'PJLINK_PROJECTORS'<newline>"
+INFO, 2021-11-19 09:57:27, Server started
+INFO, 2021-11-19 09:57:30, Server shutdown
+INFO, 2021-11-19 09:57:38, Server started
+INFO, 2021-11-19 09:59:39, Server shutdown
+INFO, 2021-11-19 09:59:40, Server started
+INFO, 2021-11-19 09:59:44, Server shutdown
+INFO, 2021-11-19 09:59:50, Server started
+INFO, 2021-11-19 09:59:59, Server shutdown
+INFO, 2021-11-19 10:00:20, Server started
+ERROR, 2021-11-19 10:00:32, "Traceback (most recent call last):<newline>  File 'control_server.py', line 1583, in <module><newline>    load_default_configuration()<newline>  File 'control_server.py', line 1270, in load_default_configuration<newline>    wol = config['WAKE_ON_LAN']<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 958, in __getitem__<newline>    raise KeyError(key)<newline>KeyError: 'WAKE_ON_LAN'<newline>"

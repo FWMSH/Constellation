@@ -1118,18 +1118,26 @@
                         </div>
                       `;
 
-        // Loop through the schedule elements and had a row for each
+        // Loop through the schedule elements and add a row for each
         day.schedule.forEach((item) => {
 
           var description = null;
           var action = null;
+          var target = null;
           if (item[2].length == 1) {
             action = (item[2])[0];
-            target = null;
-            if (action == "power_off") {
-              description = "Power off";
-            } else if (action == "power_on") {
-              description = "Power on";
+            switch (action) {
+              case "power_off":
+                description = "Power off";
+                break;
+              case "power_on":
+                description = "Power on";
+                break;
+              case "refresh_page":
+                description = "Refresh components";
+                break;
+              default:
+                break;
             }
           } else if (item[2].length == 2) {
             action = (item[2])[0];
@@ -1171,6 +1179,8 @@
         html = `Power on at ${nextEvent.time}`;
       } else if (action == "power_off") {
         html = `Power off at ${nextEvent.time}`;
+      } else if (action == "refresh_page") {
+        html = `Refresh components at ${nextEvent.time}`;
       }
     } else if (nextEvent.action.length == 2) {
       action = nextEvent.action[0];
