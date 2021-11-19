@@ -830,5 +830,8 @@ if __name__ == "__main__":
 
     print(f'Launching server on port {config.defaults_dict["helper_port"]} to serve {config.defaults_dict["id"]}.')
 
-    httpd = ThreadedHTTPServer(("", int(config.defaults_dict["helper_port"])), RequestHandler)
-    httpd.serve_forever()
+    try:
+        httpd = ThreadedHTTPServer(("", int(config.defaults_dict["helper_port"])), RequestHandler)
+        httpd.serve_forever()
+    except OSError:
+        print(f"There is already a server at port {config.defaults_dict['helper_port']}! Shutting down...")
