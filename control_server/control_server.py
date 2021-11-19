@@ -48,13 +48,15 @@ class Projector:
                        "description": componentDescriptions.get(id, "")}
 
         self.state = {"status": "OFFLINE"}
-        self.lastContactDateTime = datetime.datetime(2020,1,1)
+        self.last_contact_datetime = datetime.datetime(2020,1,1)
 
         self.update(full=True)
 
     def seconds_since_last_contact(self):
 
-        diff = datetime.datetime.now() - self.lastContactDateTime
+        """Calculate the number of seconds since the component last checked in."""
+
+        diff = datetime.datetime.now() - self.last_contact_datetime
         return diff.total_seconds()
 
     def update(self, full=False):
@@ -78,7 +80,7 @@ class Projector:
                 self.state["lamp_status"] = projector_control.serial_send_command(connection, "lamp_status", make=self.make)
                 self.state["error_status"] = projector_control.serial_send_command(connection, "error_status", make=self.make)
 
-            self.lastContactDateTime = datetime.datetime.now()
+            self.last_contact_datetime = datetime.datetime.now()
         except Exception as e:
             #print(e)
             error = True
@@ -148,7 +150,7 @@ class ExhibitComponent:
         self.broadcastAddress = "255.255.255.255"
         self.WOLPort = 9
 
-        self.lastContactDateTime = datetime.datetime.now()
+        self.last_contact_datetime = datetime.datetime.now()
         self.lastInteractionDateTime = datetime.datetime(2020, 1, 1)
 
         self.config = {"commands": [],
@@ -172,7 +174,7 @@ class ExhibitComponent:
 
         """Return the number of seconds since a ping was received"""
 
-        diff = datetime.datetime.now() - self.lastContactDateTime
+        diff = datetime.datetime.now() - self.last_contact_datetime
         return diff.total_seconds()
 
     def seconds_since_last_interaction(self):
@@ -185,9 +187,9 @@ class ExhibitComponent:
     def update_last_contact_datetime(self):
 
         # We've received a new ping from this component, so update its
-        # lastContactDateTime
+        # last_contact_datetime
 
-        self.lastContactDateTime = datetime.datetime.now()
+        self.last_contact_datetime = datetime.datetime.now()
 
     def update_last_interaction_datetime(self):
 
@@ -303,11 +305,11 @@ class WakeOnLANDevice:
                        "description": componentDescriptions.get(id, "")}
 
         self.state = {"status": "UNKNOWN"}
-        self.lastContactDateTime = datetime.datetime(2020,1,1)
+        self.last_contact_datetime = datetime.datetime(2020,1,1)
 
     def seconds_since_last_contact(self):
 
-        diff = datetime.datetime.now() - self.lastContactDateTime
+        diff = datetime.datetime.now() - self.last_contact_datetime
         return diff.total_seconds()
 
     def queue_command(self, cmd):
@@ -342,7 +344,7 @@ class WakeOnLANDevice:
                 ping = icmplib.ping(self.ip, privileged=False, count=1)
                 if ping.is_alive:
                     self.state["status"] = "SYSTEM ON"
-                    self.lastContactDateTime = datetime.datetime.now()
+                    self.last_contact_datetime = datetime.datetime.now()
                 elif self.seconds_since_last_contact() > 60:
                     self.state["status"] = "OFFLINE"
             except icmplib.exceptions.SocketPermissionError:
@@ -367,15 +369,14 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         """Function to respond to a POST with a string defining the current exhibit configuration"""
 
-        json_string = json.dumps(get_exhibit_Component(id).config)
-        get_exhibit_Component(id).config["commands"] = [] # Clear the command list now that we have sent
+        json_string = json.dumps(get_exhibit_component(id).config)
+        get_exhibit_component(id).config["commands"] = [] # Clear the command list now that we have sent
 
         self.wfile.write(bytes(json_string, encoding="UTF-8"))
 
     def send_webpage_update(self):
 
-        # Function to collect the current exhibit status, format it, and send it
-        # back to the web client to update the page
+        """Function to collect the current exhibit status, format it, and send it back to the web client to update the page"""
 
         componentDictList = []
         for item in componentList:
@@ -475,7 +476,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
             page = str(f.read())
 
             # Build the address that the webpage should contact to reach this server
-            address_to_insert = "'http://"+str(ip_address)+":"+str(serverPort)+"'"
+            address_to_insert = "'http://"+str(ip_address)+":"+str(server_port)+"'"
             # Then, insert that into the document
             page = page.replace("INSERT_SERVERIP_HERE", address_to_insert)
 
@@ -488,7 +489,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
             # print("END GET")
             # print("+++++++++++++++")
             return
-
         else:
 
             # Open the file requested and send it
@@ -504,7 +504,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 # print("+++++++++++++++")
                 return
             except IOError:
-                self.send_error(404, "File Not Found: %s" % self.path)
+                self.send_error(404, f"File Not Found: {self.path}")
                 with logLock:
                     logging.error(f"GET for unexpected file {self.path}")
 
@@ -605,7 +605,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     json_string = json.dumps({"result": "success"})
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 elif action == "queueCommand":
-                    get_exhibit_Component(data["id"]).queue_command(data["command"])
+                    get_exhibit_component(data["id"]).queue_command(data["command"])
                 elif action == "queueProjectorCommand":
                     get_projector(data["id"]).queue_command(data["command"])
                     self.wfile.write(bytes("", encoding="UTF-8"))
@@ -643,8 +643,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                         split = line.split("=")
                                         if len(split) == 2:
                                             # We have a valid ini line
-                                            time = dateutil.parser.parse(split[0]).time()
-                                            if time == time_to_set:
+                                            if dateutil.parser.parse(split[0]).time() == time_to_set:
                                                 error = True
                                                 error_message = "An action with this time already exists"
                                 if not error:
@@ -663,8 +662,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                             split = line.split("=")
                                             if len(split) == 2:
                                                 # We have a valid ini line
-                                                time = dateutil.parser.parse(split[0]).time()
-                                                if time != time_to_replace:
+                                                if dateutil.parser.parse(split[0]).time() != time_to_replace:
                                                     # This line doesn't match, so add it for writing
                                                     output_text += line
                                                 else:
@@ -763,19 +761,19 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             output_text = ""
                             time_to_delete = dateutil.parser.parse(data['time']).time()
 
-                            with open(os.path.join(sched_dir, data["from"] + ".ini"), 'r') as f:
+                            with open(os.path.join(sched_dir, data["from"] + ".ini"), 'r', encoding="UTF-8") as f:
                                 for line in f.readlines():
                                     split = line.split("=")
                                     if len(split) == 2:
                                         # We have a valid ini line
-                                        time = dateutil.parser.parse(split[0]).time()
-                                        if time != time_to_delete:
+                                        if dateutil.parser.parse(split[0]).time() != time_to_delete:
                                             # This line doesn't match, so add it for writing
                                             output_text += line
                                     else:
                                         output_text += line
 
-                            with open(os.path.join(sched_dir, data["from"] + ".ini"), 'w', encoding="UTF-8") as f:
+                            path_to_write = os.path.join(sched_dir, data["from"] + ".ini")
+                            with open(path_to_write, 'w', encoding="UTF-8") as f:
                                 f.write(output_text)
 
                     # Reload the schedule from disk
@@ -824,7 +822,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     # print(f"    action = {action}")
                     if action == "getUploadedFile":
                         if "id" in data:
-                            component = get_exhibit_Component(data["id"])
+                            component = get_exhibit_component(data["id"])
                             if len(component.dataToUpload) > 0:
                                 upload = component.dataToUpload.pop(0)
                                 #json_string = json.dumps(upload)
@@ -879,7 +877,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     elif action == "submitRawText":
                         if "text" in data and "name" in data:
                             with trackingDataWriteLock:
-                                with open(os.path.join("flexible-tracker", "data", data["name"]+".txt"), "a") as f:
+                                path_to_write = os.path.join("flexible-tracker", "data", data["name"]+".txt")
+                                with open(path_to_write, "a", encoding="UTF-8") as f:
                                     try:
                                         f.write(data["text"] + "\n")
                                         self.wfile.write(bytes(json.dumps({"success": True}), encoding="UTF-8"))
@@ -946,7 +945,7 @@ def set_component_content(id, contentList):
             currentExhibitConfiguration.set(id, "content", content)
 
     # Update the component
-    get_exhibit_Component(id).update_configuration()
+    get_exhibit_component(id).update_configuration()
 
     # Write new configuration to file
     with currentExhibitConfigurationLock:
@@ -986,7 +985,7 @@ def update_synchronization_list(this_id, other_ids):
             print("All components have checked in. Dispatching sync command")
             time_to_start = str(round(time.time()*1000) + 10000)
             for item in (synchronizationList[match_index])["ids"]:
-                get_exhibit_Component(item).queue_command(f"beginSynchronization_{time_to_start}")
+                get_exhibit_component(item).queue_command(f"beginSynchronization_{time_to_start}")
             # Remove this sync from the list in case it happens again later.
             synchronizationList.pop(match_index)
 
@@ -1161,10 +1160,9 @@ def check_available_exhibits():
 
 def load_default_configuration():
 
-    # Read the current exhibit configuration from file and initialize it
-    # in self.currentExhibitConfiguration
+    """Read the current exhibit configuration from file and initialize it in self.currentExhibitConfiguration"""
 
-    global serverPort
+    global server_port
     global ip_address
     global gallery_name
     global projectorList
@@ -1178,7 +1176,7 @@ def load_default_configuration():
     with currentExhibitConfigurationLock:
         config.read('currentExhibitConfiguration.ini')
     current = config["CURRENT"]
-    serverPort = current.getint("server_port", 8080)
+    server_port = current.getint("server_port", 8080)
     ip_address = current.get("server_ip_address", "localhost")
     gallery_name =  current.get("gallery_name", "Constellation")
 
@@ -1197,7 +1195,7 @@ def load_default_configuration():
         print("Reading component descriptions...", end="", flush=True)
         componentDescriptions = dict(config["COMPONENT_DESCRIPTIONS"])
         print(" done")
-    except:
+    except KeyError:
         print("None found")
         componentDescriptions = {}
 
@@ -1205,7 +1203,7 @@ def load_default_configuration():
     try:
         pjlink_projectors = config["PJLINK_PROJECTORS"]
         print("Connecting to PJLink projectors...", end="\r", flush=True)
-    except:
+    except KeyError:
         print("No PJLink projectors specified")
         pjlink_projectors = []
 
@@ -1224,21 +1222,21 @@ def load_default_configuration():
                 password = split[1].strip()
                 if password == "":
                     password = None
-                newProj = Projector(key, ip, "pjlink", password=password)
+                new_proj = Projector(key, ip, "pjlink", password=password)
             elif len(split) == 1:
                 # We have an IP address only
-                newProj = Projector(key, pjlink_projectors[key], "pjlink")
+                new_proj = Projector(key, pjlink_projectors[key], "pjlink")
             else:
                 print("Invalid PJLink projector entry:", pjlink_projectors[key])
                 break
-            projectorList.append(newProj)
+            projectorList.append(new_proj)
     print("Connecting to PJLink projectors... done                      ")
 
     # Parse list of serial proejctors
     try:
         serial_projectors = config["SERIAL_PROJECTORS"]
         print("Connecting to serial projectors...", end="\r", flush=True)
-    except:
+    except KeyError:
         print("No serial projectors specified")
         serial_projectors = []
 
@@ -1257,14 +1255,14 @@ def load_default_configuration():
                 make = split[1].strip()
                 if make == "":
                     make = None
-                newProj = Projector(key, ip, "serial", make=make)
+                new_proj = Projector(key, ip, "serial", make=make)
             elif len(split) == 1:
                 # We have an IP address only
-                newProj = Projector(key, serial_projectors[key], "serial")
+                new_proj = Projector(key, serial_projectors[key], "serial")
             else:
                 print("Invalid serial projector entry:", serial_projectors[key])
                 break
-            projectorList.append(newProj)
+            projectorList.append(new_proj)
     print("Connecting to serial projectors... done                      ")
 
     # Parse list of Wake on LAN devices
@@ -1273,14 +1271,16 @@ def load_default_configuration():
         print("Collecting Wake on LAN devices...", end="", flush=True)
 
         for key in wol:
-            if get_exhibit_Component(key) is None:
-                # If get_exhibit_Component is not None, this key corresponds
+            if get_exhibit_component(key) is None:
+                # If get_exhibit_component is not None, this key corresponds
                 # to a WoL device with a matching exhibit component ID and
                 # we have already loaded that component from the pickle file
                 value_split = wol[key].split(",")
                 if len(value_split) == 2:
                     # We have been given a MAC address and IP address
-                    device = WakeOnLANDevice(key, value_split[0].strip(), ip_address=value_split[1].strip())
+                    device = WakeOnLANDevice(key,
+                                             value_split[0].strip(),
+                                             ip_address=value_split[1].strip())
                 elif len(value_split) == 1:
                     # We have been given only a MAC address
                     device = WakeOnLANDevice(key, value_split[0].strip())
@@ -1289,7 +1289,7 @@ def load_default_configuration():
                     continue
                 wakeOnLANList.append(device)
         print(" done")
-    except:
+    except KeyError:
         print("No wake on LAN devices specified")
         wakeOnLANList = []
 
@@ -1347,29 +1347,29 @@ def read_exhibit_configuration(name, updateDefault=False):
             with open('currentExhibitConfiguration.ini', "w", encoding="UTF-8") as f:
                 config.write(f)
 
-def get_exhibit_Component(id):
+def get_exhibit_component(this_id):
 
     """Return a component with the given id, or None if no such component exists"""
 
-    return next((x for x in componentList if x.id == id), None)
+    return next((x for x in componentList if x.id == this_id), None)
 
-def get_projector(id):
+def get_projector(this_id):
 
     """Return a projector with the given id, or None if no such component exists"""
 
-    return next((x for x in projectorList if x.id == id), None)
+    return next((x for x in projectorList if x.id == this_id), None)
 
-def get_wake_on_LAN_component(id):
+def get_wake_on_LAN_component(this_id):
 
     """Return a WakeOnLan device with the given id, or None if no such component exists"""
 
-    return next((x for x in wakeOnLANList if x.id == id), None)
+    return next((x for x in wakeOnLANList if x.id == this_id), None)
 
-def add_exhibit_component(id, type):
+def add_exhibit_component(this_id, this_type):
 
     """Create a new ExhibitComponent, add it to the componentList, and return it"""
 
-    component = ExhibitComponent(id, type)
+    component = ExhibitComponent(this_id, this_type)
     componentList.append(component)
 
     return component
@@ -1390,10 +1390,12 @@ def command_all_exhibit_components(cmd):
 
 def update_exhibit_component_status(data, ip):
 
+    """Update an ExhibitComponent with the values in a dictionary."""
+
     this_id = data["id"]
     this_type = data["type"]
 
-    component = get_exhibit_Component(this_id)
+    component = get_exhibit_component(this_id)
     if component is None: # This is a new id, so make the component
         component = add_exhibit_component(this_id, this_type)
 
@@ -1420,7 +1422,7 @@ def update_exhibit_component_status(data, ip):
         if "error" in component.config:
             component.config.pop("error")
 
-def check_file_Structure():
+def check_file_structure():
 
     """Check to make sure we have the appropriate file structure set up"""
 
@@ -1463,12 +1465,12 @@ def check_file_Structure():
             os.mkdir(exhibits_dir)
             with open(os.path.join(exhibits_dir, "default.exhibit"), 'w', encoding="UTF-8") as f:
                 f.write("")
-        except:
+        except PermissionError:
             print("Error: unable to create 'exhibits' directory. Do you have write permission?")
 
-def quit_handler(sig, frame):
+def quit_handler(*args):
 
-    # Function to handle cleaning shutting down the server
+    """Handle cleanly shutting down the server"""
 
     if rebooting is True:
         print("\nRebooting server...")
@@ -1526,7 +1528,7 @@ def check_for_software_update():
     else:
         print("the server is up to date.")
 
-serverPort = 8080 # Default; should be set in exhibit INI file
+server_port = 8080 # Default; should be set in exhibit INI file
 ip_address = "localhost" # Default; should be set in exhibit INI file
 ADDR = "" # Accept connections from all interfaces
 gallery_name = ""
@@ -1578,7 +1580,7 @@ try:
 except (FileNotFoundError, EOFError):
     print("Could not load previous server state")
 
-check_file_Structure()
+check_file_structure()
 check_available_exhibits()
 load_default_configuration()
 poll_event_schedule()
@@ -1587,5 +1589,5 @@ poll_wake_on_LAN_devices()
 check_for_software_update()
 
 
-httpd = ThreadedHTTPServer((ADDR, serverPort), RequestHandler)
+httpd = ThreadedHTTPServer((ADDR, server_port), RequestHandler)
 httpd.serve_forever()
