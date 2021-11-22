@@ -56,6 +56,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(f.read())
         except FileNotFoundError:
             print(f"Error: could not find file {self.path}")
+        except BrokenPipeError:
+            pass
         if DEBUG:
             print("GET complete")
 
@@ -116,7 +118,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     config_to_send["dictionary"] = dict(config.dictionary_object.items("CURRENT"))
 
                 json_string = json.dumps(config_to_send)
-                self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                try:
+                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                except BrokenPipeError:
+                    pass
             elif data["action"] == "updateDefaults":
                 if DEBUG:
                     print("    waiting for defaultWriteLock")
@@ -137,12 +142,18 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     response = {"success": False,
                                 "reason": "Request missing field 'file'"}
                 json_string = json.dumps(response)
-                self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                try:
+                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                except BrokenPipeError:
+                    pass
             elif data["action"] == "SOS_getCurrentClipName":
                 current_clip = send_SOS_command("get_clip_number")
                 dataset = send_SOS_command("get_clip_info " + current_clip)
 
-                self.wfile.write(bytes(dataset, encoding="UTF-8"))
+                try:
+                    self.wfile.write(bytes(dataset, encoding="UTF-8"))
+                except BrokenPipeError:
+                    pass
             elif data["action"] == "SOS_getClipList":
                 # First, get a list of clips
                 reply = send_SOS_command("get_clip_info *", multiline=True)
@@ -174,12 +185,17 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         clip_dict_list.append(temp)
                     counter += 1
                 json_string = json.dumps(clip_dict_list)
-                self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                try:
+                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                except BrokenPipeError:
+                    pass
             elif data["action"] == "SOS_getPlaylistName":
                 reply = send_SOS_command("get_playlist_name")
                 playlist = reply.split("/")[-1]
-
-                self.wfile.write(bytes(playlist, encoding="UTF-8"))
+                try:
+                    self.wfile.write(bytes(playlist, encoding="UTF-8"))
+                except BrokenPipeError:
+                    pass
             elif data["action"] == "SOS_openPlaylist":
                 if "name" in data:
                     SOS_open_playlist(data["name"])
@@ -212,7 +228,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             segment_list[-1].append(char)
 
                 json_string = json.dumps(state_dict)
-                self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                try:
+                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                except BrokenPipeError:
+                    pass
             elif data["action"] == "SOS_gotoClip":
                 if "clipNumber" in data:
                     send_SOS_command("play " + data["clipNumber"])
@@ -264,8 +283,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
             elif data["action"] == "SOS_readPlaylist":
                 if "playlistName" in data:
                     reply = send_SOS_command(f"playlist_read {data['playlistName']}", multiline=True)
-
-                    self.wfile.write(bytes(reply, encoding="UTF-8"))
+                    try:
+                        self.wfile.write(bytes(reply, encoding="UTF-8"))
+                    except BrokenPipeError:
+                        pass
             elif data["action"] == 'getAvailableContent':
                 active_content = \
                     [s.strip() for s in config.defaults_dict.get("content", "").split(",")]
@@ -274,7 +295,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             "active_content": active_content,
                             "system_stats": helper.getSystemStats()}
                 json_string = json.dumps(response)
-                self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                try:
+                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                except BrokenPipeError:
+                    pass
             else:
                 print(f"Warning: action {data['action']} not recognized!")
         if DEBUG:
