@@ -36,7 +36,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
 
-        # Receive a GET request and respond appropriately
+        """Receive a GET request and respond appropriately"""
 
         if DEBUG:
             print("GET received: ", self.path)
@@ -68,12 +68,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
         if DEBUG:
             print("DO_OPTIONS")
 
-        self.send_response(200, "OK")
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        self.send_header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-        self.send_header('Access-Control-Allow-Credentials', 'true')
-        self.end_headers()
+        try:
+            self.send_response(200, "OK")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+            self.send_header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+            self.send_header('Access-Control-Allow-Credentials', 'true')
+            self.end_headers()
+        except BrokenPipeError:
+            pass
 
         if DEBUG:
             print("DO_OPTIONS complete")
@@ -87,12 +90,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         print(f" Active threads: {threading.active_count()}      ", end="\r", flush=True)
 
-        self.send_response(200, "OK")
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        self.send_header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-        self.send_header('Access-Control-Allow-Credentials', 'true')
-        self.end_headers()
+        try:
+            self.send_response(200, "OK")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+            self.send_header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+            self.send_header('Access-Control-Allow-Credentials', 'true')
+            self.end_headers()
+        except BrokenPipeError:
+            pass
 
         # Get the data from the request
         length = int(self.headers['Content-length'])
@@ -106,7 +112,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
             split = data_str.split("&")
             for seg in split:
                 split2 = seg.split("=")
-                data[split2[0]] = split2[1]
+                if len(split2) > 1:
+                    data[split2[0]] = split2[1]
 
         if "action" in data:
             if DEBUG:
@@ -405,12 +412,12 @@ def connect_to_SOS():
             socket = TCP(config.defaults_dict["sos_ip_address"], 2468)
             socket.write_readline(b'enable\n')
             print("Connected!")
+            break
         except Exception as e:
             print("Error: Connection with Science on a Sphere failed to initialize. Make sure you have specificed sos_ip_address in defaults.ini, both computers are on the same network (or are the same machine), and port 2468 is accessible.")
             if DEBUG:
                 print(e)
-            socket = None
-        return socket
+    return socket
 
 signal.signal(signal.SIGINT, quit_handler)
 

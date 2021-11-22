@@ -298,8 +298,8 @@ function createCard(name, number, icon) {
 
   // Try to look up a public-facing name for the dataset
   if (dictionary != null) {
-    if (name.toLowerCase() in dictionary) {
-      name = dictionary[name.toLowerCase()];
+    if (name in dictionary) {
+      name = dictionary[name];
     }
   }
 
