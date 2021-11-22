@@ -94,21 +94,23 @@ class RequestHandler(SimpleHTTPRequestHandler):
             return None
 
         ctype = self.guess_type(self.translate_path(self.path))
-        self.send_response(206)
-        self.send_header('Content-type', ctype)
-        self.send_header('Accept-Ranges', 'bytes')
+
 
         if last is None or last >= file_len:
             last = file_len - 1
         response_length = last - first + 1
-
-        self.send_header('Content-Range',
-                         'bytes %s-%s/%s' % (first, last, file_len))
-        self.send_header('Content-Length', str(response_length))
-        self.send_header('Last-Modified', self.date_time_string(fs.st_mtime))
-        self.end_headers()
-        self.copy_byte_range(f)
-
+        try:
+            self.send_response(206)
+            self.send_header('Content-type', ctype)
+            self.send_header('Accept-Ranges', 'bytes')
+            self.send_header('Content-Range',
+                             'bytes %s-%s/%s' % (first, last, file_len))
+            self.send_header('Content-Length', str(response_length))
+            self.send_header('Last-Modified', self.date_time_string(fs.st_mtime))
+            self.end_headers()
+            self.copy_byte_range(f)
+        except:
+            print("Connection ended prematurely")
 
     def do_GET(self):
 
@@ -139,16 +141,21 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                             + "'"
                     # Then, insert that into the document
                     page = page.replace("INSERT_HELPERIP_HERE", address_to_insert)
-
-                    self.send_response(200)
-                    self.send_header("Content-type", "text/html")
-                    self.end_headers()
-                    self.wfile.write(bytes(page, encoding="UTF-8"))
+                    try:
+                        self.send_response(200)
+                        self.send_header("Content-type", "text/html")
+                        self.end_headers()
+                        self.wfile.write(bytes(page, encoding="UTF-8"))
+                    except BrokenPipeError:
+                        print("Connection closed prematurely")
 
                     #print("do_GET: EXIT")
             except IOError:
-                self.send_error(404, f"File Not Found: {self.path}")
                 print(f"GET for unexpected file {self.path}")
+                try:
+                    self.send_error(404, f"File Not Found: {self.path}")
+                except BrokenPipeError:
+                    pass
                 #print("do_GET: EXIT")
         else:
             # Open the file requested and send it
@@ -161,17 +168,24 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     if "Range" in self.headers:
                         self.handle_range_request(f)
                     else:
-                        self.send_response(200)
-                        self.send_header('Content-type', mimetype)
-                        self.end_headers()
-                        #print(f"    Writing data to client")
-                        self.wfile.write(f.read())
+                        try:
+                            self.send_response(200)
+                            self.send_header('Content-type', mimetype)
+                            self.end_headers()
+                            #print(f"    Writing data to client")
+                            self.wfile.write(f.read())
+                        except BrokenPipeError:
+                            print("Connection closed prematurely")
                     #print(f"    Write complete")
                 #print(f"  File closed")
                 #print("do_GET: EXIT")
                 return
             except IOError:
-                self.send_error(404, f"File Not Found: {self.path}")
+                print(f"GET for unexpected file {self.path}")
+                try:
+                    self.send_error(404, f"File Not Found: {self.path}")
+                except BrokenPipeError:
+                    pass
                 #logging.error(f"GET for unexpected file {self.path}")
         #print("do_GET: EXIT")
 
@@ -224,13 +238,19 @@ class RequestHandler(SimpleHTTPRequestHandler):
             except:
                 json_string = json.dumps({"success": False})
 
-            self.wfile.write(bytes(json_string, encoding="UTF-8"))
+            try:
+                self.wfile.write(bytes(json_string, encoding="UTF-8"))
+            except BrokenPipeError:
+                pass
 
         elif ctype == "application/json":
 
             # Unpack the data
             length = int(self.headers['Content-length'])
-            data_str = self.rfile.read(length).decode("utf-8")
+            try:
+                data_str = self.rfile.read(length).decode("utf-8")
+            except ConnectionResetError:
+                print("Error: conneciton reset by client")
 
             try: # JSON
                 data = json.loads(data_str)
@@ -241,8 +261,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     split2 = seg.split("=")
                     if len(split2) > 1:
                         data[split2[0]] = split2[1]
-                    else:
-                        print("Missing equal sign in argument:", seg, "in", data_str)
 
             if "action" in data:
                 if data["action"] == "sleepDisplays":
@@ -292,7 +310,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         content_path = os.path.join(root, "content")
                     config_to_send["contentPath"] = content_path
                     json_string = json.dumps(config_to_send)
-                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                    try:
+                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                    except BrokenPipeError:
+                        pass
                 elif data["action"] == "updateDefaults":
                     update_defaults(data)
                 elif data["action"] == "getAvailableContent":
@@ -302,10 +323,16 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                 "system_stats": getSystemStats()}
 
                     json_string = json.dumps(response)
-                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                    try:
+                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                    except BrokenPipeError:
+                        pass
                 elif data["action"] == "getCurrentExhibit":
-                    self.wfile.write(bytes(config.defaults_dict["current_exhibit"],
-                                           encoding="UTF-8"))
+                    try:
+                        self.wfile.write(bytes(config.defaults_dict["current_exhibit"],
+                                               encoding="UTF-8"))
+                    except BrokenPipeError:
+                        pass
                 elif data["action"] == "deleteFile":
                     if "file" in data:
                         delete_file(data["file"])
@@ -314,7 +341,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         response = {"success": False,
                                     "reason": "Request missing field 'file'"}
                     json_string = json.dumps(response)
-                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                    try:
+                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                    except BrokenPipeError:
+                        pass
                 elif data["action"] == 'copyFile':
                     if ("file" in data) and ("fromExhibit" in data) and ("toExhibit" in data):
                         copy_file(data["file"], data["fromExhibit"], data["toExhibit"])
@@ -323,7 +353,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         response = {"success": False,
                                     "reason": "Request missing necessary field"}
                     json_string = json.dumps(response)
-                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                    try:
+                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                    except BrokenPipeError:
+                        pass
                 elif data["action"] == "updateClipList":
                     if "clipList" in data:
                         config.clipList["clipList"] = data["clipList"]
@@ -336,10 +369,16 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     # next time.
                     if len(config.clipList) == 0:
                         config.commandList.append("sendClipList")
-                        self.wfile.write(bytes(json.dumps([]), encoding="UTF-8"))
+                        try:
+                            self.wfile.write(bytes(json.dumps([]), encoding="UTF-8"))
+                        except BrokenPipeError:
+                            pass
                     else:
                         json_string = json.dumps(config.clipList)
-                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                        try:
+                            self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                        except BrokenPipeError:
+                            pass
                 elif data["action"] == 'gotoClip':
                     if "clipNumber" in data:
                         config.commandList.append("gotoClip_"+str(data["clipNumber"]))
@@ -356,6 +395,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         self.wfile.write(bytes(json_string, encoding="UTF-8"))
                     except socket.error as e:
                         print("Socket error in getUpdate:", e)
+                    except BrokenPipeError:
+                        pass
                     config.commandList = []
                 elif data["action"] == "setAutoplay":
                     if "state" in data:
@@ -390,8 +431,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         except FileNotFoundError:
                             print(f"Error: Unknown label {data['name']} requested in language {lang} for exhibit {config.defaults_dict['current_exhibit']}")
                             return()
-
-                        self.wfile.write(bytes(label, encoding="UTF-8"))
+                        try:
+                            self.wfile.write(bytes(label, encoding="UTF-8"))
+                        except BrokenPipeError:
+                            pass
                     else:
                         print("Error: Label requested without name")
                 else:

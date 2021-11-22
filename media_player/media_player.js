@@ -473,6 +473,7 @@ function sendPing() {
 
       if (this.status == 200) {
         readUpdate(this.responseText);
+        console.log(JSON.parse(this.responseText))
       }
   };
     xhr.send(requestString);

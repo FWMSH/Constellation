@@ -248,6 +248,7 @@ class ExhibitComponent:
         else:
             print(f"{self.id}: command queued: {command}")
             self.config["commands"].append(command)
+            print(f"{self.id}: pending commands: {self.config['commands']}")
 
     def wake_with_LAN(self):
 
@@ -370,8 +371,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
         """Function to respond to a POST with a string defining the current exhibit configuration"""
 
         json_string = json.dumps(get_exhibit_component(id).config)
+        if len(get_exhibit_component(id).config["commands"]) > 0:
+            print(f"Config sent for {id} ({self.address_string()}): {get_exhibit_component(id).config}")
         get_exhibit_component(id).config["commands"] = [] # Clear the command list now that we have sent
-
         self.wfile.write(bytes(json_string, encoding="UTF-8"))
 
     def send_webpage_update(self):
@@ -957,11 +959,11 @@ def update_synchronization_list(this_id, other_ids):
     """Manage synchronization between components.
 
     synchronizationList is a list of dictionaries, with one dictionary for every
-    set of synchronized displays.
+    set of synchronized components.
     """
 
-    print("received sync request:", this_id)
-    print(synchronizationList)
+    print(f"Received sync request from {this_id} to sync with {other_ids}")
+    print(f"Current synchronizationList: {synchronizationList}")
     id_known = False
     index = 0
     match_index = -1
