@@ -17,6 +17,7 @@ import socket
 import mimetypes
 import urllib
 import re
+import errno
 
 # Non-standard modules
 import psutil
@@ -877,5 +878,8 @@ if __name__ == "__main__":
     try:
         httpd = ThreadedHTTPServer(("", int(config.defaults_dict["helper_port"])), RequestHandler)
         httpd.serve_forever()
-    except OSError:
-        print(f"There is already a server at port {config.defaults_dict['helper_port']}! Shutting down...")
+    except OSError as e:
+        if e.errno == errno.EADDRINUSE:
+            print(f"There is already a server at port {config.defaults_dict['helper_port']}! Shutting down...")
+        else:
+            print(f"Unexpected error: {e}")
