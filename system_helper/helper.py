@@ -251,6 +251,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 data_str = self.rfile.read(length).decode("utf-8")
             except ConnectionResetError:
                 print("Error: conneciton reset by client")
+                return
 
             try: # JSON
                 data = json.loads(data_str)
