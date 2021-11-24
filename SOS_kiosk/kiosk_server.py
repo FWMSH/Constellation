@@ -153,6 +153,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     self.wfile.write(bytes(json_string, encoding="UTF-8"))
                 except BrokenPipeError:
                     pass
+            elif data["action"] == "restart":
+                helper.reboot()
+            elif data["action"] in ["shutdown", "power_off"]:
+                helper.shutdown()
             elif data["action"] == "SOS_getCurrentClipName":
                 current_clip = send_SOS_command("get_clip_number")
                 dataset = send_SOS_command("get_clip_info " + current_clip)
@@ -178,10 +182,13 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         temp = {'name': clip, 'clipNumber': counter}
                         path = send_SOS_command(f"get_clip_info {counter} clip_filename")
                         split = path.split('/')
-                        if split[-2] == "playlist":
-                            icon_root = '/'.join(split[:-2])
-                        else:
-                            icon_root = '/'.join(split[:-1])
+                        try:
+                            if split[-2] == "playlist":
+                                icon_root = '/'.join(split[:-2])
+                            else:
+                                icon_root = '/'.join(split[:-1])
+                        except IndexError:
+                            print(f"Clip path error: {path}")
 
                         icon_path = icon_root + '/media/thumbnail_big.jpg'
                         filename = ''.join(e for e in clip if e.isalnum()) + ".jpg"
@@ -338,10 +345,15 @@ def sendPing():
     if DEBUG:
         print("Sending ping")
 
+    allowed_actions = {"restart": config.defaults_dict.get("allow_restart", "true"),
+                       "shutdown": config.defaults_dict.get("allow_shutdown", "false")
+                      }
+
     headers = {'Content-type': 'application/json'}
     request_dict = {"class": "exhibitComponent",
                    "id": config.defaults_dict["id"],
-                   "type": config.defaults_dict["type"]}
+                   "type": config.defaults_dict["type"],
+                   "allowed_actions": allowed_actions}
 
     server_full_address = f"http://{str(config.defaults_dict['server_ip_address'])}:{str(config.defaults_dict['server_port'])}"
 
@@ -413,10 +425,11 @@ def connect_to_SOS():
             socket.write_readline(b'enable\n')
             print("Connected!")
             break
-        except Exception as e:
+        except ConnectionRefusedError as e:
             print("Error: Connection with Science on a Sphere failed to initialize. Make sure you have specificed sos_ip_address in defaults.ini, both computers are on the same network (or are the same machine), and port 2468 is accessible.")
             if DEBUG:
                 print(e)
+
     return socket
 
 signal.signal(signal.SIGINT, quit_handler)
@@ -431,6 +444,7 @@ helper.read_default_configuration(checkDirectories=False)
 helper.load_dictionary()
 
 SOS_SOCKET = connect_to_SOS()
+
 send_ping_at_interval()
 
 httpd = ThreadedHTTPServer(("", int(config.defaults_dict["helper_port"])), RequestHandler)

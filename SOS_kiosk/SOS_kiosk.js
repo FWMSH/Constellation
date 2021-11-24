@@ -174,17 +174,26 @@ function readUpdate(responseText) {
 
   var update = JSON.parse(responseText);
 
-  if ("id" in update) {
-    id = update.id;
+  if ("kiosk_id" in update) {
+    id = update.kiosk_id;
   }
-  if ("type" in update) {
-    type = update.type;
+  if ("kiosk_type" in update) {
+    type = update.kiosk_type;
   }
   if (("server_ip_address" in update) && ("server_port" in update)) {
     serverAddress = "http://" + update.server_ip_address + ":" + update.server_port;
   }
   if ("dictionary" in update) {
     dictionary = update.dictionary;
+  }
+  if ('commands' in update) {
+    for (var i=0; i<update.commands.length; i++) {
+      let cmd = update.commands[i];
+
+      if (cmd == "refresh_page") {
+          location.reload();
+      }
+    }
   }
 }
 
@@ -193,7 +202,16 @@ function sendPing() {
   // Contact the control server and ask for any updates
 
   if (serverAddress != "") {
-    requestString = `class=exhibitComponent&id=${id}&type=${type}`;
+
+    let requestDict = {
+      "class": "exhibitComponent",
+      "id": id,
+      "type": type,
+      "currentInteraction": String(currentlyActive),
+      "allowed_actions": {"refresh": "true"}
+    };
+    let requestString = JSON.stringify(requestDict);
+    // requestString = `class=exhibitComponent&id=${id}&type=${type}`;
 
     var xhr = new XMLHttpRequest();
     xhr.open("POST", serverAddress, true);
@@ -205,10 +223,12 @@ function sendPing() {
       if (this.readyState != 4) return;
 
       if (this.status == 200) {
+        // console.log("Ping response received")
         readUpdate(this.responseText);
       }
   };
     xhr.send(requestString);
+    // console.log("Ping sent")
   }
 }
 
@@ -436,6 +456,7 @@ function showAttractor() {
   // Make the attractor layer visible and start autorun
 
   $("#attractorOverlay").show();
+  currentlyActive = false;
 
   startAutorun = function() {
     requestString = `action=SOS_startAutorun`;
@@ -452,6 +473,7 @@ function hideAttractor() {
   // Make the attractor layer invisible and start the autorun
 
   $("#attractorOverlay").hide();
+  currentlyActive = true;
   clearTimeout(autorunScheduler);
   resetActivityTimer();
 
@@ -481,6 +503,7 @@ var serverAddress = ""; // The address of the main control server
 var source = "";
 var dictionary = null;
 var autorunScheduler = null; // Will hold a reference to a setTimeout object that handles starting autorun gracefully.
+var currentlyActive = false
 
 var timeOfLastSelection = new Date('2020-01-01'); // Updated every time someone selects a new dataset
 var selectionTimeoutLength = 10; // How many seconds must pass before someone can select a new dataset
