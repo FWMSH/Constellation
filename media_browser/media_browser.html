@@ -79,6 +79,31 @@
       .resultTitleLarge {
         font-size: 25px;
       }
+      #attractorOverlay {
+        position: fixed;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,0,0,0.9);
+        z-index: 2;
+        cursor: pointer;
+        justify-content: center;
+        align-items: center;
+      }
+      #attractorVideo {
+        position: fixed;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
       #filterRegion {
         height: 100%;
         align-items: flex-end;
@@ -147,7 +172,11 @@
   </head>
 
   <body>
-    <div class="container-fluid">
+    <div class="container-fluid" onclick='resetActivityTimer();'>
+
+      <div id="attractorOverlay" onclick='hideAttractor();'>
+        <video id="attractorVideo" autoplay loop src='media/attractor.mp4'></video>
+      </div>
 
       <div id="imageLightbox">
         <div style='width: 100vw; height: 100vh;'>
@@ -217,6 +246,7 @@
 
   <script type="text/javascript" src="config.js"></script>
   <script type="text/javascript" src="data.js"></script>
+  <script type="text/javascript" src="media_browser.js"></script>
   <script>
     let Keyboard = window.SimpleKeyboard.default;
 
@@ -257,295 +287,6 @@
     }
     });
 
-    function changePage(val) {
-
-      switch (val) {
-        case 0:
-          currentPage = 0;
-          break;
-        case 1:
-          currentPage += 1;
-          if (currentPage*cardsPerPage > data.length) {
-            currentPage -= 1;
-          }
-          break;
-        case -1:
-          currentPage -= 1;
-          if (currentPage < 0) {
-            currentPage = 0;
-          }
-          break;
-        default:
-      }
-      populateResultsRow();
-    }
-
-    function clear() {
-
-      currentPage = 0;
-      $("#searchInput").val("");
-      keyboard.input["default"] = "";
-      keyboard.input["searchInput"] = "";
-      $(".filterSelect").val(null);
-      populateResultsRow();
-    }
-
-    function createCard(obj) {
-
-      // Take a JSON object and turn it into a card in the resultsRow
-
-      var thumb;
-
-      if (thumbnailKey != undefined && thumbnailKey != "") {
-        thumb = "thumbs/" + String(obj[thumbnailKey]);
-      } else {
-        thumb = "thumbs/" + String(obj[mediaKey]);
-      }
-
-      var title = "";
-      if (titleKey != undefined && titleKey != "") {
-        title = obj[titleKey];
-      }
-
-      var id = String(Math.round(Date.now()*Math.random()));
-
-      obj.uniqueMediaBrowserID = id;
-
-      var titleClass;
-      if (title.length > 30) {
-        titleClass = 'resultTitleSmall';
-      } else if (title.length > 20) {
-        titleClass = 'resultTitleMedium';
-      } else {
-        titleClass = 'resultTitleLarge';
-      }
-
-      var html = `
-        <div class='cardCol col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 align-items-center justify-content-top d-flex'>
-          <div class="resultCard row my-2 w-100" onclick="displayMedia('${id}')">
-            <center>
-              <img class='resultImg' src="${thumb}" id=Entry_${id}>
-              <p class='cardTitle ${titleClass}'>${title}</p>
-            </center>
-          </div>
-        </div>
-      `
-
-      $("#resultsRow").append(html);
-    }
-
-    function hideImageLightBox() {
-
-      // Fade out the lightbox, and then hide it so it doesn't steal touches
-
-      var temp = function() {$("#imageLightbox").css("display", "none");};
-      $("#imageLightbox").animate({opacity: 0, queue: false}, {complete: temp, duration: 100});
-    }
-
-    function onFilterOptionChange() {
-      currentPage = 0;
-      populateResultsRow();
-    }
-
-    function populateFilterOptions() {
-
-      // Read the filterKeys and create a dropdown for each
-
-      if (filterKeys == undefined) {
-        return;
-      }
-      $("#filterOptionsRow").empty();
-
-      filterKeys.forEach((key, i) => {
-        var newCol = document.createElement("div");
-        newCol.className = "col-12 col-xl-6";
-        $("#filterOptionsRow").append(newCol);
-
-        var newSelect = document.createElement("select");
-        newSelect.className = "form-select filterSelect";
-        newSelect.multiple = true;
-        newSelect.setAttribute("data-filterKey", key);
-
-        let uniqueValues = [...new Set(data.map(entry => entry[key]))].sort();
-        var newOption;
-        uniqueValues.forEach((value, j) => {
-          newOption = document.createElement("option");
-          newOption.value = value;
-          newOption.innerHTML = value;
-          newSelect.appendChild(newOption);
-        });
-        newCol.appendChild(newSelect);
-        newSelect.addEventListener("change", onFilterOptionChange);
-      });
-    }
-
-    function _populateResultsRow(currentKey) {
-
-      // Empty and repopulate the results row based on the given filters
-      // currentKey accounts for the key being pressed right now, which is not
-      // yet part of the input value
-
-      // var startTime = performance.now();
-      $("#resultsRow").empty();
-
-      var input = $("#searchInput").val();
-
-      // Filter on search terms
-      var search_terms = (input).split(" ");
-      var searchedData = [];
-      data.forEach((item, i) => {
-        var matchCount = 0;
-        search_terms.forEach((term, i) => {
-          if (term != "" || (term == "" && search_terms.length == 1)) {
-            // Strip out non-letters, since the keyboard doesn't allow them
-            if (item.searchData.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z\s]/ig, "").toLowerCase().includes(term.replace(/[^A-Za-z]/ig, "").toLowerCase())) {
-              matchCount += 1;
-            }
-          }
-        });
-        if (matchCount > 0) {
-          item.matchCount = matchCount;
-          searchedData.push(item);
-        }
-      });
-
-
-      // Filter on filter options
-      let filters = $.makeArray($(".filterSelect"));
-      var filteredData = [];
-      var thisKey, selectedValues, filterMathces;
-      // Iterate through the remaining data and make sure it matches at least
-      // one filtered value.
-      searchedData.forEach((item, i) => {
-        filterMathces = {};
-        filters.forEach((filter, j) => {
-          thisKey = filter.getAttribute("data-filterKey");
-          selectedValues = $(filter).val();
-          if (selectedValues.length > 0) {
-            if (selectedValues.includes(item[thisKey])) {
-              filterMathces[thisKey] = 1;
-              item.matchCount += 1;
-            } else {
-              filterMathces[thisKey] = 0;
-            }
-          } else {
-            // If no values are selected for this filter, pass all matches through
-            filterMathces[thisKey] = 1;
-          }
-
-        });
-        // Iterate through the matches to make sure we've matched on every filter
-        var totalMathces = 0;
-        for (let [matchKey, matchValue] of Object.entries(filterMathces)){
-          if (matchValue == 1) {
-            totalMathces += 1;
-          }
-        }
-        if (totalMathces == filters.length) {
-          filteredData.push(item);
-        }
-      });
-
-      // Sort by the number of matches, so better results rise to the top.
-      filteredData.sort((a, b) => b.matchCount - a.matchCount);
-
-      // Make sure we have no more than 12 results to display
-      displayedResults = filteredData.slice(cardsPerPage*currentPage,cardsPerPage*(currentPage+1));
-      // Create a card for each item and add it to the display
-      displayedResults.forEach((item, i) => {
-        createCard(item);
-      });
-      // console.log("populateResultsRow runetime:", performance.now()-startTime)
-      $("#resultsRow").fadeIn(200);
-
-    }
-
-    function populateResultsRow(currentKey="") {
-
-      // Stub function to do the fade, then call the helper function
-
-      $("#resultsRow").fadeOut(200, complete=function(){_populateResultsRow(currentKey)});
-    }
-
-    function displayMedia(id) {
-
-      // Take the given id and display the media in the overlay.
-
-      var obj = data.filter(function(item){
-        return item.uniqueMediaBrowserID == id
-      })[0];
-
-      var title = "";
-      if (titleKey != undefined && titleKey != "") {
-        title = obj[titleKey];
-      }
-
-      var caption = "";
-      if (captionKey != undefined && captionKey != "") {
-        caption = obj[captionKey];
-      }
-      var credit = "";
-      if (creditKey != undefined && creditKey != "") {
-        credit = obj[creditKey];
-      }
-      showImageInLightBox(String(obj[mediaKey]), title, caption, credit)
-
-    }
-
-    function setCardCount() {
-
-      // Based on the window size and the Bootstrap grid, calculate the number of
-      // cards we will be showing per page.
-
-      const windowWidth = window.innerWidth;
-      if (windowWidth >= 1200) {
-        cardsPerPage = 12;
-      } else if (windowWidth >= 992) {
-        cardsPerPage = 8;
-      } else if (windowWidth >= 768) {
-        cardsPerPage = 6;
-      } else if (windowWidth >= 576) {
-        cardsPerPage = 4;
-      } else {
-        cardsPerPage = 2;
-      }
-      populateResultsRow();
-    }
-
-    function showImageInLightBox(image, title="", caption="", credit="") {
-
-      // Set the img source to the provided image, set the caption, and reveal
-      // the light box. The desired image must be located in the media directory
-
-      // Hide elements until image is loaded
-      $("#imageLightboxImage, #imageLightboxTitle, #imageLightboxCaption, #imageLightboxCredit").hide();
-      // document.getElementById("imageLightboxImage").src = "media/" + image;
-
-      document.getElementById("imageLightboxTitle").innerHTML = title;
-      document.getElementById("imageLightboxCaption").innerHTML = caption;
-
-      if (credit != "" && credit != undefined) {
-        document.getElementById("imageLightboxCredit").innerHTML = "Credit: " + credit;
-      } else {
-        document.getElementById("imageLightboxCredit").innerHTML = "";
-      }
-
-
-      // Load the image with a callback to fade it in when it is loaded
-      $("#imageLightboxImage").one("load", function(){
-        $("#imageLightboxImage, #imageLightboxTitle, #imageLightboxCredit").fadeIn();
-        if (caption == "") {
-          $("#imageLightboxImage").addClass("imageLightboxImageTall").removeClass("imageLightboxImageShort");
-          $("#imageLightboxCaption").hide();
-        } else {
-          $("#imageLightboxImage").removeClass("imageLightboxImageTall").addClass("imageLightboxImageShort");
-          $("#imageLightboxCaption").fadeIn();
-        }
-      }).attr("src", "media/" + image)
-
-      $("#imageLightbox").css("display", "flex").animate({opacity: 1, queue: false}, 100);
-    }
-
     // Create a new property, searchData, for each data element that includes
     // everything we can search against as a string.
     data.forEach((item, i) => {
@@ -555,8 +296,24 @@
       });
     });
 
+    // These will be replaced by the values specified in defaults.ini, passed
+    // to this app by the helper server
+    var id = 'UNKNOWN';
+    var type = 'UNKNOWN';
+    var serverAddress = ""; // The address of the main control server
 
-    currentPage = 0;
+    const SOFTWARE_VERSION = 1.0
+    var allowedActionsDict = {"refresh": "true"};
+    var errorDict = {};
+    var currentlyActive = true; // false if the attactor is showing, true elsewise
+    var inactivityTimer = null;
+
+    askForDefaults();
+    checkForSoftwareUpdate();
+    sendPing();
+    setInterval(sendPing, 5000);
+
+    var currentPage = 0;
     var cardsPerPage;
     setCardCount();
     window.addEventListener('resize', setCardCount);

@@ -375,7 +375,7 @@ function changeMedia(source, delayPlay, playOnly) {
         videoContainer.style.opacity = 1;
         imageContainer.style.opacity = 0;
       }
-    } else if (["png", "jpg", "jpeg", "tiff", "bmp", "heic", "webp"].includes(ext.toLowerCase())) {
+    } else if (["png", "jpg", "jpeg", "tiff", "tif", "bmp", "heic", "webp"].includes(ext.toLowerCase())) {
       video.pause();
       videoContainer.style.opacity = 0;
       image.src = source;
@@ -473,7 +473,6 @@ function sendPing() {
 
       if (this.status == 200) {
         readUpdate(this.responseText);
-        console.log(JSON.parse(this.responseText))
       }
   };
     xhr.send(requestString);

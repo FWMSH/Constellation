@@ -6,4 +6,4 @@ var searchKeys = ["Last Name", "First"];
 var titleKey = "Entry Title";
 var captionKey = null;
 var creditKey = "credit";
-var filterKeys = ["Grade Level", "Individual Age Division"];
+var filterKeys = ["Grade Level"];
