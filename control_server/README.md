@@ -55,6 +55,7 @@ The following keywords are optional:
 
 * `gallery_name`: The name of the physical space this control server corresponds to, such as "The Smith Dinosaur Hall."
 * `reboot_time`: A time (e.g., "3 AM", "23:59") at which the server will be automatically restarted every day. This helps prevent memory leaks and long-term instability, but is not strictly necessary.
+* `assignable_staff`: A comma-separated list of names to whom issues can be assigned in the `Issues` tab.
 
 ##### Scheduling exhibit startup and shutdown
 
@@ -203,6 +204,10 @@ Clicking on a `projector` that is `ONLINE` or `STANDBY` will bring up its status
 ### Schedule tab
 
 The schedule tab allows you to modify the power on/power off schedule for the `gallery`. Each day can have one power on and one power off; neither are required.
+
+### Issues tab
+
+The issues tab allows you to track issues with the gallery. Issues are not tied to a specific `exhibit`, but are a property of the overall space.
 
 ### Settings tab
 

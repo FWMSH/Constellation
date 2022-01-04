@@ -1851,6 +1851,9 @@
     if (searchParams.has("hideSchedule")) {
       $("#nav-schedule-tab").hide();
     }
+    if (searchParams.has("hideIssues")) {
+      $("#nav-issues-tab").hide();
+    }
     if (searchParams.has("hideSettings")) {
       $("#nav-settings-tab").hide();
     }
