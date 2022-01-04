@@ -1486,6 +1486,189 @@
     xhr.send(requestString);
   }
 
+  function showIssueEditModal(issueType, target) {
+
+    // Show the modal and configure for either "new" or "edit"
+
+    // Make sure we have all the current components listed as objections for
+    // the issueRelatedComponentsSelector
+    for (var i=0; i<exhibitComponents.length; i++) {
+      // Check if component already exists as an option. If not, add it
+      if ($(`#issueRelatedComponentsSelector option[value='${exhibitComponents[i].id}']`).length == 0) {
+        $("#issueRelatedComponentsSelector").append(new Option(exhibitComponents[i].id, exhibitComponents[i].id));
+      }
+    }
+
+    if (issueType == "new") {
+      // Clear inputs
+      $("#issueTitleInput").val("");
+      $("#issueDescriptionInput").val("");
+      $("#issueAssignedToSelector").val(null);
+      $("#issueRelatedComponentsSelector").val(null);
+    } else if (target != null) {
+    }
+
+    $("#issueEditModal").modal("show");
+  }
+
+  function submitIssueFromModal() {
+
+    // Take the inputs from the modal, check that we have everything we need,
+    // and submit it to the server.
+
+    let issueDict = {};
+    issueDict.issueName = $("#issueTitleInput").val();
+    issueDict.issueDescription = $("#issueDescriptionInput").val();
+    issueDict.relatedComponentIDs = $("#issueRelatedComponentsSelector").val();
+    issueDict.assignedTo = $("#issueAssignedToSelector").val();
+    issueDict.priority = $("#issuePrioritySelector").val();
+
+    let error = false;
+    if (issueDict.issueName == "") {
+      console.log("Need issue name");
+      error = true;
+    }
+    if (issueDict.issueDescription == "") {
+      console.log("Need issue description");
+      error = true;
+    }
+
+    if (error == false) {
+      $("#issueEditModal").modal("hide");
+      requestDict = {"class": "webpage",
+                     "action": "createIssue",
+                     "details": issueDict};
+
+      var xhr = new XMLHttpRequest();
+      xhr.timeout = 2000;
+      xhr.open("POST", serverIP, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+        if (this.readyState != 4) return;
+
+        if (this.status == 200) {
+          if (this.responseText != "") {
+            let result = JSON.parse(this.responseText);
+            if ("success" in result && result.success == true) {
+              console.log("success!");
+              getIssueList();
+            }
+          }
+        }
+      };
+      xhr.send(JSON.stringify(requestDict));
+    }
+  }
+
+  function getIssueList() {
+
+    requestDict = {"class": "webpage",
+                   "action": "getIssueList"};
+
+    var xhr = new XMLHttpRequest();
+    xhr.timeout = 2000;
+    xhr.open("POST", serverIP, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function () {
+      if (this.readyState != 4) return;
+
+      if (this.status == 200) {
+        if (this.responseText != "") {
+          let list = JSON.parse(this.responseText);
+          rebuildIssueList(list);
+        }
+      }
+    };
+    xhr.send(JSON.stringify(requestDict));
+  }
+
+  function deleteIssue(id) {
+
+    // Ask the control server to remove the specified issue
+
+    requestDict = {"class": "webpage",
+                   "action": "deleteIssue",
+                   "id": id};
+
+    var xhr = new XMLHttpRequest();
+    xhr.timeout = 2000;
+    xhr.open("POST", serverIP, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function () {
+      if (this.readyState != 4) return;
+
+      if (this.status == 200) {
+        if (this.responseText != "") {
+          let result = JSON.parse(this.responseText);
+          if ("success" in result && result.success == true) {
+            console.log("success!");
+            getIssueList();
+          }
+        }
+      }
+    };
+    xhr.send(JSON.stringify(requestDict));
+  }
+
+  function rebuildIssueList(issues) {
+
+    // Take an array of issue dictionaries and build the GUI representation.
+
+    console.log(issues);
+    $("#issuesRow").empty();
+
+    issues.forEach((issue, i) => {
+      let col = document.createElement("div");
+      col.setAttribute("class", "col-3 mt-2");
+
+      let card = document.createElement("div");
+      card.setAttribute("class", "card");
+      col.appendChild(card);
+
+      let body = document.createElement("div");
+      body.setAttribute("class", "card-body");
+      card.appendChild(body);
+
+      let title = document.createElement("H5");
+      title.setAttribute("class", "card-title");
+      title.innerHTML = issue.issueName;
+      body.appendChild(title);
+
+      issue.relatedComponentIDs.forEach((id, i) => {
+        let tag = document.createElement("span");
+        tag.setAttribute("class", "badge badge-secondary mr-1");
+        tag.innerHTML = id;
+        body.appendChild(tag);
+      });
+
+      issue.assignedTo.forEach((name, i) => {
+        let tag = document.createElement("span");
+        tag.setAttribute("class", "badge badge-success mr-1");
+        tag.innerHTML = name;
+        body.appendChild(tag);
+      });
+
+      let desc = document.createElement("p");
+      desc.setAttribute("class", "card-text");
+      desc.innerHTML = issue.issueDescription;
+      body.appendChild(desc);
+
+      let editBut = document.createElement("button");
+      editBut.setAttribute("class", "btn btn-info mr-1");
+      editBut.innerHTML = "Edit";
+      body.appendChild(editBut);
+
+      let deleteBut = document.createElement("button");
+      deleteBut.setAttribute("class", "btn btn-danger");
+      deleteBut.setAttribute("onclick", `deleteIssue('${issue.id}')`);
+      deleteBut.innerHTML = "Delete";
+      body.appendChild(deleteBut);
+
+
+      $("#issuesRow").append(col);
+    });
+
+  }
 
   function askForUpdate() {
 

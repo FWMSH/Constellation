@@ -10,6 +10,7 @@
     <link rel="icon" type="image/x-icon" href="icon/green.ico">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+    <!-- <link rel="stylesheet" href="css/bootstrap.min.css"> -->
 
     <title></title>
 
@@ -60,6 +61,7 @@
         <div class="nav nav-tabs" id="nav-tab" role="tablist">
           <a class="nav-item nav-link active" id="nav-components-tab" data-toggle="tab" href="#nav-components" role="tab" aria-controls="nav-components" aria-selected="true">Components</a>
           <a class="nav-item nav-link" id="nav-schedule-tab" data-toggle="tab" href="#nav-schedule" role="tab" aria-controls="nav-schedule" aria-selected="false">Schedule</a>
+          <a class="nav-item nav-link" id="nav-issues-tab" data-toggle="tab" href="#nav-issues" role="tab" aria-controls="nav-issues" aria-selected="false">Issues</a>
           <a class="nav-item nav-link" id="nav-settings-tab" data-toggle="tab" href="#nav-settings" role="tab" aria-controls="nav-settings" aria-selected="false">Settings</a>
           <a class="nav-item nav-link" id="nav-help-tab" data-toggle="tab" href="#nav-help" role="tab" aria-controls="nav-help" aria-selected="false">Help</a>
         </div>
@@ -319,6 +321,69 @@
           </div>
         </div>
 
+        <div class="tab-pane fade" id="nav-issues" role="tabpanel" aria-labelledby="nav-issues-tab">
+
+          <div class="modal" tabindex="-1" role="dialog" id="issueEditModal">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 id="issueEditModalTitle" class="modal-title">Create Issue</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form id="scheduleEditForm" onsubmit="event.preventDefault();">
+                    <div class="form-group">
+                      <div class="row">
+                        <div class="col-8">
+                          <label for="issueTitleInput">Title</label>
+                          <input type="text" class="form-control" id="issueTitleInput" placeholder="e.g., Fix button">
+                        </div>
+                        <div class="col-4">
+                          <label for="issuePrioritySelector">Priority</label>
+                          <select class="form-control" id="issuePrioritySelector">
+                            <option value='low'>Low</option>
+                            <option value='medium'>Medium</option>
+                            <option value='high'>High</option>
+                          </select>
+                        </div>
+                        <div class="col-12 mt-2">
+                          <label for="issueDescriptionInput">Description</label>
+                          <textarea class="form-control" id="issueDescriptionInput" placeholder="e.g., The red button is loose."></textarea>
+                        </div>
+                        <div class="col-6 mt-2">
+                          <label for="issueRelatedComponentsSelector">Related components</label>
+                          <select class="form-control" id="issueRelatedComponentsSelector" multiple>
+                          </select>
+                        </div>
+                        <div class="col-6 mt-2">
+                          <label for="issueAssignedToSelector">Assigned to</label>
+                          <select class="form-control" id="issueAssignedToSelector" multiple>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </form>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-primary ml-auto" onclick="submitIssueFromModal()" id="issueEditSubmitButton">Save changes</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+
+          <div id='issueTabButtons' class='row mt-4'>
+            <div class='col-12'>
+              <button class='btn btn-primary' onclick='showIssueEditModal("new")'>Create issue</button>
+            </div>
+            <div class='col-12'>
+              <div id='issuesRow' class='row mt-3'></div>
+            </div>
+          </div>
+        </div>
+
         <div class="tab-pane fade" id="nav-settings" role="tabpanel" aria-labelledby="nav-settings-tab">
 
           <div class="modal" tabindex="-1" role="dialog" id="changeExhibitModal">
@@ -379,6 +444,8 @@
 
       askForUpdate();
       setInterval(askForUpdate, 5000);
+      getIssueList();
+      setInterval(getIssueList, 5000);
       populateHelpTab();
       parseQueryString();
     </script>

@@ -2619,3 +2619,95 @@ INFO, 2021-11-19 09:59:59, Server shutdown
 INFO, 2021-11-19 10:00:20, Server started
 ERROR, 2021-11-19 10:00:32, "Traceback (most recent call last):<newline>  File 'control_server.py', line 1583, in <module><newline>    load_default_configuration()<newline>  File 'control_server.py', line 1270, in load_default_configuration<newline>    wol = config['WAKE_ON_LAN']<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 958, in __getitem__<newline>    raise KeyError(key)<newline>KeyError: 'WAKE_ON_LAN'<newline>"
 INFO, 2021-12-14 14:40:11, Server started
+ERROR, 2022-01-03 14:03:15, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:03:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:25:09, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:25:11, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:25:23, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:25:54, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:27:30, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:28:27, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:29:16, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:30:12, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:30:54, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:32:01, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:33:05, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:33:35, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:35:18, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:35:33, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:45:41, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:45:52, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:46:47, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:49:48, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:50:50, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 14:52:15, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-03 15:17:29, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 09:06:19, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 09:08:18, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 09:08:50, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 09:08:56, Unknown webpage command received: createIssue
+INFO, 2022-01-04 09:09:05, Server shutdown
+INFO, 2022-01-04 09:09:07, Server started
+INFO, 2022-01-04 09:10:29, Server shutdown
+INFO, 2022-01-04 09:10:31, Server started
+ERROR, 2022-01-04 09:10:45, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-04 09:11:07, Server shutdown
+INFO, 2022-01-04 09:11:08, Server started
+INFO, 2022-01-04 09:12:56, Server shutdown
+INFO, 2022-01-04 09:12:57, Server started
+INFO, 2022-01-04 09:14:43, Server shutdown
+INFO, 2022-01-04 09:14:44, Server started
+INFO, 2022-01-04 09:15:50, Server shutdown
+INFO, 2022-01-04 09:15:51, Server started
+INFO, 2022-01-04 09:23:03, Server shutdown
+INFO, 2022-01-04 09:23:04, Server started
+ERROR, 2022-01-04 09:24:10, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 09:25:23, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-04 09:26:26, Server shutdown
+INFO, 2022-01-04 09:26:27, Server started
+ERROR, 2022-01-04 09:26:52, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-04 09:28:42, Server shutdown
+INFO, 2022-01-04 09:28:43, Server started
+ERROR, 2022-01-04 09:28:56, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-04 09:38:06, Server shutdown
+INFO, 2022-01-04 09:38:07, Server started
+ERROR, 2022-01-04 09:38:18, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 09:40:12, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-04 09:41:33, Server shutdown
+INFO, 2022-01-04 09:41:34, Server started
+ERROR, 2022-01-04 09:41:47, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-04 09:43:43, Server shutdown
+INFO, 2022-01-04 09:43:44, Server started
+INFO, 2022-01-04 09:45:00, Server shutdown
+INFO, 2022-01-04 09:45:01, Server started
+ERROR, 2022-01-04 09:45:15, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 09:50:11, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 09:51:42, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 09:51:57, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 09:55:01, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 10:01:11, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 10:01:25, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 10:03:23, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 10:03:46, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 10:04:03, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 10:04:51, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 10:07:00, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 10:07:08, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 10:07:25, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 10:07:42, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 10:45:38, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 10:46:02, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 10:47:39, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-04 10:58:01, Server shutdown
+INFO, 2022-01-04 10:58:02, Server started
+INFO, 2022-01-04 10:58:08, Server shutdown
+INFO, 2022-01-04 10:58:35, Server started
+ERROR, 2022-01-04 10:58:48, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-04 11:00:05, Server shutdown
+INFO, 2022-01-04 11:00:07, Server started
+INFO, 2022-01-04 11:04:16, Server shutdown
+INFO, 2022-01-04 11:05:38, Server started
+ERROR, 2022-01-04 11:06:25, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-04 11:06:31, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-04 11:06:46, Server shutdown
+INFO, 2022-01-04 11:06:51, Server started

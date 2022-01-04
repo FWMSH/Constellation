@@ -31,6 +31,25 @@ import dateutil.parser
 # Constellation modules
 import projector_control
 
+class Issue:
+
+    """Contains information relavant for tracking an issue."""
+
+    def __init__(self, details):
+
+        """Populate the Issue with the information stored in a dictionary"""
+
+        self.details = {}
+        now_date = datetime.datetime.now().isoformat()
+        self.details["id"] = details.get("id", str(time.time()).replace(".", ""))
+        self.details["creationDate"] = details.get("creationDate", now_date)
+        self.details["lastUpdateDate"] = details.get("lastUpdateDate", now_date)
+        self.details["priority"] = details.get("priority", "medium")
+        self.details["issueName"] = details.get("issueName", "New Issue")
+        self.details["issueDescription"] = details.get("issueDescription", "")
+        self.details["relatedComponentIDs"] = details.get("relatedComponentIDs", [])
+        self.details["assignedTo"] = details.get("assignedTo", [])
+
 
 class Projector:
 
@@ -811,6 +830,30 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     except FileNotFoundError:
                         with logLock:
                             logging.error("Unable to read README.md")
+                elif action == "createIssue":
+                    if "details" in data:
+                        with issueLock:
+                            new_issue = Issue(data["details"])
+                            issueList.append(new_issue)
+                            save_issueList()
+                        response_dict = {"success": True}
+                    else:
+                        response_dict = {"success": False,
+                                         "reason": "Must include field 'details'"}
+                    self.wfile.write(bytes(json.dumps(response_dict), encoding="UTF-8"))
+                elif action == "editIssue":
+                    pass
+                elif action == "deleteIssue":
+                    if "id" in data:
+                        remove_issue(data["id"])
+                        save_issueList()
+                        response_dict = {"success": True}
+                    else:
+                        response_dict = {"success": False,
+                                         "reason": "Must include field 'id'"}
+                    self.wfile.write(bytes(json.dumps(response_dict), encoding="UTF-8"))
+                elif action == "getIssueList":
+                    self.wfile.write(bytes(json.dumps([x.details for x in issueList]), encoding="UTF-8"))
                 else:
                     print(f"Error: Unknown webpage command received: {action}")
                     with logLock:
@@ -1295,6 +1338,21 @@ def load_default_configuration():
         print("No wake on LAN devices specified")
         wakeOnLANList = []
 
+    # Build any existing issues
+    try:
+        root = os.path.dirname(os.path.abspath(__file__))
+        issue_file = os.path.join(root, "issues", "issues.json")
+        with open(issue_file, "r", encoding="UTF-8") as file_object:
+            issues = json.load(file_object)
+        print("Reading stored issues...", end="", flush=True)
+
+        for issue in issues:
+            new_issue = Issue(issue)
+            issueList.append(new_issue)
+        print(" done")
+    except FileNotFoundError:
+        print("No stored issues to read")
+
     # Parse the reboot_time if necessary
     if "reboot_time" in current:
         reboot_time = dateutil.parser.parse(current["reboot_time"])
@@ -1354,6 +1412,31 @@ def get_exhibit_component(this_id):
     """Return a component with the given id, or None if no such component exists"""
 
     return next((x for x in componentList if x.id == this_id), None)
+
+def get_issue(this_id):
+
+    """Return an Issue with the given id, or None if no such Issue exists"""
+
+    return next((x for x in issueList if x.details.id == this_id), None)
+
+def remove_issue(this_id):
+
+    """Remove an Issue with the given id from the issueList"""
+
+    global issueList
+
+    with issueLock:
+        issueList = [x for x in issueList if x.details["id"] != this_id]
+
+def save_issueList():
+
+    """Write the current issueList to file"""
+
+    root = os.path.dirname(os.path.abspath(__file__))
+    issue_file = os.path.join(root, "issues", "issues.json")
+
+    with open(issue_file, "w", encoding="UTF-8") as file_object:
+        json.dump([x.details for x in issueList], file_object)
 
 def get_projector(this_id):
 
@@ -1432,6 +1515,7 @@ def check_file_structure():
     schedules_dir = os.path.join(root, "schedules")
     exhibits_dir = os.path.join(root, "exhibits")
     analytics_dir = os.path.join(root, "analytics")
+    issues_dir = os.path.join(root, "issues")
 
     try:
         os.listdir(schedules_dir)
@@ -1456,7 +1540,7 @@ def check_file_structure():
         print("Missing analytics directory. Creating now...")
         try:
             os.mkdir(analytics_dir)
-        except:
+        except PermissionError:
             print("Error: unable to create 'analytics' directory. Do you have write permission?")
 
     try:
@@ -1467,6 +1551,15 @@ def check_file_structure():
             os.mkdir(exhibits_dir)
             with open(os.path.join(exhibits_dir, "default.exhibit"), 'w', encoding="UTF-8") as f:
                 f.write("")
+        except PermissionError:
+            print("Error: unable to create 'exhibits' directory. Do you have write permission?")
+
+    try:
+        os.listdir(issues_dir)
+    except FileNotFoundError:
+        print("Missing issues directory. Creating now...")
+        try:
+            os.mkdir(issues_dir)
         except PermissionError:
             print("Error: unable to create 'exhibits' directory. Do you have write permission?")
 
@@ -1542,6 +1635,7 @@ projectorList = []
 wakeOnLANList = []
 synchronizationList = [] # Holds sets of displays that are being synchronized
 componentDescriptions = {} # Holds optional short descriptions of each component
+issueList = []
 
 currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
 exhibitList = []
@@ -1559,6 +1653,7 @@ logLock = threading.Lock()
 currentExhibitConfigurationLock = threading.Lock()
 trackingDataWriteLock = threading.Lock()
 scheduleLock = threading.Lock()
+issueLock = threading.Lock()
 
 # Set up log file
 logging.basicConfig(datefmt='%Y-%m-%d %H:%M:%S',
