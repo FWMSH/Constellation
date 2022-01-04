@@ -1238,7 +1238,8 @@ def load_default_configuration():
     ip_address = current.get("server_ip_address", "localhost")
     gallery_name =  current.get("gallery_name", "Constellation")
     staff_string = current.get("assignable_staff", [])
-    assignable_staff = [x.strip() for x in staff_string.split(",")]
+    if len(staff_string > 0):
+        assignable_staff = [x.strip() for x in staff_string.split(",")]
 
     retrieve_schedule()
 
