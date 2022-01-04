@@ -452,11 +452,16 @@ class RequestHandler(SimpleHTTPRequestHandler):
         temp["availableExhibits"] = exhibitList
         temp["galleryName"] = gallery_name
         temp["updateAvailable"] = str(software_update_available).lower()
+        componentDictList.append(temp)
 
+        # Also include an object containing the current issues
+        temp = {}
+        temp["class"] = "issues"
+        temp["issueList"] = [x.details for x in issueList]
+        temp["assignable_staff"] = assignable_staff
         componentDictList.append(temp)
 
         # Also include an object containing the current schedule
-
         with scheduleLock:
             temp = {}
             temp["class"] = "schedule"
@@ -842,7 +847,14 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                          "reason": "Must include field 'details'"}
                     self.wfile.write(bytes(json.dumps(response_dict), encoding="UTF-8"))
                 elif action == "editIssue":
-                    pass
+                    if "details" in data and "id" in data["details"]:
+                        edit_issue(data["details"])
+                        save_issueList()
+                        response_dict = {"success": True}
+                    else:
+                        response_dict = {"success": False,
+                                         "reason": "Must include field 'details' with property 'id'"}
+                    self.wfile.write(bytes(json.dumps(response_dict), encoding="UTF-8"))
                 elif action == "deleteIssue":
                     if "id" in data:
                         remove_issue(data["id"])
@@ -1210,6 +1222,7 @@ def load_default_configuration():
     global server_port
     global ip_address
     global gallery_name
+    global assignable_staff
     global projectorList
     global wakeOnLANList
     global componentDescriptions
@@ -1224,12 +1237,9 @@ def load_default_configuration():
     server_port = current.getint("server_port", 8080)
     ip_address = current.get("server_ip_address", "localhost")
     gallery_name =  current.get("gallery_name", "Constellation")
+    staff_string = current.get("assignable_staff", [])
+    assignable_staff = [x.strip() for x in staff_string.split(",")]
 
-    # try:
-    #     schedule = config["SCHEDULE"]
-    #     readSchedule(schedule)
-    # except KeyError:
-    #     print("No on/off schedule to read")
     retrieve_schedule()
 
     projectorList = []
@@ -1417,7 +1427,7 @@ def get_issue(this_id):
 
     """Return an Issue with the given id, or None if no such Issue exists"""
 
-    return next((x for x in issueList if x.details.id == this_id), None)
+    return next((x for x in issueList if x.details["id"] == this_id), None)
 
 def remove_issue(this_id):
 
@@ -1427,6 +1437,19 @@ def remove_issue(this_id):
 
     with issueLock:
         issueList = [x for x in issueList if x.details["id"] != this_id]
+
+def edit_issue(details):
+
+    """Edit issue with the id given in details dict"""
+    if "id" in details:
+        issue = get_issue(details["id"])
+        with issueLock:
+            issue.details["priority"] = details.get("priority", issue.details["priority"])
+            issue.details["issueName"] = details.get("issueName", issue.details["issueName"])
+            issue.details["issueDescription"] = details.get("issueDescription", issue.details["issueDescription"])
+            issue.details["relatedComponentIDs"] = details.get("relatedComponentIDs", issue.details["relatedComponentIDs"])
+            issue.details["assignedTo"] = details.get("assignedTo", issue.details["assignedTo"])
+            issue.details["lastUpdateDate"] = datetime.datetime.now().isoformat()
 
 def save_issueList():
 
@@ -1640,6 +1663,7 @@ issueList = []
 currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
 exhibitList = []
 currentExhibitConfiguration = None # the configParser object holding the current config
+assignable_staff = [] # staff to whom issues can be assigned.
 
 nextEvent = {} # Will hold the datetime and action of the upcoming event
 scheduleList = [] # Will hold a list of scheduled actions in the next week

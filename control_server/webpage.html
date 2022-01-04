@@ -441,11 +441,11 @@
       markdownConverter.setFlavor('github');
       var scheduleUpdateTime = 0;
       var serverSoftwareUpdateAvailable = false;
+      var issueList = [];
+      var assignableStaff = [];
 
       askForUpdate();
       setInterval(askForUpdate, 5000);
-      getIssueList();
-      setInterval(getIssueList, 5000);
       populateHelpTab();
       parseQueryString();
     </script>

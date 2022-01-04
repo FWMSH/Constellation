@@ -1499,13 +1499,35 @@
       }
     }
 
+    // Make sure we have all the assignable staff listed as options for
+    // issueAssignedToSelector
+    for (var i=0; i<assignableStaff.length; i++) {
+      // Check if component already exists as an option. If not, add it
+      if ($(`#issueAssignedToSelector option[value='${assignableStaff[i]}']`).length == 0) {
+        $("#issueAssignedToSelector").append(new Option(assignableStaff[i], assignableStaff[i]));
+      }
+    }
+
     if (issueType == "new") {
       // Clear inputs
       $("#issueTitleInput").val("");
       $("#issueDescriptionInput").val("");
       $("#issueAssignedToSelector").val(null);
       $("#issueRelatedComponentsSelector").val(null);
+
+      $("#issueEditModal").data("type", "new");
+      $("#issueEditModalTitle").html("Create Issue");
+
     } else if (target != null) {
+        $("#issueEditModal").data("type", "edit");
+        $("#issueEditModal").data("target", target);
+        $("#issueEditModalTitle").html("Edit Issue");
+
+        let targetIssue = getIssue(target);
+        $("#issueTitleInput").val(targetIssue.issueName);
+        $("#issueDescriptionInput").val(targetIssue.issueDescription);
+        $("#issueAssignedToSelector").val(targetIssue.assignedTo);
+        $("#issueRelatedComponentsSelector").val(targetIssue.relatedComponentIDs);
     }
 
     $("#issueEditModal").modal("show");
@@ -1534,11 +1556,20 @@
     }
 
     if (error == false) {
+
+      let issueType = $("#issueEditModal").data("type");
+      let action;
+      if (issueType == "new") {
+        action = "createIssue";
+      } else {
+        issueDict.id = $("#issueEditModal").data("target");
+        action = "editIssue"
+      }
       $("#issueEditModal").modal("hide");
       requestDict = {"class": "webpage",
-                     "action": "createIssue",
+                     "action": action,
                      "details": issueDict};
-
+      console.log(requestDict)
       var xhr = new XMLHttpRequest();
       xhr.timeout = 2000;
       xhr.open("POST", serverIP, true);
@@ -1574,12 +1605,23 @@
 
       if (this.status == 200) {
         if (this.responseText != "") {
-          let list = JSON.parse(this.responseText);
-          rebuildIssueList(list);
+          issueList = JSON.parse(this.responseText);
+          rebuildIssueList(issueList);
         }
       }
     };
     xhr.send(JSON.stringify(requestDict));
+  }
+
+  function getIssue(id) {
+
+    // Function to search the issueList for a given id
+
+    var result = issueList.find(obj => {
+      return obj.id === id;
+    });
+
+    return result;
   }
 
   function deleteIssue(id) {
@@ -1619,10 +1661,19 @@
 
     issues.forEach((issue, i) => {
       let col = document.createElement("div");
-      col.setAttribute("class", "col-3 mt-2");
+      col.setAttribute("class", "col-12 col-sm-6 col-lg-4 col-xl-3 mt-2");
 
       let card = document.createElement("div");
-      card.setAttribute("class", "card");
+      // Color the border based on the priority
+      let borderColor;
+      if (issue.priority == "low") {
+        borderColor = "border-primary";
+      } else if (issue.priority == "medium") {
+        borderColor = "border-warning";
+      } else {
+        borderColor = "border-danger";
+      }
+      card.setAttribute("class", `card h-100 border ${borderColor}`);
       col.appendChild(card);
 
       let body = document.createElement("div");
@@ -1656,6 +1707,7 @@
       let editBut = document.createElement("button");
       editBut.setAttribute("class", "btn btn-info mr-1");
       editBut.innerHTML = "Edit";
+      editBut.setAttribute("onclick", `showIssueEditModal('edit', '${issue.id}')`);
       body.appendChild(editBut);
 
       let deleteBut = document.createElement("button");
@@ -1716,6 +1768,16 @@
               } else if (component.class == "schedule") {
                 if (scheduleUpdateTime != component.updateTime) {
                   populateSchedule(component);
+                }
+              } else if (component.class == "issues") {
+                // Check for the time of the most recent update. If it is more
+                // recent than our existing date, rebuild the issue list
+                let currentLastDate = Math.max.apply(Math, issueList.map(function(o) { return new Date(o.lastUpdateDate); }))
+                let updatedDate = Math.max.apply(Math, component.issueList.map(function(o) { return new Date(o.lastUpdateDate); }))
+                assignableStaff = component.assignable_staff;
+                if (updatedDate > currentLastDate) {
+                  issueList = component.issueList
+                  rebuildIssueList(issueList);
                 }
               }
             }
