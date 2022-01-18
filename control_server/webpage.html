@@ -403,6 +403,23 @@
             </div>
           </div>
 
+          <div class="modal" tabindex="-1" role="dialog" id="deleteExhibitModal">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Are you sure?</h5>
+                </div>
+                <div class="modal-body">
+                  Deleting an exhibit cannot be undone.
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" onclick="deleteExhibitFromModal()">Delete exhibit</button>
+                  <button type="button" class="btn btn-success" data-dismiss="modal">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="row mt-4">
             <div class="col-6 col-md-3 col-lg-2">
               <button type="button" class="btn btn-primary" id="reloadConfigurationButton" onclick="reloadConfiguration()">Reload Config</button>
@@ -411,6 +428,38 @@
               <div class="form-group">
                 <label for="exhibitSelect">Set current exhibit</label>
                 <select class="form-control" id="exhibitSelect" onchange="changeExhibit(false)"></select>
+              </div>
+            </div>
+            <div class="col-12 col-md-8">
+              <div class="form-group">
+                <label for="createExhibitNameInput">Create new exhibit</label>
+                <div class='row'>
+                  <div class='col-12 col-lg-5 pr-1 mt-1'>
+                    <input type="test" id='createExhibitNameInput' class='form-control'></input>
+                  </div>
+                  <div class='col-6 col-lg-3 mt-1'>
+                    <button id="createExhibitButton" class='btn btn-primary w-100'>Create Empty</button>
+                  </div>
+                  <div id="cloneExhibitButton" class='col-6 col-lg-3 mt-1'>
+                    <button class='btn btn-primary w-100'>Clone Current</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4">
+              <div class="form-group">
+                  <label for="exhibitDeleteSelector">Delete exhibit</label>
+                <div class="row">
+                  <div class='col-7'>
+                    <select class="form-control text-danger w-100" id="exhibitDeleteSelector" onchange="checkDeleteSelection()"></select>
+                  </div>
+                  <div class='col-5'>
+                    <button class='btn btn-danger w-100' id="exhibitDeleteSelectorButton" onclick="showExhibitDeleteModal()">Delete</button>
+                  </div>
+                  <div class='col-12 mt-1'>
+                    <span class='text-danger' id="exhibitDeleteSelectorWarning">Cannot delete current exhibit</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -443,6 +492,16 @@
       var serverSoftwareUpdateAvailable = false;
       var issueList = [];
       var assignableStaff = [];
+
+      // Bind some event listeners
+      $("#createExhibitButton").click(function(){
+        createExhibit($("#createExhibitNameInput").val(), null);
+        $("#createExhibitNameInput").val("");
+      });
+      $("#cloneExhibitButton").click(function(){
+        createExhibit($("#createExhibitNameInput").val(), $("#exhibitSelect").val());
+        $("#createExhibitNameInput").val("");
+      });
 
       askForUpdate();
       setInterval(askForUpdate, 5000);

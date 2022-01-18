@@ -449,7 +449,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         temp = {}
         temp["class"] = "gallery"
         temp["currentExhibit"] = currentExhibit
-        temp["availableExhibits"] = exhibitList
+        temp["availableExhibits"] = EXHIBIT_LIST
         temp["galleryName"] = gallery_name
         temp["updateAvailable"] = str(software_update_available).lower()
         componentDictList.append(temp)
@@ -823,6 +823,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     # Update the components that the configuration has changed
                     for component in componentList:
                         component.update_configuration()
+                elif action == "createExhibit":
+                    if "name" in data and data["name"] != "":
+                        clone = None
+                        if "cloneFrom" in data and data["cloneFrom"] != "":
+                            clone = data["cloneFrom"]
+                        create_new_exhibit(data["name"], clone)
+                elif action == "deleteExhibit":
+                    if "name" in data and data["name"] != "":
+                        delete_exhibit(data["name"])
                 elif action == "setComponentContent":
                     if ("id" in data) and ("content" in data):
                         print(f"Changing content for {data['id']}:", data['content'])
@@ -1211,9 +1220,65 @@ def check_available_exhibits():
 
     """Get a list of available "*.exhibit" configuration files"""
 
-    for file in os.listdir("exhibits"):
-        if file.endswith(".exhibit"):
-            exhibitList.append(file)
+    global EXHIBIT_LIST
+
+    with exhibitsLock:
+        EXHIBIT_LIST = []
+        for file in os.listdir("exhibits"):
+            if file.lower().endswith(".exhibit"):
+                EXHIBIT_LIST.append(file)
+
+def create_new_exhibit(name, clone):
+
+    """Createa new exhibit file
+
+    Set clone=None to create a new file, or set it equal to the name of an
+    existing exhibit to clone that exhibit."""
+
+    # Make sure we have the proper extension
+    if not name.lower().endswith(".exhibit"):
+        name += ".exhibit"
+
+    root = os.path.dirname(os.path.abspath(__file__))
+    new_file = os.path.join(root, "exhibits", name)
+
+    if clone is not None:
+        # Copy an existing file
+
+        # Make sure we have the proper extension on the file we're copying from
+        if not clone.lower().endswith(".exhibit"):
+            clone += ".exhibit"
+        existing_file = os.path.join(root, "exhibits", clone)
+        shutil.copyfile(existing_file, new_file)
+
+    else:
+        # Make a new file
+        with exhibitsLock:
+            if not os.path.isfile(new_file):
+                # If this file does not exist, touch it so that it does.
+                with open(new_file, "w", encoding='UTF-8'):
+                    pass
+
+    check_available_exhibits()
+
+def delete_exhibit(name):
+
+    """Delete the specified exhibit file"""
+
+    # Make sure we have the proper extension
+    if not name.lower().endswith(".exhibit"):
+        name += ".exhibit"
+
+    root = os.path.dirname(os.path.abspath(__file__))
+    file_to_delete = os.path.join(root, "exhibits", name)
+
+    with exhibitsLock:
+        try:
+            os.remove(file_to_delete)
+        except FileNotFoundError:
+            print(f"Error: Unable to delete exhibit {file_to_delete}. File not found!")
+
+    check_available_exhibits()
 
 def load_default_configuration():
 
@@ -1662,7 +1727,7 @@ componentDescriptions = {} # Holds optional short descriptions of each component
 issueList = []
 
 currentExhibit = None # The INI file defining the current exhibit "name.exhibit"
-exhibitList = []
+EXHIBIT_LIST = []
 currentExhibitConfiguration = None # the configParser object holding the current config
 assignable_staff = [] # staff to whom issues can be assigned.
 
@@ -1679,6 +1744,7 @@ currentExhibitConfigurationLock = threading.Lock()
 trackingDataWriteLock = threading.Lock()
 scheduleLock = threading.Lock()
 issueLock = threading.Lock()
+exhibitsLock = threading.Lock()
 
 # Set up log file
 logging.basicConfig(datefmt='%Y-%m-%d %H:%M:%S',
