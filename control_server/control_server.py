@@ -385,14 +385,16 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 class RequestHandler(SimpleHTTPRequestHandler):
 
+    """Handle incoming requests to the control server"""
+
     def send_current_configuration(self, id):
 
         """Function to respond to a POST with a string defining the current exhibit configuration"""
 
         json_string = json.dumps(get_exhibit_component(id).config)
         if len(get_exhibit_component(id).config["commands"]) > 0:
-            print(f"Config sent for {id} ({self.address_string()}): {get_exhibit_component(id).config}")
-        get_exhibit_component(id).config["commands"] = [] # Clear the command list now that we have sent
+            # Clear the command list now that we have sent
+            get_exhibit_component(id).config["commands"] = []
         self.wfile.write(bytes(json_string, encoding="UTF-8"))
 
     def send_webpage_update(self):
