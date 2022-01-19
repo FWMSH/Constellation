@@ -23,7 +23,6 @@ function sleepDisplays() {
   // Send a message to the local helper process and ask it to sleep the
   // displays
 
-  // requestString = `action=sleepDisplays`;
   var requestString = JSON.stringify({"action": "sleepDisplays"});
 
   var xhr = new XMLHttpRequest();
@@ -44,7 +43,6 @@ function wakeDisplays() {
   // Send a message to the local helper process and ask it to sleep the
   // displays
 
-  // requestString = `action=wakeDisplays`;
   var requestString = JSON.stringify({"action": "wakeDisplays"});
 
   var xhr = new XMLHttpRequest();
@@ -60,26 +58,26 @@ function wakeDisplays() {
   xhr.send(requestString);
 }
 
-function commandProjector(cmd) {
-
-  // Send a message to the local helper process to control the projector
-
-  // requestString = `action=commandProjector&command=${cmd}`;
-  var requestString = JSON.stringify({"action": "commandProjector", "command": cmd});
-
-  var xhr = new XMLHttpRequest();
-  xhr.open("POST", helperAddress, true);
-  xhr.timeout = 10000;
-  xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.onreadystatechange = function () {
-    if (this.readyState != 4) return;
-
-    if (this.status == 200) {
-    }
-};
-  xhr.send(requestString);
-
-}
+// function commandProjector(cmd) {
+//
+//   // Send a message to the local helper process to control the projector
+//
+//   // requestString = `action=commandProjector&command=${cmd}`;
+//   var requestString = JSON.stringify({"action": "commandProjector", "command": cmd});
+//
+//   var xhr = new XMLHttpRequest();
+//   xhr.open("POST", helperAddress, true);
+//   xhr.timeout = 10000;
+//   xhr.setRequestHeader('Content-Type', 'application/json');
+//   xhr.onreadystatechange = function () {
+//     if (this.readyState != 4) return;
+//
+//     if (this.status == 200) {
+//     }
+// };
+//   xhr.send(requestString);
+//
+// }
 
 function synchronize(timeToPlay) {
 
@@ -170,6 +168,9 @@ function readUpdate(responseText) {
   }
   if (("server_ip_address" in update) && ("server_port" in update)) {
     serverAddress = "http://" + update.server_ip_address + ":" + update.server_port;
+  }
+  if ("helperAddress" in update) {
+    helperAddress = update.helperAddress;
   }
   if ("contentPath" in update) {
     contentPath = update.contentPath;
@@ -451,7 +452,7 @@ function sendPing() {
     requestDict = {"class": "exhibitComponent",
                    "id": id,
                    "type": type,
-                   "helperPort": helperAddress.split(":")[2], // DEPRECIATED
+                   "helperPort": helperAddress.split(":")[2], // Depreciated
                    "helperAddress": helperAddress,
                    "allowed_actions": allowedActionsDict};
 

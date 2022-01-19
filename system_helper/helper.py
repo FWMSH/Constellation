@@ -136,10 +136,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         address_to_insert = \
                             f"'http://localhost:{config.defaults_dict['helper_port']}'"
                     else: # Request is coming from the network
-                        address_to_insert = "'http://" \
-                                            + socket.gethostbyname(socket.gethostname()) \
-                                            + config.defaults_dict["helper_port"] \
-                                            + "'"
+                        address_to_insert = f"'{get_local_address()}'"
                     # Then, insert that into the document
                     page = page.replace("INSERT_HELPERIP_HERE", address_to_insert)
                     try:
@@ -311,6 +308,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         root = os.path.dirname(os.path.abspath(__file__))
                         content_path = os.path.join(root, "content")
                     config_to_send["contentPath"] = content_path
+                    config_to_send["helperAddress"] = get_local_address()
                     json_string = json.dumps(config_to_send)
                     try:
                         self.wfile.write(bytes(json_string, encoding="UTF-8"))
@@ -613,6 +611,23 @@ def check_directory_structure():
         except PermissionError:
             print("Error: unable to create directory. Do you have write permission?")
 
+def get_local_address():
+
+    """Return the IP address and port of this helper"""
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(0)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+
+    return "http://" + IP  + ":" + config.defaults_dict["helper_port"]
+
 def strToBool(val):
 
     """Take a string value like "false" and convert it to a bool"""
@@ -639,14 +654,18 @@ def getSystemStats():
     result = {}
 
     # Get the percentage the disk is full
-    total, used, free = shutil.disk_usage(__file__)
+    total, used, free = shutil.disk_usage(os.path.abspath(os.path.dirname(os.path.abspath(__file__))))
 
     result["disk_pct_free"] = round((free/total) * 100)
     result["disK_free_GB"] = round(free / (2**30)) # GB
 
-    # Get CPU load (percent used in the last 1, 5, 15 min)
-    cpu_load = [x / psutil.cpu_count() * 100 for x in psutil.getloadavg()]
-    result["cpu_load_pct"] = round(cpu_load[1])
+
+    # Get CPU load (percent used in the last 1, 5, 15 min) Doesn't work on Windows
+    if sys.platform != "win32":
+        cpu_load = [x / psutil.cpu_count() * 100 for x in psutil.getloadavg()]
+        result["cpu_load_pct"] = round(cpu_load[1])
+    else:
+        result["cpu_load_pct"] = 0
 
     # Get memory usage
     result["ram_used_pct"] = round(psutil.virtual_memory().percent)
@@ -863,7 +882,6 @@ if __name__ == "__main__":
     # NEXT_EVENT = None
     # missingContentWarningList = [] # Will hold one entry for every piece of content that is scheduled but not available
     read_default_configuration()
-
     # If it exists, load the dictionary that maps one value into another
     load_dictionary()
 
@@ -873,7 +891,7 @@ if __name__ == "__main__":
     # Check the Github server for an available software update
     check_for_software_update()
 
-    print(f'Launching server on port {config.defaults_dict["helper_port"]} to serve {config.defaults_dict["id"]}.')
+    print(f'Launching server at address {get_local_address()} to serve {config.defaults_dict["id"]}.')
 
     try:
         httpd = ThreadedHTTPServer(("", int(config.defaults_dict["helper_port"])), RequestHandler)
