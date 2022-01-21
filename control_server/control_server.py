@@ -130,6 +130,7 @@ class Projector:
 
         # Translate commands for projector_control
         cmd_dict = {
+            "shutdown": "power_off",
             "sleepDisplay": "power_off",
             "wakeDisplay": "power_on"
         }

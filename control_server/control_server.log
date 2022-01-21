@@ -2905,3 +2905,4 @@ ERROR, 2022-01-18 09:44:26, GET for unexpected file /js/popper.min.js.map
 ERROR, 2022-01-18 09:45:00, GET for unexpected file /js/popper.min.js.map
 ERROR, 2022-01-18 09:45:30, GET for unexpected file /js/popper.min.js.map
 ERROR, 2022-01-18 09:52:05, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-20 11:18:00, Server shutdown

@@ -123,19 +123,23 @@ class ExhibitComponent {
 
     var onCmdName = "";
     var offCmdName = "";
+    var offCmd = "";
     var displayName = this.id;
     switch (this.type) {
       case "PROJECTOR":
         onCmdName = "Wake projector";
         offCmdName = "Sleep projector";
+        offCmd = "sleepDisplay";
         break;
       case "WAKE_ON_LAN":
         onCmdName = "Wake component";
         offCmdName = "Sleep component";
+        offCmd = "shutdown";
         break;
       default:
         onCmdName = "Wake component";
         offCmdName = "Shutdown component";
+        offCmd = "shutdown";
     }
 
     var optionList = "";
@@ -146,7 +150,7 @@ class ExhibitComponent {
       optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'restart')">Restart component</a>`;
     }
     if (this.allowed_actions.includes("shutdown") || this.allowed_actions.includes("power_off")) {
-      optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'shutdown')">${offCmdName}</a>`;
+      optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', '${offCmd}')">${offCmdName}</a>`;
     }
     if (this.allowed_actions.includes("power_on")) {
       optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'power_on')">${onCmdName}</a>`;
@@ -859,7 +863,7 @@ function updateComponentFromServer(component) {
 function setCurrentExhibitName(name) {
   currentExhibit = name;
   document.getElementById("exhibitNameField").innerHTML = name;
-  // updateAvailableExhibits([name]);
+
   // Don't change the value of the exhibit selector if we're currently
   // looking at the change confirmation modal, as this will result in
   // submitting the incorrect value
@@ -921,7 +925,6 @@ function reloadConfiguration() {
   // This function will send a message to the server asking it to reload
   // the current exhibit configuration file and update all the components
 
-  //requestString = "class=webpage&action=reloadConfiguration";
   var requestDict = {"class": "webpage",
                      "action": "reloadConfiguration"};
 
@@ -959,7 +962,6 @@ function queueCommand(id, cmd) {
 
     xhr = new XMLHttpRequest();
     xhr.timeout = 2000;
-    // console.log(`http://${obj.ip}:${obj.helperPort}`);
     if (obj.helperAddress != null) {
       xhr.open("POST", obj.helperAddress, true);
     } else {
