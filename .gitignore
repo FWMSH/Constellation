@@ -32,3 +32,9 @@ system_helper/.DS_Store
 control_server/.DS_Store
 control_server/analytics/W1_KIOSK.txt
 control_server/issues/.DS_Store
+control_server/maintenance-logs/TOP.txt
+control_server/maintenance-logs/SHOULDER.txt
+control_server/maintenance-logs/RIGHT.txt
+control_server/maintenance-logs/LEFT.txt
+control_server/maintenance-logs/KNEES.txt
+control_server/maintenance-logs/BOTTOM.txt
