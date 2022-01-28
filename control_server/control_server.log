@@ -2906,3 +2906,228 @@ ERROR, 2022-01-18 09:45:00, GET for unexpected file /js/popper.min.js.map
 ERROR, 2022-01-18 09:45:30, GET for unexpected file /js/popper.min.js.map
 ERROR, 2022-01-18 09:52:05, GET for unexpected file /js/popper.min.js.map
 INFO, 2022-01-20 11:18:00, Server shutdown
+INFO, 2022-01-27 09:31:25, Server started
+ERROR, 2022-01-27 09:46:35, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-27 09:49:25, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-27 09:50:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-27 09:59:15, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-27 10:00:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-27 10:00:57, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-27 10:01:11, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-27 10:01:22, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-27 10:02:06, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-27 10:03:29, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-27 10:47:06, Server shutdown
+INFO, 2022-01-27 10:47:09, Server started
+ERROR, 2022-01-27 10:47:26, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-27 10:48:08, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-27 10:49:15, Server shutdown
+INFO, 2022-01-27 10:51:25, Server started
+ERROR, 2022-01-27 10:51:41, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-27 10:58:30, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-27 10:59:25, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-27 11:08:16, Server shutdown
+INFO, 2022-01-27 11:08:17, Server started
+ERROR, 2022-01-27 11:12:46, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-27 11:14:23, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-27 11:25:29, Server shutdown
+INFO, 2022-01-27 11:27:17, Server started
+INFO, 2022-01-27 11:31:51, Server shutdown
+INFO, 2022-01-27 11:31:53, Server started
+INFO, 2022-01-27 11:32:32, Server shutdown
+INFO, 2022-01-27 11:32:33, Server started
+INFO, 2022-01-27 11:34:51, Server shutdown
+INFO, 2022-01-27 11:35:04, Server started
+ERROR, 2022-01-27 11:35:14, "Traceback (most recent call last):<newline>  File 'control_server.py', line 1845, in <module><newline>    load_default_configuration()<newline>  File 'control_server.py', line 1490, in load_default_configuration<newline>    add_exhibit_component(this_id.strip(), this_type, 'static')<newline>  File 'control_server.py', line 1607, in add_exhibit_component<newline>    component = ExhibitComponent(this_id, this_typem, category)<newline>NameError: name 'this_typem' is not defined<newline>"
+INFO, 2022-01-27 11:36:07, Server started
+ERROR, 2022-01-27 11:36:18, "Traceback (most recent call last):<newline>  File 'control_server.py', line 1845, in <module><newline>    load_default_configuration()<newline>  File 'control_server.py', line 1490, in load_default_configuration<newline>    add_exhibit_component(this_id.strip(), this_type, category='static')<newline>  File 'control_server.py', line 1607, in add_exhibit_component<newline>    component = ExhibitComponent(this_id, this_type, category)<newline>  File 'control_server.py', line 184, in __init__<newline>    self.update_configuration()<newline>  File 'control_server.py', line 252, in update_configuration<newline>    file_config = dict(currentExhibitConfiguration.items(self.id))<newline>AttributeError: 'NoneType' object has no attribute 'items'<newline>"
+INFO, 2022-01-27 11:41:02, Server started
+ERROR, 2022-01-27 11:41:12, "Traceback (most recent call last):<newline>  File 'control_server.py', line 1845, in <module><newline>    load_default_configuration()<newline>  File 'control_server.py', line 1490, in load_default_configuration<newline>    add_exhibit_component(this_id.strip(), this_type, category='static')<newline>  File 'control_server.py', line 1607, in add_exhibit_component<newline>    component = ExhibitComponent(this_id, this_type, category)<newline>  File 'control_server.py', line 184, in __init__<newline>    self.update_configuration()<newline>  File 'control_server.py', line 252, in update_configuration<newline>    file_config = dict(currentExhibitConfiguration.items(self.id))<newline>AttributeError: 'NoneType' object has no attribute 'items'<newline>"
+INFO, 2022-01-27 11:59:54, Server started
+INFO, 2022-01-27 12:00:14, Server shutdown
+INFO, 2022-01-27 12:01:02, Server started
+ERROR, 2022-01-27 12:01:12, "Traceback (most recent call last):<newline>  File 'control_server.py', line 1846, in <module><newline>    load_default_configuration()<newline>  File 'control_server.py', line 1490, in load_default_configuration<newline>    add_exhibit_component(this_id.strip(), this_type, category='static')<newline>  File 'control_server.py', line 1607, in add_exhibit_component<newline>    component = ExhibitComponent(this_id, this_type, category)<newline>  File 'control_server.py', line 184, in __init__<newline>    self.update_configuration()<newline>  File 'control_server.py', line 252, in update_configuration<newline>    file_config = dict(currentExhibitConfiguration.items(self.id))<newline>AttributeError: 'NoneType' object has no attribute 'items'<newline>"
+INFO, 2022-01-27 12:02:24, Server started
+WARNING, 2022-01-27 12:02:29, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:02:29, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-27 12:02:29, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:02:29, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:02:29, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:02:29, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:02:29, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:02:29, there is no configuration available for component with id=BOTTOM
+ERROR, 2022-01-27 12:03:03, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-27 12:03:10, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-27 12:04:20, Server shutdown
+INFO, 2022-01-27 12:04:21, Server started
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:04:26, there is no configuration available for component with id=BOTTOM
+INFO, 2022-01-27 12:04:34, Server shutdown
+INFO, 2022-01-27 12:04:35, Server started
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:04:40, there is no configuration available for component with id=BOTTOM
+INFO, 2022-01-27 12:04:48, Server shutdown
+INFO, 2022-01-27 12:05:39, Server started
+WARNING, 2022-01-27 12:05:50, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:05:50, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-27 12:05:50, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:05:50, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:05:50, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:05:50, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:05:50, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:05:50, there is no configuration available for component with id=BOTTOM
+INFO, 2022-01-27 12:07:17, Server shutdown
+INFO, 2022-01-27 12:07:18, Server started
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=SHOULDERrrrrrrrrr
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:07:28, there is no configuration available for component with id=BOTTOM
+INFO, 2022-01-27 12:07:42, Server shutdown
+INFO, 2022-01-27 12:07:43, Server started
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=SHOULDERrrrrrrrrr
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=SHOULDERrrrrrrrrrsdfdsfsdf
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:07:48, there is no configuration available for component with id=BOTTOM
+INFO, 2022-01-27 12:08:09, Server shutdown
+INFO, 2022-01-27 12:08:10, Server started
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=SHOULDERrrrrrrrrr
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=SHOULDERrrrrrrrrrsdfdsfsdf
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=SHOULDER TEST S
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=TOES
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=TOP
+WARNING, 2022-01-27 12:08:23, there is no configuration available for component with id=BOTTOM
+INFO, 2022-01-27 14:26:46, Sending wake on LAN packet to adl_beast
+ERROR, 2022-01-28 09:53:37, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 09:58:42, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 09:58:56, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-28 09:59:01, Server shutdown
+INFO, 2022-01-28 09:59:06, Server started
+WARNING, 2022-01-28 09:59:19, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-28 09:59:19, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-28 09:59:19, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-28 09:59:19, there is no configuration available for component with id=TOES
+WARNING, 2022-01-28 09:59:19, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-28 09:59:19, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-28 09:59:19, there is no configuration available for component with id=TOP
+WARNING, 2022-01-28 09:59:19, there is no configuration available for component with id=BOTTOM
+ERROR, 2022-01-28 09:59:34, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-28 10:01:57, Server shutdown
+INFO, 2022-01-28 10:02:00, Server started
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=TOES
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=TOP
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=TOES
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=TOP
+WARNING, 2022-01-28 10:02:07, there is no configuration available for component with id=BOTTOM
+ERROR, 2022-01-28 10:24:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 10:26:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 10:58:18, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 10:58:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 10:58:42, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 10:59:24, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 10:59:44, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 12:33:17, GET for unexpected file /js/popper.min.js.map

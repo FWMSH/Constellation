@@ -89,15 +89,6 @@
                 </div>
                 <div class="modal-body">
 
-                  <div class="row" id="componentInfoConnectingNotice">
-                    <div class='col-8 offset-2'>
-                      <center>
-                        <H5 id="componentInfoConnectionStatusInPrograss">Connecting to component...</H5>
-                        <H5 id="componentInfoConnectionStatusFailed">Unable to connect to component</H5>
-                      </center>
-                    </div>
-                  </div>
-
                   <div class='row align-items-end' id="contentUploadSystemStatsView">
                     <div class='col-4'>
                       <strong id="contentUploadDiskSpaceFree"></strong>
@@ -125,42 +116,89 @@
                     <hr>
                   </div>
 
-                  <div id="componentAvailableContentRow" class="row">
-                    <div class="col-12 mt-3">
-                      <H5>Available content</H5>
-                    </div>
-                    <div class="col-12 w-100">
-                      <div class="row" id="componentAvailableContentList"></div>
-                    </div>
+                  <ul class="nav nav-tabs mt-3" id="componentInfoModalTabList" role="tablist">
+                    <li class="nav-item">
+                      <a class="nav-link active" id="componentInfoModalContentTabButton" data-toggle="tab" href="#componentInfoModalContentTab" role="tab" aria-controls="Content" aria-selected="true">Content</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="componentInfoModalMaintenanceTabButton" data-toggle="tab" href="#componentInfoModalMaintenanceTab" role="tab" aria-controls="Maintenance" aria-selected="false">Maintenance</a>
+                    </li>
+                  </ul>
 
-                  </div>
-
-                  <div id="componentcontentUploadInterface" class="form-group mt-3 mb-0">
-                    <label for="componentContentUpload"><H5>Upload new content</H5></label>
-                    <div class="row align-middle">
-                      <div class="col-8">
-                        <label class="btn btn-outline-secondary text-wrap">
-                          <span id="componentContentUploadfilename">Choose file</span>
-                          <input hidden type="file" class="form-control-file" id="componentContentUpload" onchange="onUploadContentChange()">
-                        </label>
+                  <div class="tab-content" id="componentInfoModalTabContainer">
+                    <div class="tab-pane fade show active" id="componentInfoModalContentTab" role="tabpanel" aria-labelledby="componentInfoModalContentTabButton">
+                      <div class="row mt-3" id="componentInfoConnectingNotice">
+                        <div class='col-8 offset-2'>
+                          <center>
+                            <H5 id="componentInfoConnectionStatusInPrograss">Connecting to component...</H5>
+                            <H5 id="componentInfoConnectionStatusFailed">Unable to connect to component</H5>
+                          </center>
+                        </div>
                       </div>
-                      <div class="col-4">
-                        <button id="contentUploadSubmitButton" class='btn btn-block btn-outline-primary' onclick="uploadComponentContentFile()">Upload</button>
+                      <div id="componentAvailableContentRow" class="row">
+                        <div class="col-12 mt-3">
+                          <H5>Available content</H5>
+                        </div>
+                        <div class="col-12 w-100">
+                          <div class="row" id="componentAvailableContentList"></div>
+                        </div>
+                        <div class='col-12'>
+                          <button type="button" class="btn btn-primary mt-2" onclick="submitComponentContentChange()" id="componentSaveConfirmationButton">Save changes</button>
+                        </div>
+
                       </div>
 
-                        <div class='col-12 mt-3' id='contentUploadProgressBarContainer'>
-                          <div class="progress" style="height: 25px;">
-                            <div id='contentUploadProgressBar' class="progress-bar" role="progressbar" style="width: 30%; font-size: large;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+                      <div id="componentcontentUploadInterface" class="form-group mt-3 mb-0">
+                        <label for="componentContentUpload"><H5>Upload new content</H5></label>
+                        <div class="row align-middle">
+                          <div class="col-8">
+                            <label class="btn btn-outline-secondary text-wrap">
+                              <span id="componentContentUploadfilename">Choose file</span>
+                              <input hidden type="file" class="form-control-file" id="componentContentUpload" onchange="onUploadContentChange()">
+                            </label>
+                          </div>
+                          <div class="col-4">
+                            <button id="contentUploadSubmitButton" class='btn btn-block btn-outline-primary' onclick="uploadComponentContentFile()">Upload</button>
+                          </div>
+
+                            <div class='col-12 mt-3' id='contentUploadProgressBarContainer'>
+                              <div class="progress" style="height: 25px;">
+                                <div id='contentUploadProgressBar' class="progress-bar" role="progressbar" style="width: 30%; font-size: large;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+                              </div>
+                            </div>
+                          <div class='col-12 text-danger mt-2' id='uploadOverwriteWarning'>Warning: this upload will overwrite a file of the same name.</div>
+                          <div class='col-12 text-danger mt-2' id='contentUploadEqualSignWarning'>Filenames cannot contain the equal sign (=).</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="tab-pane fade" id="componentInfoModalMaintenanceTab" role="tabpanel" aria-labelledby="componentInfoModalMaintenanceTabButton">
+                      <div class="row mt-3">
+                        <div class='col-12 col-md-6'>
+                          <div class="form-group">
+                            <label for="componentInfoModalMaintenanceStatusSelector">Maintenance status</label>
+                            <select class="form-control" id="componentInfoModalMaintenanceStatusSelector" onchange="$('#componentInfoModalMaintenanceSaveButton').show()">
+                              <option>On floor, working</option>
+                              <option>On floor, not Working</option>
+                              <option>Off floor, working</option>
+                              <option>Off floor, not working</option>
+                            </select>
                           </div>
                         </div>
-                      <div class='col-12 text-danger mt-2' id='uploadOverwriteWarning'>Warning: this upload will overwrite a file of the same name.</div>
-                      <div class='col-12 text-danger mt-2' id='contentUploadEqualSignWarning'>Filenames cannot contain the equal sign (=).</div>
-
+                        <div class='col-12'>
+                          <div class="form-group">
+                            <label for="componentInfoModalMaintenanceNote">Notes</label>
+                            <textarea class="form-control" id="componentInfoModalMaintenanceNote" rows="3" oninput="$('#componentInfoModalMaintenanceSaveButton').show()"></textarea>
+                          </div>
+                        </div>
+                        <div class='col-12 mt-2'>
+                          <button id='componentInfoModalMaintenanceSaveButton' class='btn btn-primary' onclick="submitComponentMaintenanceStatusChange(type='component')">Save changes</button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-danger" onclick="submitComponentContentChange()" id="componentSaveConfirmationButton">Save changes</button>
+
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 </div>
               </div>

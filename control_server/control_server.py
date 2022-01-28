@@ -156,12 +156,16 @@ class ExhibitComponent:
 
     """Holds basic data about a component in the exhibit"""
 
-    def __init__(self, id, this_type):
+    def __init__(self, id, this_type, category='dynamic'):
+
+        # category='dynamic' for components that are connected over the network
+        # category='static' for components added from currentExhibitConfiguration.ini
 
         global wakeOnLANList
 
         self.id = id
         self.type = this_type
+        self.category = category
         self.ip = "" # IP address of client
         self.helperPort = 8000 # port of the localhost helper for this component DEPRECIATED
         self.helperAddress = None # full IP and port of helper
@@ -177,7 +181,8 @@ class ExhibitComponent:
                        "allowed_actions": [],
                        "description": componentDescriptions.get(id, "")}
 
-        self.update_configuration()
+        if category != "static":
+            self.update_configuration()
 
         # Check if we have specified a Wake on LAN device matching this id
         # If yes, subsume it into this component
@@ -224,6 +229,9 @@ class ExhibitComponent:
 
         Options: [OFFLINE, SYSTEM ON, ONLINE, ACTIVE, WAITING]
         """
+
+        if self.category == "static":
+            return "STATIC"
 
         status = 'OFFLINE'
 
@@ -878,6 +886,48 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     self.wfile.write(bytes(json.dumps(response_dict), encoding="UTF-8"))
                 elif action == "getIssueList":
                     self.wfile.write(bytes(json.dumps([x.details for x in issueList]), encoding="UTF-8"))
+                elif action == 'updateMaintenanceStatus':
+                    if "id" in data and "status" in data and "notes" in data:
+                        file_path = os.path.join("maintenance-logs", data["id"]+".txt")
+                        record = {"id": data["id"],
+                                  "date": datetime.datetime.now().isoformat(),
+                                  "status": data['status'],
+                                  "notes": data["notes"]}
+                        with maintenanceLock:
+                            with open(file_path, 'a', encoding='UTF-8') as f:
+                                f.write(json.dumps(record) + "\n")
+                        response_dict = {"success": True}
+                    else:
+                        response_dict = {"success": False,
+                                         "reason": "Must include fields 'id', 'status', and 'notes'"}
+                    self.wfile.write(bytes(json.dumps(response_dict), encoding="UTF-8"))
+                elif action == 'getMaintenanceStatus':
+                    if "id" in data:
+                        file_path = os.path.join("maintenance-logs", data["id"]+".txt")
+                        try:
+                            with maintenanceLock:
+                                with open(file_path, 'rb') as f:
+                                    # Seek to the end of the file and return the most recent entry
+                                    try:  # catch OSError in case of a one line file
+                                        f.seek(-2, os.SEEK_END)
+                                        while f.read(1) != b'\n':
+                                            f.seek(-2, os.SEEK_CUR)
+                                    except OSError:
+                                        f.seek(0)
+                                    last_line = f.readline().decode()
+                                    result = json.loads(last_line)
+                                    response_dict = {"success": True,
+                                                     "status": result["status"],
+                                                     "notes": result["notes"]}
+                        except FileNotFoundError:
+                            response_dict = {"success": False,
+                                             "reason": "No maintenance record exists",
+                                             "status": "On floor, working",
+                                             "notes": ""}
+                    else:
+                        response_dict = {"success": False,
+                                         "reason": "Must include field 'id'"}
+                    self.wfile.write(bytes(json.dumps(response_dict), encoding="UTF-8"))
                 else:
                     print(f"Error: Unknown webpage command received: {action}")
                     with logLock:
@@ -1432,6 +1482,18 @@ def load_default_configuration():
     except FileNotFoundError:
         print("No stored issues to read")
 
+    # Parse list of static components
+    try:
+        static_components = config["STATIC_COMPONENTS"]
+        print("Adding static components... ", end="\r", flush=True)
+        for this_type in static_components:
+            split = static_components[this_type].split(",")
+            for this_id in split:
+                add_exhibit_component(this_id.strip(), this_type, category="static")
+        print("done")
+    except KeyError:
+        print("none specified")
+
     # Parse the reboot_time if necessary
     if "reboot_time" in current:
         reboot_time = dateutil.parser.parse(current["reboot_time"])
@@ -1542,11 +1604,11 @@ def get_wake_on_LAN_component(this_id):
 
     return next((x for x in wakeOnLANList if x.id == this_id), None)
 
-def add_exhibit_component(this_id, this_type):
+def add_exhibit_component(this_id, this_type, category="dynamic"):
 
     """Create a new ExhibitComponent, add it to the componentList, and return it"""
 
-    component = ExhibitComponent(this_id, this_type)
+    component = ExhibitComponent(this_id, this_type, category)
     componentList.append(component)
 
     return component
@@ -1608,6 +1670,7 @@ def check_file_structure():
     exhibits_dir = os.path.join(root, "exhibits")
     analytics_dir = os.path.join(root, "analytics")
     issues_dir = os.path.join(root, "issues")
+    maintenance_dir = os.path.join(root, "maintenance-logs")
 
     try:
         os.listdir(schedules_dir)
@@ -1654,6 +1717,15 @@ def check_file_structure():
             os.mkdir(issues_dir)
         except PermissionError:
             print("Error: unable to create 'exhibits' directory. Do you have write permission?")
+
+    try:
+        os.listdir(maintenance_dir)
+    except FileNotFoundError:
+        print("Missing maintenance-logs directory. Creating now...")
+        try:
+            os.mkdir(maintenance_dir)
+        except PermissionError:
+            print("Error: unable to create 'maintenance-logs' directory. Do you have write permission?")
 
 def quit_handler(*args):
 
@@ -1748,6 +1820,7 @@ trackingDataWriteLock = threading.Lock()
 scheduleLock = threading.Lock()
 issueLock = threading.Lock()
 exhibitsLock = threading.Lock()
+maintenanceLock = threading.Lock()
 
 # Set up log file
 logging.basicConfig(datefmt='%Y-%m-%d %H:%M:%S',

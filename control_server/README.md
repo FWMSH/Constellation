@@ -124,6 +124,20 @@ MY_PC2 = F1-E3-D1-51-B5-A1, 10.8.0.85
 ```
 If the given machine has a static IP address, you can specify it on the same line, after a comma. The control server will ping that address at intervals to check if the machine is powered on. **To send pings on Windows, you must run the control server with administrator privileges.**
 
+##### Tracking non-**_Constellation_** components
+
+In order to view the real-time status of a `component`, it must be either  running a **_Constellation_** software system, or sending pings that conform to the API. However, non-**_Constellation_** `component`s can be added to the system in order to make use of the maintenance tracking system.
+
+To add such a `component`, create a `[STATIC_COMPONENTS]` section in `currentExhibitConfiguration.ini`. The keys will be the `type` and the values will be the `id`s of the components. For example,
+
+```
+[STATIC_COMPONENTS]
+INTERACTIVE = HAND_SIZE, FOOT_SIZE
+DISPLAY = BODY_TYPES
+```
+
+will create three static components, HAND_SIZE and FOOT_SIZE of `type` INTERACTIVE, and BODY_TYPES of `type` DISPLAY.
+
 ##### Providing component descriptions
 
 You can optionally specify a description for a `component`, which is displayed in the web console on that `component`'s status page. These are specified as such:
@@ -154,12 +168,10 @@ The web console is the most convenient way of managing your settings and viewing
 
 ### Components tab
 
-The components tab lists every managed `component` and `projector`. Each receives its own tile, which is color-coded by the object's current state.
+The components tab lists every managed `component` and `projector`. Each receives its own tile, which is color-coded by the object's current state. States update automatically, so there is no need to refresh the page.
 
 
 #### States
-
-The following states apply to both `component`s and `projector`s:
 
 | State   | Component | Projector | Wake on LAN |
 | -----   | --------- | --------- | ----------- |
@@ -167,15 +179,16 @@ The following states apply to both `component`s and `projector`s:
 | ONLINE  | Component is responding | Projector is responding, and powered on | - |
 | OFFLINE | Component is not responding | Projector is not responding | WoL system is not responding |
 | STANDBY | - | Projector is responding, but powered off | - |
-| SYSTEM ON | The computer is on, but no Constellation software is responding. | - | The WoL system is responding to pings |
+| STATIC | Component has been added for maintenance tracking purposes through currentExhibitConfiguration.ini. | - | - |
+| SYSTEM ON | The computer is on, but no **_Constellation_** software is responding. | - | The WoL system is responding to pings |
 | WAITING | The component was recently ONLINE. There may only be a temporary connectivity issue.  This is common if a display is sleeping. | - | - |
 | UNKONWN | - | - | No IP address was supplied for this WoL system, so we cannot ping it to check its status. |
 
-### Component status page
+### Component status view
 
 <img src="images/component_status_page.png" style="width: 40%; float: right; border: 2px solid gray; margin: 5px;"></img>
 
-Clicking on a `component` opens its status page. Here, you can see a snapshot of the remote system's performance and manipulate its content. The status page is broken into three areas.
+Clicking on a `component` opens its status view. Here, you can see a snapshot of the remote system's performance, manipulate its content (if supported), and add maintenance details.
 
 #### System status
 
@@ -183,19 +196,34 @@ The system status area, located at the top, provides a summary of the performanc
 
 Note that CPU usage is not properly reported for `component`s running Windows.
 
-#### Content management
+#### Content pane
 
-The content management area in the middle allows you to manipulate the displayed `content` for components that support it. It is broken into two tabs: "This exhibit" shows the available `content` loaded for the currently-selected `exhibit`, while "All exhibits" aggregates all `content` available on the `component`. Note that this panel only shows `content` managed by the system helper, including all `content` uploaded through the web console.
+##### Content management
 
-`Content` highlighted in blue is in the current display queue, which loops indefinitely. To add or remove a piece of `content`, click it to toggle its color. These changes are not saved until the "Save changes" button is pressed. If you select a file from another `exhibit` (by clicking it in the "All exhibits" tab), that file will be copied to the current `exhibit`.
+The content management area allows you to manipulate the displayed `content` for components that support it. Note that this panel only shows `content` managed by the system helper, including all `content` uploaded through the web console.
+
+`Content` highlighted in blue is in the current display queue, which loops indefinitely. To add or remove a piece of `content`, click it to toggle it. These changes are not saved until the "Save changes" button is pressed.
 
 `Content` can also be deleted from the system using the item's dropdown menu. Note that deleting content takes effect immediately and cannot be undone.
 
-#### Content upload
+##### Content upload
 
-New `content` can be uploaded using the bottom part of the status page. Click the "Choose file" button and select a file you wish to upload. The uploaded file will be stored as part of the `content` for the currently-running `exhibit`.
+New `content` can be uploaded using the bottom part of the Content pane. Click the "Choose file" button and select a file you wish to upload.
 
-Note that uploaded files cannot contain an equals sign (=). If you upload a file with the same filename as a piece of existing `content`, the old file will be overwritten.
+**Note that uploaded files cannot contain an equals sign (=).** If you upload a file with the same filename as a piece of existing `content`, the old file will be overwritten.
+
+#### Maintenance pane
+
+The maintenance pane allow you to track the maintenance status of the component. Four states are available:
+
+* On floor, working
+* On floor, not working
+* Off floor, working
+* Off floor, not working
+
+In addition, you may add notes using the provided text box. Changes to the notes or status are not saved until the "Save changes" button has been pressed.
+
+Changes to the maintenance status of a `component` are logged by the control server. These logs are in plain-text format in the `maintenance-logs` directory. Each line of a log is a JSON object containing the state at the time of submission.
 
 ### Projector status page
 
@@ -203,7 +231,13 @@ Clicking on a `projector` that is `ONLINE` or `STANDBY` will bring up its status
 
 ### Schedule tab
 
-The schedule tab allows you to modify the power on/power off schedule for the `gallery`. Each day can have one power on and one power off; neither are required.
+The schedule tab allows you to set recurring or one-off events within the `gallery`. The following options are available:
+
+* Send power off and power on commands
+* Refresh the `component`s
+* Set the `exhibit`
+
+Note that sending power off and power on commands may affect different `component`s differently. For `Projector`s, this will sleep or wake them. For `Wake on LAN` devices with shutdown permitted, the machine will be shutdown.
 
 ### Issues tab
 
@@ -211,9 +245,17 @@ The issues tab allows you to track issues with the gallery. Issues are not tied 
 
 ### Settings tab
 
+#### Changing the exhibit
+
+Use the "Set current exhibit" dropdown box to change the `exhibit` being displayed. **This change takes immediate effect and may result in an unsightly transition in public view.**
+
+#### Creating and deleting exhibits
+
+You can create and delete `exhibit`s from the settings tab. When creating an `exhibit`, you can either create an empty `exhibit` (no content for any `component`), or you can clone the existing `exhibit`.
+
 #### Reloading currentExhibitConfiguration.ini
 
-If you make a manual change to `currentExhibitConfiguration.ini`, pressing this button will cause the control server to reload it and parse the new configuration as if it were starting up. This means you do not have to stop and restart the server process to make an update.
+If you make a manual change to `currentExhibitConfiguration.ini`, pressing the "Reload Config" button will cause the control server to reload it and parse the new configuration as if it were starting up. This means you do not have to stop and restart the server process to make an update.
 
 ### Hiding tabs
 
@@ -244,3 +286,23 @@ The `text` allows free input of text.
 
 #### Timer
 The `timer` records the number of seconds it was running. It can be stopped and started by the user. `timer`s can be exclusive, meaning they stop all other `timer` widgets, or multiple can be used simultaneously.
+
+## Integrating with **_Constellation_**
+The control server communicates with `component`s using HTTP requests. Connecting a custom `component` is as simple as sending and receiving the appropriate requests.
+
+### Required actions
+
+#### Pings
+
+The control server does not search for new `component`s. Rather, each `component` must send a request to the known static IP of the server. This is called a _ping_. A ping should be sent every five seconds as a POST request containing a JSON object with the following properties.
+
+
+| Field   | Type | Value | Required | Meaning |
+| -----   | --------- |--------- | --------- | --------- |
+| class | String | "exhibitComponent" | Yes | - |
+| id | String | A unique, user-defined value| Yes | - |
+| type | String | A user-defined value | Yes | - |
+| helperAddress | String | An HTTP address, including the port, of a server capable of responding to requests | No | This is required for the `component` to respond to certain commands, such as shutting down or restarting. |
+| allowed_actions | array of strings | Any subset of ["restart", "shutdown", "sleep"] | No | Sending these values indicates that the `component` is able and willing to respond to their corresponding commands. Don't send an action if you have not implemented a method of responding to it. |
+| currentInteraction | String | "true" or "false" | No | Send "true" if the `component` has been interacted with in the last 30 seconds. Send "false" if it has not. For a `component` with an attractor, you can also send "true" if the attractor is not displayed. |
+| error | JSON object | The keys of the object should be the names of the errors, with the values being a short error message | No | This field allows you to report errors or warnings, which will be displayed on the web console. |

@@ -1,4 +1,4 @@
-/*jshint esversion: 6 */
+  /*jshint esversion: 6 */
 
 class ExhibitComponent {
 
@@ -111,6 +111,8 @@ class ExhibitComponent {
         return 'btn-info';
       case 'SYSTEM ON':
         return 'btn-info';
+      case "STATIC":
+        return 'btn-secondary';
       default:
         return 'btn-danger';
     }
@@ -453,146 +455,156 @@ function showExhibitComponentInfo(id) {
     $("#componentSaveConfirmationButton").hide();
     $("#componentAvailableContentRow").hide();
     $("#componentcontentUploadInterface").hide();
+    setComponentInfoModalMaintenanceStatus(id);
 
     var showFailureMessage = function() {
       $("#componentInfoConnectionStatusFailed").show();
       $("#componentInfoConnectionStatusInPrograss").hide();
     };
 
-    var requestString = JSON.stringify({"action": "getAvailableContent"});
+    if (obj.status != 'STATIC') {
+      // This component may be accessible over the network.
 
-    var xhr = new XMLHttpRequest();
-    if (obj.helperAddress != null) {
-      xhr.open("POST", obj.helperAddress, true);
-    } else {
-      xhr.open("POST", `http://${obj.ip}:${obj.helperPort}`, true);
-    }
-    xhr.timeout = 10000; // 10 seconds
-    xhr.ontimeout = showFailureMessage;
-    xhr.onerror = showFailureMessage;
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onreadystatechange = function () {
-      if (this.readyState != 4) return;
+      var requestString = JSON.stringify({"action": "getAvailableContent"});
 
-      if (this.status == 200) {
+      var xhr = new XMLHttpRequest();
+      if (obj.helperAddress != null) {
+        xhr.open("POST", obj.helperAddress, true);
+      } else {
+        xhr.open("POST", `http://${obj.ip}:${obj.helperPort}`, true);
+      }
+      xhr.timeout = 10000; // 10 seconds
+      xhr.ontimeout = showFailureMessage;
+      xhr.onerror = showFailureMessage;
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+        if (this.readyState != 4) return;
 
-        // Good connection, so show the interface elements
-        $("#componentAvailableContentRow").show();
-        $("#componentcontentUploadInterface").show();
-        $("#componentInfoConnectingNotice").hide();
+        if (this.status == 200) {
 
-        var availableContent = JSON.parse(this.response);
+          // Good connection, so show the interface elements
+          $("#componentAvailableContentRow").show();
+          $("#componentcontentUploadInterface").show();
+          $("#componentInfoConnectingNotice").hide();
 
-        // If it is provided, show the system stats
-        if ("system_stats" in availableContent) {
-          var stats = availableContent.system_stats;
+          var availableContent = JSON.parse(this.response);
 
-          // Disk
-          $("#contentUploadDiskSpaceUsedBar").attr("ariaValueNow", 100 - stats.disk_pct_free);
-          $("#contentUploadDiskSpaceUsedBar").width(String(100 - stats.disk_pct_free)+"%");
-          $("#contentUploadDiskSpaceFreeBar").attr("ariaValueNow", stats.disk_pct_free);
-          $("#contentUploadDiskSpaceFreeBar").width(String(stats.disk_pct_free)+"%");
-          $("#contentUploadDiskSpaceFree").html(`Disk: ${String(Math.round(stats.disK_free_GB))} GB`);
-          if (stats.disk_pct_free > 20) {
-            $("#contentUploadDiskSpaceUsedBar").removeClass("bg-warning bg-danger").addClass("bg-success");
-          } else if (stats.disk_pct_free > 10) {
-            $("#contentUploadDiskSpaceUsedBar").removeClass("bg-success bg-danger").addClass("bg-warning");
-          } else {
-            $("#contentUploadDiskSpaceUsedBar").removeClass("bg-success bg-warning").addClass("bg-danger");
-          }
+          // If it is provided, show the system stats
+          if ("system_stats" in availableContent) {
+            var stats = availableContent.system_stats;
 
-          // CPU
-          $("#contentUploadCPUUsedBar").attr("ariaValueNow", stats.cpu_load_pct);
-          $("#contentUploadCPUUsedBar").width(String(stats.cpu_load_pct)+"%");
-          $("#contentUploadCPUFreeBar").attr("ariaValueNow", 100 - stats.cpu_load_pct);
-          $("#contentUploadCPUFreeBar").width(String(100 - stats.cpu_load_pct)+"%");
-          $("#contentUploadCPUUsed").html(`CPU: ${String(Math.round(stats.cpu_load_pct))}%`);
-          if (stats.cpu_load_pct < 80) {
-            $("#contentUploadCPUUsedBar").removeClass("bg-warning bg-danger").addClass("bg-success");
-          } else if (stats.cpu_load_pct < 90) {
-            $("#contentUploadCPUUsedBar").removeClass("bg-success bg-danger").addClass("bg-warning");
-          } else {
-            $("#contentUploadCPUUsedBar").removeClass("bg-success bg-warning").addClass("bg-danger");
-          }
-
-          // RAM
-          $("#contentUploadRAMUsedBar").attr("ariaValueNow", stats.ram_used_pct);
-          $("#contentUploadRAMUsedBar").width(String(stats.ram_used_pct)+"%");
-          $("#contentUploadRAMFreeBar").attr("ariaValueNow", 100 - stats.ram_used_pct);
-          $("#contentUploadRAMFreeBar").width(String(100 - stats.ram_used_pct)+"%");
-          $("#contentUploadRAMUsed").html(`RAM: ${String(Math.round(stats.ram_used_pct))}%`);
-          if (stats.ram_used_pct < 80) {
-            $("#contentUploadRAMUsedBar").removeClass("bg-warning bg-danger").addClass("bg-success");
-          } else if (stats.ram_used_pct < 90) {
-            $("#contentUploadRAMUsedBar").removeClass("bg-success bg-danger").addClass("bg-warning");
-          } else {
-            $("#contentUploadCPUUsedBar").removeClass("bg-success bg-warning").addClass("bg-danger");
-          }
-
-          $("#contentUploadSystemStatsView").show();
-        } else {
-          $("#contentUploadSystemStatsView").hide();
-        }
-
-        var populateContent = function(key, id, div) {
-
-          // Get filenames listed under key in availableContent and add
-          // the resulting buttons to the div given by div
-
-          var activeContent = availableContent.active_content;
-          var contentList = availableContent[key].sort(function(a,b) {return a.localeCompare(b);});
-          var active;
-
-          for (var i=0; i<contentList.length; i++) {
-            if (activeContent.includes(contentList[i])) {
-              active = "btn-primary";
+            // Disk
+            $("#contentUploadDiskSpaceUsedBar").attr("ariaValueNow", 100 - stats.disk_pct_free);
+            $("#contentUploadDiskSpaceUsedBar").width(String(100 - stats.disk_pct_free)+"%");
+            $("#contentUploadDiskSpaceFreeBar").attr("ariaValueNow", stats.disk_pct_free);
+            $("#contentUploadDiskSpaceFreeBar").width(String(stats.disk_pct_free)+"%");
+            $("#contentUploadDiskSpaceFree").html(`Disk: ${String(Math.round(stats.disK_free_GB))} GB`);
+            if (stats.disk_pct_free > 20) {
+              $("#contentUploadDiskSpaceUsedBar").removeClass("bg-warning bg-danger").addClass("bg-success");
+            } else if (stats.disk_pct_free > 10) {
+              $("#contentUploadDiskSpaceUsedBar").removeClass("bg-success bg-danger").addClass("bg-warning");
             } else {
-              active = "btn-secondary";
+              $("#contentUploadDiskSpaceUsedBar").removeClass("bg-success bg-warning").addClass("bg-danger");
             }
-            var html = `
-            <div class="col-6 mt-1">
-              <div class="btn-group w-100 h-100">
-                <button type="button" id="${contentList[i].split('.').join("").split(")").join("").split("(").join("").split(/[\\\/]/).join("")}Button" class="btn componentContentButton ${active}">${contentList[i]}</button>
-                <button type="button" id="${contentList[i].split('.').join("").split(")").join("").split("(").join("").split(/[\\\/]/).join("")}ButtonDropdown" class="btn dropdown-toggle dropdown-toggle-split componentContentDropdownButton ${active}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  <span class="sr-only">Toggle Dropdown</span>
-                </button>
-                <div class="dropdown-menu">
-                  <a class="dropdown-item disabled text-secondary">Rename</a>
-                  <a class="dropdown-item disabled"></a>
-                  <div class="dropdown-divider"></div>
-                  <a class="dropdown-item text-danger" onclick="deleteRemoteFile('${id}', '${contentList[i]}')">Delete</a>
+
+            // CPU
+            $("#contentUploadCPUUsedBar").attr("ariaValueNow", stats.cpu_load_pct);
+            $("#contentUploadCPUUsedBar").width(String(stats.cpu_load_pct)+"%");
+            $("#contentUploadCPUFreeBar").attr("ariaValueNow", 100 - stats.cpu_load_pct);
+            $("#contentUploadCPUFreeBar").width(String(100 - stats.cpu_load_pct)+"%");
+            $("#contentUploadCPUUsed").html(`CPU: ${String(Math.round(stats.cpu_load_pct))}%`);
+            if (stats.cpu_load_pct < 80) {
+              $("#contentUploadCPUUsedBar").removeClass("bg-warning bg-danger").addClass("bg-success");
+            } else if (stats.cpu_load_pct < 90) {
+              $("#contentUploadCPUUsedBar").removeClass("bg-success bg-danger").addClass("bg-warning");
+            } else {
+              $("#contentUploadCPUUsedBar").removeClass("bg-success bg-warning").addClass("bg-danger");
+            }
+
+            // RAM
+            $("#contentUploadRAMUsedBar").attr("ariaValueNow", stats.ram_used_pct);
+            $("#contentUploadRAMUsedBar").width(String(stats.ram_used_pct)+"%");
+            $("#contentUploadRAMFreeBar").attr("ariaValueNow", 100 - stats.ram_used_pct);
+            $("#contentUploadRAMFreeBar").width(String(100 - stats.ram_used_pct)+"%");
+            $("#contentUploadRAMUsed").html(`RAM: ${String(Math.round(stats.ram_used_pct))}%`);
+            if (stats.ram_used_pct < 80) {
+              $("#contentUploadRAMUsedBar").removeClass("bg-warning bg-danger").addClass("bg-success");
+            } else if (stats.ram_used_pct < 90) {
+              $("#contentUploadRAMUsedBar").removeClass("bg-success bg-danger").addClass("bg-warning");
+            } else {
+              $("#contentUploadCPUUsedBar").removeClass("bg-success bg-warning").addClass("bg-danger");
+            }
+
+            $("#contentUploadSystemStatsView").show();
+          } else {
+            $("#contentUploadSystemStatsView").hide();
+          }
+
+          var populateContent = function(key, id, div) {
+
+            // Get filenames listed under key in availableContent and add
+            // the resulting buttons to the div given by div
+
+            var activeContent = availableContent.active_content;
+            var contentList = availableContent[key].sort(function(a,b) {return a.localeCompare(b);});
+            var active;
+
+            for (var i=0; i<contentList.length; i++) {
+              if (activeContent.includes(contentList[i])) {
+                active = "btn-primary";
+              } else {
+                active = "btn-secondary";
+              }
+              var html = `
+              <div class="col-6 mt-1">
+                <div class="btn-group w-100 h-100">
+                  <button type="button" id="${contentList[i].split('.').join("").split(")").join("").split("(").join("").split(/[\\\/]/).join("")}Button" class="btn componentContentButton ${active}">${contentList[i]}</button>
+                  <button type="button" id="${contentList[i].split('.').join("").split(")").join("").split("(").join("").split(/[\\\/]/).join("")}ButtonDropdown" class="btn dropdown-toggle dropdown-toggle-split componentContentDropdownButton ${active}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="sr-only">Toggle Dropdown</span>
+                  </button>
+                  <div class="dropdown-menu">
+                    <a class="dropdown-item disabled text-secondary">Rename</a>
+                    <a class="dropdown-item disabled"></a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item text-danger" onclick="deleteRemoteFile('${id}', '${contentList[i]}')">Delete</a>
+                  </div>
                 </div>
               </div>
-            </div>
-            `;
-            $("#"+div).append(html);
-          }
-        };
+              `;
+              $("#"+div).append(html);
+            }
+          };
 
-        // Build buttons for each file in the current exhibit
-        //populateContent('current_exhibit', id, "componentAvailableContentList-thisExhibit")
+          // Build buttons for each file in the current exhibit
+          //populateContent('current_exhibit', id, "componentAvailableContentList-thisExhibit")
 
-        // Build buttons for each file in all exhibits
-        populateContent('all_exhibits', id, "componentAvailableContentList");
+          // Build buttons for each file in all exhibits
+          populateContent('all_exhibits', id, "componentAvailableContentList");
 
-        // Attach an event handler to change the button's color when clicked
-        $(".componentContentButton").on("click", function(e){
-          var id = $(this).attr("id");
-          // $('.componentContentButton').not($(this)).removeClass("btn-primary").addClass("btn-secondary");
-          $(this).toggleClass("btn-primary").toggleClass("btn-secondary");
+          // Attach an event handler to change the button's color when clicked
+          $(".componentContentButton").on("click", function(e){
+            var id = $(this).attr("id");
+            // $('.componentContentButton').not($(this)).removeClass("btn-primary").addClass("btn-secondary");
+            $(this).toggleClass("btn-primary").toggleClass("btn-secondary");
 
-          // $('.componentContentDropdownButton').not($("#"+id+"Dropdown")).removeClass("btn-primary").addClass("btn-secondary");
-          $("#"+id+"Dropdown").toggleClass("btn-secondary").toggleClass("btn-primary");
+            // $('.componentContentDropdownButton').not($("#"+id+"Dropdown")).removeClass("btn-primary").addClass("btn-secondary");
+            $("#"+id+"Dropdown").toggleClass("btn-secondary").toggleClass("btn-primary");
 
-          if ($(".componentContentButton.btn-primary").length == 0) {
-            $("#componentSaveConfirmationButton").hide(); // Can't save a state with no selected content.
-          } else {
-            $("#componentSaveConfirmationButton").show();
-          }
-        });
-      }
-    };
-    xhr.send(requestString);
+            if ($(".componentContentButton.btn-primary").length == 0) {
+              $("#componentSaveConfirmationButton").hide(); // Can't save a state with no selected content.
+            } else {
+              $("#componentSaveConfirmationButton").show();
+            }
+          });
+        }
+      };
+      xhr.send(requestString);
+    } else {
+      // This static component will defintely have no content.
+      showFailureMessage();
+      // Show the maintenance tab
+      $("#componentInfoModalMaintenanceTabButton").tab("show");
+    }
 
     // Make the modal visible
     $("#componentInfoModal").modal("show");
@@ -1732,7 +1744,75 @@ function rebuildIssueList(issues) {
 
     $("#issuesRow").append(col);
   });
+}
 
+function submitComponentMaintenanceStatusChange(type='component') {
+
+  // Take details from the maintenance tab of the componentInfoModal and send
+  // a message to the server updating the given component.
+
+  let id, status, notes;
+  if (type == "component") {
+    id = $("#componentInfoModalTitle").html();
+    status = $("#componentInfoModalMaintenanceStatusSelector").val();
+    notes = $("#componentInfoModalMaintenanceNote").val();
+  } else if (type == 'projector') {
+
+  }
+
+  requestDict = {"class": "webpage",
+                 "action": "updateMaintenanceStatus",
+                 "id": id,
+                 "status": status,
+                 "notes": notes};
+
+  var xhr = new XMLHttpRequest();
+  xhr.timeout = 2000;
+  xhr.open("POST", serverIP, true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.onreadystatechange = function () {
+    if (this.readyState != 4) return;
+
+    if (this.status == 200) {
+      if (this.responseText != "") {
+        let result = JSON.parse(this.responseText);
+        if ("success" in result && result.success == true) {
+          $('#componentInfoModalMaintenanceSaveButton').hide();
+        }
+      }
+    }
+  };
+  xhr.send(JSON.stringify(requestDict));
+}
+
+function setComponentInfoModalMaintenanceStatus(id) {
+
+  // Ask the server for the current maintenance status of the given component
+  // and then update the componentInfoModal with that info
+
+  requestDict = {"class": "webpage",
+                 "action": "getMaintenanceStatus",
+                 "id": id};
+
+  var xhr = new XMLHttpRequest();
+  xhr.timeout = 2000;
+  xhr.open("POST", serverIP, true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.onreadystatechange = function () {
+    if (this.readyState != 4) return;
+
+    if (this.status == 200) {
+      if (this.responseText != "") {
+        let result = JSON.parse(this.responseText);
+        if ("status" in result && "notes" in result) {
+          $("#componentInfoModalMaintenanceStatusSelector").val(result.status);
+          $("#componentInfoModalMaintenanceNote").val(result.notes);
+          $('#componentInfoModalMaintenanceSaveButton').hide();
+        }
+      }
+    }
+  };
+  xhr.send(JSON.stringify(requestDict));
 }
 
 function askForUpdate() {
