@@ -59,3 +59,4 @@ Optional parameters:
 * `allow_sleep` (default: true): Whether the control server is allowed to tell the computer to turn off the display. The exact effect of sleep is platform dependant.
 * `allow_restart` (default: true): Whether the control server is allowed to tell the computer to restart. **If one PC is displaying multiple components on separate screens, this should generally be set to false.**
 * `allow_shutdown` (default: false): Whether the control server is allowed to tell the computer to shutdown. **Unless the PC is configured for Wake on LAN, the control server will be unable to power on the machine once it is shut down,**
+* `anydesk_id`: Supply an AnyDesk id corresponding to this device and a button will appear in the web console under Maintenance allowing an easy connection. You must have AnyDesk installed and configured for unattended access.

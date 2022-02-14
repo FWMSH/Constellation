@@ -58,27 +58,6 @@ function wakeDisplay() {
   xhr.send(requestString);
 }
 
-// function commandProjector(cmd) {
-//
-//   // Send a message to the local helper process to control the projector
-//
-//   // requestString = `action=commandProjector&command=${cmd}`;
-//   var requestString = JSON.stringify({"action": "commandProjector", "command": cmd});
-//
-//   var xhr = new XMLHttpRequest();
-//   xhr.open("POST", helperAddress, true);
-//   xhr.timeout = 10000;
-//   xhr.setRequestHeader('Content-Type', 'application/json');
-//   xhr.onreadystatechange = function () {
-//     if (this.readyState != 4) return;
-//
-//     if (this.status == 200) {
-//     }
-// };
-//   xhr.send(requestString);
-//
-// }
-
 function synchronize(timeToPlay) {
 
   // Function to set a timeout to begin playing the synchronized video
@@ -216,6 +195,9 @@ function readUpdate(responseText) {
   if ("helperSoftwareUpdateAvailable" in update) {
     if (update.helperSoftwareUpdateAvailable == "true")
     errorDict.helperSoftwareUpdateAvailable = "true";
+  }
+  if ("anydesk_id" in update) {
+    AnyDeskID = update.anydesk_id;
   }
 
   // This should be last to make sure the path has been updated
@@ -457,7 +439,8 @@ function sendPing() {
                    "type": type,
                    "helperPort": helperAddress.split(":")[2], // Depreciated
                    "helperAddress": helperAddress,
-                   "allowed_actions": allowedActionsDict};
+                   "allowed_actions": allowedActionsDict,
+                   "AnyDeskID": AnyDeskID};
 
     // See if there is an error to report
     let errorString = JSON.stringify(errorDict);

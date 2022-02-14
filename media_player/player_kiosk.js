@@ -250,9 +250,9 @@ function readUpdate(responseText) {
   if ("dictionary" in update) {
     dictionary = update.dictionary;
   }
-  // if ("allow_sleep" in update) {
-  //   allowedActionsDict.sleep = update.allow_sleep;
-  // }
+  if ("kiosk_anydesk_id" in update) {
+    AnyDeskID = update.kiosk_anydesk_id;
+  }
 
   if ('commands' in update) {
     for (var i=0; i<update.commands.length; i++) {
@@ -317,7 +317,8 @@ function sendPing() {
                        "id": id,
                        "type": type,
                        "currentInteraction": String(currentlyActive),
-                       "allowed_actions": allowedActionsDict};
+                       "allowed_actions": allowedActionsDict,
+                       "AnyDeskID": AnyDeskID};
 
     var requestString = JSON.stringify(requestDict);
 

@@ -117,6 +117,9 @@ function readUpdate(responseText) {
   if ("allow_shutdown" in update) {
     allowedActionsDict.shutdown = update.allow_shutdown;
   }
+  if ("anydesk_id" in update) {
+    AnyDeskID = update.anydesk_id;
+  }
 }
 
 function changeMedia(source) {
@@ -212,7 +215,9 @@ function sendPing() {
     requestDict = {"class":"exhibitComponent",
                    "id": id,
                    "type": type,
-                   "allowed_actions": allowedActionsDict};
+                   "allowed_actions": allowedActionsDict,
+                   "AnyDeskID": AnyDeskID};
+
     if (errorString != null) {
       requestDict.error = errorString;
     }

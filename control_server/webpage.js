@@ -12,6 +12,7 @@ class ExhibitComponent {
     this.state = {};
     this.status = "OFFLINE";
     this.allowed_actions = [];
+    this.AnyDeskID = "";
 
     if (this.type == "PROJECTOR") {
       this.checkProjector();
@@ -455,6 +456,13 @@ function showExhibitComponentInfo(id) {
     $("#componentcontentUploadInterface").hide();
     setComponentInfoModalMaintenanceStatus(id);
 
+    if ("AnyDeskID" in obj && obj.AnyDeskID != "") {
+      $("#AnyDeskButton").prop("href", "anydesk:"+obj.AnyDeskID);
+      $("#AnyDeskButton").show();
+    } else {
+      $("#AnyDeskButton").hide();
+    }
+
     var showFailureMessage = function() {
       $("#componentInfoConnectionStatusFailed").show();
       $("#componentInfoConnectionStatusInPrograss").hide();
@@ -839,6 +847,9 @@ function updateComponentFromServer(component) {
     }
     if ("description" in component) {
       obj.description = component.description;
+    }
+    if ("AnyDeskID" in component) {
+      obj.AnyDeskID = component.AnyDeskID;
     }
     if ("error" in component) {
       errorDict[obj.id] = JSON.parse(component.error);

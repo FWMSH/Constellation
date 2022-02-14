@@ -179,7 +179,8 @@ class ExhibitComponent:
 
         self.config = {"commands": [],
                        "allowed_actions": [],
-                       "description": componentDescriptions.get(id, "")}
+                       "description": componentDescriptions.get(id, ""),
+                       "AnyDeskID": ""}
 
         if category != "static":
             self.update_configuration()
@@ -423,6 +424,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 temp["allowed_actions"] = item.config["allowed_actions"]
             if "description" in item.config:
                 temp["description"] = item.config["description"]
+            if "AnyDeskID" in item.config:
+                temp["AnyDeskID"] = item.config["AnyDeskID"]
             temp["class"] = "exhibitComponent"
             temp["status"] = item.current_status()
             temp["ip_address"] = item.ip
@@ -606,7 +609,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 for seg in split:
                     split2 = seg.split("=")
                     data[split2[0]] = split2[1]
-
             try:
                 pingClass = data["class"]
             except KeyError:
@@ -934,7 +936,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         if file.endswith(".txt"):
                             with maintenanceLock:
                                 file_path = os.path.join("maintenance-logs", file)
-                                print(file_path)
                                 with open(file_path, 'rb') as f:
                                     # Seek to the end of the file and return the most recent entry
                                     try:  # catch OSError in case of a one line file
@@ -975,7 +976,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         id = data["id"]
                         # type = data["type"]
                         if id == "UNKNOWN":
-                            #print(f"Warning: exhibitComponent ping with id=UNKNOWN coming from {self.address_string()}")
+                            print(f"Warning: exhibitComponent ping with id=UNKNOWN coming from {self.address_string()}")
+                            self.wfile.write(json.dumps({}))
                             # print("END POST")
                             # print("===============")
                             return
@@ -1664,6 +1666,8 @@ def update_exhibit_component_status(data, ip):
     if "helperAddress" in data:
         component.helperAddress = data["helperAddress"]
     component.update_last_contact_datetime()
+    if "AnyDeskID" in data:
+        component.config["AnyDeskID"] = data["AnyDeskID"]
     if "currentInteraction" in data:
         if data["currentInteraction"].lower() == "true":
             component.update_last_interaction_datetime()
