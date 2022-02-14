@@ -127,7 +127,7 @@ function askForDefaults() {
   xhr.timeout = 2000;
   xhr.onerror = checkAgain;
   xhr.ontimeout = checkAgain;
-  
+
   xhr.open("POST", helperAddress, true);
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.onreadystatechange = function () {
@@ -216,6 +216,20 @@ function decreaseTextSize() {
   updateTextSize();
 }
 
+function sleepDisplay() {
+
+  // Overlay a black div to blank the screen.
+
+  document.getElementById('displayBlackout').style.display = "block";
+}
+
+function wakeDisplay() {
+
+  // Hide the blanking div
+
+  document.getElementById('displayBlackout').style.display = "none";
+}
+
 function readUpdate(responseText) {
 
   // Function to read a message from the server and take action based
@@ -236,12 +250,23 @@ function readUpdate(responseText) {
   if ("dictionary" in update) {
     dictionary = update.dictionary;
   }
+  // if ("allow_sleep" in update) {
+  //   allowedActionsDict.sleep = update.allow_sleep;
+  // }
+
   if ('commands' in update) {
     for (var i=0; i<update.commands.length; i++) {
       var cmd = update.commands[i];
 
       if (cmd == "refresh_page") {
           location.reload();
+      }
+      else if (cmd == "shutdown" || cmd == "power_off") {
+        askForShutdown();
+      } else if (cmd == "sleepDisplay") {
+          sleepDisplay();
+      } else if (cmd == "wakeDisplay" || cmd == "power_on") {
+          wakeDisplay();
       }
     }
   }
@@ -285,7 +310,8 @@ function sendPing() {
 
   if (serverAddress != "") {
 
-    var allowedActionsDict = {"refresh": "true"};
+    var allowedActionsDict = {"refresh": "true",
+                              "sleep": "true"};
 
     var requestDict = {"class": "exhibitComponent",
                        "id": id,

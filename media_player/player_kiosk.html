@@ -82,6 +82,18 @@
       #cardRow::-webkit-scrollbar {
         display: none;
       }
+      #displayBlackout {
+        position: fixed;
+        display: none;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,0,0,1);
+        z-index: 250;
+      }
       #footer {
         height: 11vh;
       }
@@ -123,6 +135,10 @@
   </head>
 
   <body>
+    <!-- This overlay covers the whole screen at 100% black to blank the screen -->
+    <div id="displayBlackout" class="sticky-top">
+    </div>
+
     <!-- This overlay covers the whole screen with the video attractor -->
     <div id="attractorOverlay" class="sticky-top" onclick="hideAttractor()">
       <div class="container">

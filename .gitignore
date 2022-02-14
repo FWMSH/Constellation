@@ -38,3 +38,7 @@ control_server/maintenance-logs/RIGHT.txt
 control_server/maintenance-logs/LEFT.txt
 control_server/maintenance-logs/KNEES.txt
 control_server/maintenance-logs/BOTTOM.txt
+control_server/analytics/W1_KIOSK.txt
+control_server/analytics/W1_KIOSK.txt
+control_server/flexible-tracker/data/test.txt
+control_server/maintenance-logs/WINDOW1.txt

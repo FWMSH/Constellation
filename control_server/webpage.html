@@ -178,7 +178,7 @@
                             <label for="componentInfoModalMaintenanceStatusSelector">Maintenance status</label>
                             <select class="form-control" id="componentInfoModalMaintenanceStatusSelector" onchange="$('#componentInfoModalMaintenanceSaveButton').show()">
                               <option>On floor, working</option>
-                              <option>On floor, not Working</option>
+                              <option>On floor, not working</option>
                               <option>Off floor, working</option>
                               <option>Off floor, not working</option>
                             </select>
@@ -420,6 +420,40 @@
               <div id='issuesRow' class='row mt-3'></div>
             </div>
           </div>
+          <div class='row mt-4'>
+            <div class='col-12'>
+              <H3>Maintenance overview</H3>
+              <button class='btn btn-primary' onclick="refreshMaintenanceRecords()">Refresh</button>
+            </div>
+            <div class='col-12 col-md-6'>
+              <div class='col-12 mt-3 pb-3 pt-3' style="background-color: #b4ffb3;">
+                <H4>On the floor and working</H4>
+                <div id='MaintenanceOverviewOnFloorWorkingPane' class='row'>
+                </div>
+              </div>
+            </div>
+            <div class='col-12 col-md-6'>
+              <div class='col-12 mt-3 pb-3 pt-3' style="background-color: #fab8af;">
+                <H4>On the floor and not working</H4>
+                <div id='MaintenanceOverviewOnFloorNotWorkingPane' class='row'>
+                </div>
+              </div>
+            </div>
+            <div class='col-12 col-md-6'>
+              <div class='col-12 mt-3 pb-3 pt-3' style="background-color: #b1ddfc;">
+                <H4>Off the floor and working</H4>
+                <div id='MaintenanceOverviewOffFloorWorkingPane' class='row'>
+                </div>
+              </div>
+            </div>
+            <div class='col-12 col-md-6'>
+              <div class='col-12 mt-3 pb-3 pt-3' style="background-color: #fcdba9;">
+                <H4>Off the floor and not working</H4>
+                <div id='MaintenanceOverviewOffFloorNotWorkingPane' class='row'>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="tab-pane fade" id="nav-settings" role="tabpanel" aria-labelledby="nav-settings-tab">
@@ -544,6 +578,7 @@
       askForUpdate();
       setInterval(askForUpdate, 5000);
       populateHelpTab();
+      refreshMaintenanceRecords();
       parseQueryString();
     </script>
 

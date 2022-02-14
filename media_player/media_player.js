@@ -18,12 +18,12 @@ function checkForSoftwareUpdate() {
   xhr.send(null);
 }
 
-function sleepDisplays() {
+function sleepDisplay() {
 
   // Send a message to the local helper process and ask it to sleep the
   // displays
 
-  var requestString = JSON.stringify({"action": "sleepDisplays"});
+  var requestString = JSON.stringify({"action": "sleepDisplay"});
 
   var xhr = new XMLHttpRequest();
   xhr.open("POST", helperAddress, true);
@@ -38,12 +38,12 @@ function sleepDisplays() {
   xhr.send(requestString);
 }
 
-function wakeDisplays() {
+function wakeDisplay() {
 
   // Send a message to the local helper process and ask it to sleep the
   // displays
 
-  var requestString = JSON.stringify({"action": "wakeDisplays"});
+  var requestString = JSON.stringify({"action": "wakeDisplay"});
 
   var xhr = new XMLHttpRequest();
   xhr.open("POST", helperAddress, true);
@@ -122,12 +122,12 @@ function readUpdate(responseText) {
 
       if (cmd == "restart") {
         askForRestart();
-      } else if (cmd == "shutdown") {
+      } else if (cmd == "shutdown" || cmd == "power_off") {
         askForShutdown();
-      } else if (cmd == "sleepDisplays") {
-          sleepDisplays();
-      } else if (cmd == "wakeDisplays") {
-          wakeDisplays();
+      } else if (cmd == "sleepDisplay") {
+          sleepDisplay();
+      } else if (cmd == "wakeDisplay" || cmd == "power_on") {
+          wakeDisplay();
       } else if (cmd == "refresh_page") {
         if ("refresh" in allowedActionsDict && allowedActionsDict.refresh == "true") {
           location.reload();
@@ -203,6 +203,9 @@ function readUpdate(responseText) {
         image_duration = update.image_duration*1000;
         console.log(`Setting image duration: ${update.image_duration} seconds`);
       }
+  }
+  if ("allow_sleep" in update) {
+    allowedActionsDict.sleep = update.allow_sleep;
   }
   if ("allow_restart" in update) {
     allowedActionsDict.restart = update.allow_restart;

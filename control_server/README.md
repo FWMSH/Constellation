@@ -38,6 +38,7 @@ The following packages are required to install the control server. For `pip`, th
 * [`pypjlink2`](https://github.com/benoitlouy/pypjlink)
 * [`pywakeonlan`](https://github.com/remcohaszing/pywakeonlan)
 
+
 ### Configuration
 
 #### currentExhibitConfiguration.ini

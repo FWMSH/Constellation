@@ -262,14 +262,14 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         data[split2[0]] = split2[1]
 
             if "action" in data:
-                if data["action"] == "sleepDisplays":
-                    sleepDisplays()
+                if data["action"] == "sleepDisplay":
+                    sleep_display()
                 elif data["action"] == "restart":
                     reboot()
                 elif data["action"] in ["shutdown", "power_off"]:
                     shutdown()
-                elif data["action"] == "wakeDisplays":
-                    wakeDisplays()
+                elif data["action"] in ["power_on", "wakeDisplay"]:
+                    wake_display()
                 elif data["action"] == "commandProjector":
                     if "command" in data:
                         commandProjector(data["command"])
@@ -480,9 +480,12 @@ def reboot():
 
 def shutdown():
 
-    """Send an OS-appropriate command to shutdown the computer"""
+    """Send an OS-appropriate command to shutdown the computer.
+
+    If shutdown is not allowed, call sleep_display() to put the display to sleep"""
 
     shutdown_allowed = config.defaults_dict.get("allow_shutdown", "false")
+    sleep_allowed = config.defaults_dict.get("allow_sleep", "false")
 
     if shutdown_allowed.lower() in ["true", "yes", '1', 1]:
         print("Shutting down...")
@@ -492,10 +495,13 @@ def shutdown():
             os.system("systemctl shutdown -i")
         elif sys.platform == "win32":
             os.system("shutdown -t 0 -s")
+    elif sleep_allowed.lower() in ["true", "yes", '1', 1]:
+        print("Shutdown requested but not permitted. Sleeping displays...")
+        sleep_display()
     else:
-        print("Shutdown requested but not permitted by defaults.ini. Set allow_shutdown = true to enable")
+        print("Shutdown requested but not permitted by defaults.ini. Set allow_shutdown = true to enable or set allow_sleep to enable turning off the displays")
 
-def sleepDisplays():
+def sleep_display():
 
     if strToBool(config.defaults_dict.get("allow_sleep", True)):
         if config.defaults_dict["display_type"] == "screen":
@@ -503,10 +509,12 @@ def sleepDisplays():
                 os.system("pmset displaysleepnow")
             elif sys.platform == "linux":
                 os.system("xset dpms force off")
+            elif sys.platform == "win32":
+                os.system("nircmd.exe monitor async_off")
         elif config.defaults_dict["display_type"] == "projector":
             commandProjector("off")
 
-def wakeDisplays():
+def wake_display():
 
     """Wake the display up or power it on"""
 
@@ -515,6 +523,9 @@ def wakeDisplays():
             os.system("caffeinate -u -t 2")
         elif sys.platform == "linux":
             os.system("xset dpms force on")
+        elif sys.platform == "win32":
+            # os.system("nircmd.exe monitor async_on")
+            os.system("nircmd sendkeypress ctrl")
     elif config.defaults_dict["display_type"] == "projector":
         commandProjector("on")
 

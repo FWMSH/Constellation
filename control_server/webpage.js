@@ -157,11 +157,9 @@ class ExhibitComponent {
     if (this.allowed_actions.includes("power_on")) {
       optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'power_on')">${onCmdName}</a>`;
     }
-    if (this.allowed_actions.includes("wake")) {
-      optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'wakeDisplay')">$Wake display</a>`;
-    }
     if (this.allowed_actions.includes("sleep")) {
       optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'sleepDisplay')">Sleep display</a>`;
+      optionList += `<a class="dropdown-item handCursor" onclick="queueCommand('${this.id}', 'wakeDisplay')">Wake display</a>`;
     }
     if (optionList.length == 0) {
       optionList += `<span class="dropdown-item">No available actions</span>`;
@@ -1323,8 +1321,6 @@ function sendScheduleUpdateFromModal() {
     return;
   }
 
-  console.log("Update action:", scheduleName, isAddition, time, action, target);
-
   var requestDict;
   if (isAddition) {
     requestDict = {"class": "webpage",
@@ -1681,7 +1677,6 @@ function rebuildIssueList(issues) {
 
   // Take an array of issue dictionaries and build the GUI representation.
 
-  console.log(issues);
   $("#issuesRow").empty();
 
   issues.forEach((issue, i) => {
@@ -1809,6 +1804,80 @@ function setComponentInfoModalMaintenanceStatus(id) {
           $("#componentInfoModalMaintenanceNote").val(result.notes);
           $('#componentInfoModalMaintenanceSaveButton').hide();
         }
+      }
+    }
+  };
+  xhr.send(JSON.stringify(requestDict));
+}
+
+function refreshMaintenanceRecords() {
+
+  // Ask the server to send all the maintenance records and then rebuild the
+  // maintanence overview from those data.
+
+  requestDict = {"class": "webpage",
+                 "action": "getAllMaintenanceStatuses"};
+
+  var xhr = new XMLHttpRequest();
+  xhr.timeout = 2000;
+  xhr.open("POST", serverIP, true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.onreadystatechange = function () {
+    if (this.readyState != 4) return;
+
+    if (this.status == 200) {
+      if (this.responseText != "") {
+        let result = JSON.parse(this.responseText);
+        console.log(result.records);
+
+        $("#MaintenanceOverviewOnFloorWorkingPane").empty();
+        $("#MaintenanceOverviewOnFloorNotWorkingPane").empty();
+        $("#MaintenanceOverviewOffFloorWorkingPane").empty();
+        $("#MaintenanceOverviewOffFloorNotWorkingPane").empty();
+
+        result.records.forEach((record, i) => {
+          let col = document.createElement("div");
+          col.setAttribute("class", "col-12 col-lg-6 mt-2");
+
+          let card = document.createElement("div");
+          card.setAttribute("class", `card h-100 bg-secondary text-white`);
+          col.appendChild(card);
+
+          let body = document.createElement("div");
+          body.setAttribute("class", "card-body");
+          card.appendChild(body);
+
+          let title = document.createElement("H5");
+          title.setAttribute("class", "card-title");
+          title.innerHTML = record.id;
+          body.appendChild(title);
+
+          let notes = document.createElement("p");
+          notes.setAttribute("class", "card-text");
+          notes.innerHTML = record.notes;
+          body.appendChild(notes);
+
+          let parentPane;
+          switch (record.status) {
+            case "On floor, working":
+              parentPane = "MaintenanceOverviewOnFloorWorkingPane";
+              break;
+            case "On floor, not working":
+              parentPane = "MaintenanceOverviewOnFloorNotWorkingPane";
+              break;
+            case "Off floor, working":
+              parentPane = "MaintenanceOverviewOffFloorWorkingPane";
+              break;
+            case "Off floor, not working":
+              parentPane = "MaintenanceOverviewOffFloorNotWorkingPane";
+              break;
+            default:
+              console.log(record.status)
+              parentPane = "MaintenanceOverviewOffFloorNotWorkingPane";
+
+          }
+          $("#"+parentPane).append(col);
+        });
       }
     }
   };

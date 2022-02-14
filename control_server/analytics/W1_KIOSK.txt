@@ -8,3 +8,6 @@
 {"action": "showAttractor", "target": "attractor", "idle": "true", "datetime": "2021-11-18T09:56:58.419", "exhibit": "space"}
 {"action": "hideAttractor", "target": "attractor", "idle": "false", "datetime": "2021-11-18T09:57:19.799", "exhibit": "space"}
 {"action": "showAttractor", "target": "attractor", "idle": "true", "datetime": "2021-11-18T09:57:47.862", "exhibit": "space"}
+{"action": "showAttractor", "target": "attractor", "idle": "true", "datetime": "2022-02-14T11:09:25.248", "exhibit": "space"}
+{"action": "showAttractor", "target": "attractor", "idle": "true", "datetime": "2022-02-14T11:10:43.555", "exhibit": "space"}
+{"action": "showAttractor", "target": "attractor", "idle": "true", "datetime": "2022-02-14T11:14:42.598", "exhibit": "space"}

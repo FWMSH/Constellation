@@ -1,15 +1,14 @@
 /*jshint esversion: 6 */
 
-function sleepDisplays() {
+function sleepDisplay() {
 
   // Send a message to the local helper process and ask it to sleep the
   // displays
 
   let requestDict = {
-    "action": "sleepDisplays"
+    "action": "sleepDisplay"
   };
   let requestString = JSON.stringify(requestDict);
-  // requestString = `action=sleepDisplays`;
 
   let xhr = new XMLHttpRequest();
   xhr.timeout = 1000;
@@ -24,16 +23,15 @@ function sleepDisplays() {
   xhr.send(requestString);
 }
 
-function wakeDisplays() {
+function wakeDisplay() {
 
   // Send a message to the local helper process and ask it to sleep the
   // displays
 
   let requestDict = {
-    "action": "wakeDisplays"
+    "action": "wakeDisplay"
   };
   let requestString = JSON.stringify(requestDict);
-  // requestString = `action=wakeDisplays`;
 
   let xhr = new XMLHttpRequest();
   xhr.open("POST", helperAddress, true);
@@ -84,9 +82,9 @@ function readUpdate(responseText) {
       var cmd = (update.commands)[i];
 
       if (cmd == "sleepDisplay") {
-        sleepDisplays();
+        sleepDisplay();
       } else if (cmd == "wakeDisplay") {
-        wakeDisplays();
+        wakeDisplay();
       } else if (cmd == "refresh_page") {
           location.reload();
       } else if (cmd == "restart") {

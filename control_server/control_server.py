@@ -928,6 +928,26 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         response_dict = {"success": False,
                                          "reason": "Must include field 'id'"}
                     self.wfile.write(bytes(json.dumps(response_dict), encoding="UTF-8"))
+                elif action == "getAllMaintenanceStatuses":
+                    record_list = []
+                    for file in os.listdir("maintenance-logs"):
+                        if file.endswith(".txt"):
+                            with maintenanceLock:
+                                file_path = os.path.join("maintenance-logs", file)
+                                print(file_path)
+                                with open(file_path, 'rb') as f:
+                                    # Seek to the end of the file and return the most recent entry
+                                    try:  # catch OSError in case of a one line file
+                                        f.seek(-2, os.SEEK_END)
+                                        while f.read(1) != b'\n':
+                                            f.seek(-2, os.SEEK_CUR)
+                                    except OSError:
+                                        f.seek(0)
+                                    last_line = f.readline().decode()
+                            record_list.append(json.loads(last_line))
+                    response_dict = {"success": True,
+                                     "records": record_list}
+                    self.wfile.write(bytes(json.dumps(response_dict), encoding="UTF-8"))
                 else:
                     print(f"Error: Unknown webpage command received: {action}")
                     with logLock:

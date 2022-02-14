@@ -27,6 +27,8 @@ The following packages are required to use the system helper. For `pip`, they ar
 * [`pywakeonlan`](https://github.com/remcohaszing/pywakeonlan)
 * [`icmplib`](https://github.com/ValentinBELYN/icmplib)
 
+For certain system operations on Windows, **_Constellation_** uses [NirCmd 2.86](https://www.nirsoft.net/utils/nircmd.html), a freeware utility distributed with this repository. Please note that NirCmd is not open source.
+
 ### Configuration
 Every Constellation component on a system needs its own system helper. Place the files in the same directory as the files for that component. For example, for a `media_player` installation:
 

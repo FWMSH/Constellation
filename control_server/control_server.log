@@ -3131,3 +3131,250 @@ ERROR, 2022-01-28 10:58:42, GET for unexpected file /js/popper.min.js.map
 ERROR, 2022-01-28 10:59:24, GET for unexpected file /js/popper.min.js.map
 ERROR, 2022-01-28 10:59:44, GET for unexpected file /js/popper.min.js.map
 ERROR, 2022-01-28 12:33:17, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 15:37:10, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 15:46:18, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 15:46:26, Unknown webpage command received: getAllMaintenanceStatuses
+INFO, 2022-01-28 15:46:34, Server shutdown
+INFO, 2022-01-28 15:46:35, Server started
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=TOES
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=TOP
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=TOES
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=TOP
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=TOES
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=TOP
+WARNING, 2022-01-28 15:46:46, there is no configuration available for component with id=BOTTOM
+ERROR, 2022-01-28 15:46:54, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-01-28 15:47:52, Server shutdown
+INFO, 2022-01-28 15:47:53, Server started
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=TOES
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=TOP
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=TOES
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=TOP
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=TOES
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=TOP
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=TOES
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=TOP
+WARNING, 2022-01-28 15:48:01, there is no configuration available for component with id=BOTTOM
+INFO, 2022-01-28 15:48:11, Server shutdown
+INFO, 2022-01-28 15:48:50, Server started
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=TOES
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=TOP
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=TOES
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=TOP
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=TOES
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=TOP
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=TOES
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=TOP
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=HEAD
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=KNEES
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=TOES
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=LEFT
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=RIGHT
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=TOP
+WARNING, 2022-01-28 15:49:02, there is no configuration available for component with id=BOTTOM
+ERROR, 2022-01-28 15:51:05, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 15:51:12, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 15:52:57, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 15:53:37, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 15:59:17, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 15:59:50, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:00:51, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:02:07, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:03:22, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:04:03, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:04:16, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:04:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:05:01, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:05:40, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:06:25, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:06:40, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:06:52, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:07:13, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:07:17, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:07:42, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:08:16, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:08:51, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:09:11, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:10:16, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:11:20, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:46:23, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:46:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:47:28, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:49:10, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:49:33, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:50:50, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:51:19, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:51:30, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:52:27, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:53:07, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:53:21, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:53:26, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:53:31, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:53:49, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:54:03, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:55:23, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:55:58, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:56:31, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:57:39, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:58:03, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:58:14, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:58:23, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:59:18, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:59:26, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:59:36, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 16:59:51, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:00:09, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:00:38, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:00:53, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:01:16, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:01:51, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:01:58, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:02:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:02:41, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:02:53, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:03:15, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:03:40, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:03:46, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:04:00, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:04:09, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:04:32, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:04:38, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:04:45, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:04:55, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:06:30, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:06:49, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-01-28 17:07:14, GET for unexpected file /js/popper.min.js.map
+INFO, 2022-02-09 10:47:36, Server shutdown
+INFO, 2022-02-09 10:47:38, Server started
+ERROR, 2022-02-09 10:47:38, "Traceback (most recent call last):<newline>  File 'control_server.py', line 1870, in <module><newline>    load_default_configuration()<newline>  File 'control_server.py', line 1383, in load_default_configuration<newline>    retrieve_schedule()<newline>  File 'control_server.py', line 1259, in retrieve_schedule<newline>    action = [s.strip() for s in sched[key].split(',')]<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 1252, in __getitem__<newline>    return self._parser.get(self._name, key)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 799, in get<newline>    d)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 394, in before_get<newline>    self._interpolate_some(parser, option, L, value, section, defaults, 1)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 411, in _interpolate_some<newline>    p = rest.find('%')<newline>AttributeError: 'list' object has no attribute 'find'<newline>"
+INFO, 2022-02-09 10:47:49, Server started
+ERROR, 2022-02-09 10:47:49, "Traceback (most recent call last):<newline>  File 'control_server.py', line 1870, in <module><newline>    load_default_configuration()<newline>  File 'control_server.py', line 1383, in load_default_configuration<newline>    retrieve_schedule()<newline>  File 'control_server.py', line 1259, in retrieve_schedule<newline>    action = [s.strip() for s in sched[key].split(',')]<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 1252, in __getitem__<newline>    return self._parser.get(self._name, key)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 799, in get<newline>    d)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 394, in before_get<newline>    self._interpolate_some(parser, option, L, value, section, defaults, 1)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 411, in _interpolate_some<newline>    p = rest.find('%')<newline>AttributeError: 'list' object has no attribute 'find'<newline>"
+INFO, 2022-02-09 10:47:57, Server started
+ERROR, 2022-02-09 10:47:57, "Traceback (most recent call last):<newline>  File 'control_server.py', line 1250, in retrieve_schedule<newline>    parser.read(schedule_to_read)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 696, in read<newline>    self._read(fp, filename)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 1091, in _read<newline>    fpname, lineno)<newline>configparser.DuplicateOptionError: While reading from '/Users/adlab/Documents/GitHub/Constellation/control_server/schedules/2022-02-09.ini' [line  3]: option '9 am' in section 'SCHEDULE' already exists<newline><newline>During handling of the above exception, another exception occurred:<newline><newline>Traceback (most recent call last):<newline>  File 'control_server.py', line 1870, in <module><newline>    load_default_configuration()<newline>  File 'control_server.py', line 1383, in load_default_configuration<newline>    retrieve_schedule()<newline>  File 'control_server.py', line 1253, in retrieve_schedule<newline>    print(parser.keys()[0])<newline>TypeError: 'KeysView' object is not subscriptable<newline>"
+INFO, 2022-02-09 10:48:27, Server started
+ERROR, 2022-02-09 10:48:27, "Traceback (most recent call last):<newline>  File 'control_server.py', line 1871, in <module><newline>    load_default_configuration()<newline>  File 'control_server.py', line 1384, in load_default_configuration<newline>    retrieve_schedule()<newline>  File 'control_server.py', line 1260, in retrieve_schedule<newline>    action = [s.strip() for s in sched[key].split(',')]<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 1252, in __getitem__<newline>    return self._parser.get(self._name, key)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 799, in get<newline>    d)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 394, in before_get<newline>    self._interpolate_some(parser, option, L, value, section, defaults, 1)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 411, in _interpolate_some<newline>    p = rest.find('%')<newline>AttributeError: 'list' object has no attribute 'find'<newline>"
+INFO, 2022-02-09 10:48:44, Server started
+ERROR, 2022-02-09 10:48:44, "Traceback (most recent call last):<newline>  File 'control_server.py', line 1872, in <module><newline>    load_default_configuration()<newline>  File 'control_server.py', line 1385, in load_default_configuration<newline>    retrieve_schedule()<newline>  File 'control_server.py', line 1261, in retrieve_schedule<newline>    action = [s.strip() for s in sched[key].split(',')]<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 1252, in __getitem__<newline>    return self._parser.get(self._name, key)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 799, in get<newline>    d)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 394, in before_get<newline>    self._interpolate_some(parser, option, L, value, section, defaults, 1)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 411, in _interpolate_some<newline>    p = rest.find('%')<newline>AttributeError: 'list' object has no attribute 'find'<newline>"
+INFO, 2022-02-09 10:49:08, Server started
+ERROR, 2022-02-09 10:49:08, "Traceback (most recent call last):<newline>  File 'control_server.py', line 1250, in retrieve_schedule<newline>    parser.read(schedule_to_read)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 696, in read<newline>    self._read(fp, filename)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 1091, in _read<newline>    fpname, lineno)<newline>configparser.DuplicateOptionError: While reading from '/Users/adlab/Documents/GitHub/Constellation/control_server/schedules/2022-02-09.ini' [line  3]: option '9 am' in section 'SCHEDULE' already exists<newline><newline>During handling of the above exception, another exception occurred:<newline><newline>Traceback (most recent call last):<newline>  File 'control_server.py', line 1872, in <module><newline>    load_default_configuration()<newline>  File 'control_server.py', line 1385, in load_default_configuration<newline>    retrieve_schedule()<newline>  File 'control_server.py', line 1255, in retrieve_schedule<newline>    print(sched[keys])<newline>NameError: name 'keys' is not defined<newline>"
+INFO, 2022-02-09 10:49:10, Server started
+ERROR, 2022-02-09 10:49:10, "Traceback (most recent call last):<newline>  File 'control_server.py', line 1250, in retrieve_schedule<newline>    parser.read(schedule_to_read)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 696, in read<newline>    self._read(fp, filename)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 1091, in _read<newline>    fpname, lineno)<newline>configparser.DuplicateOptionError: While reading from '/Users/adlab/Documents/GitHub/Constellation/control_server/schedules/2022-02-09.ini' [line  3]: option '9 am' in section 'SCHEDULE' already exists<newline><newline>During handling of the above exception, another exception occurred:<newline><newline>Traceback (most recent call last):<newline>  File 'control_server.py', line 1872, in <module><newline>    load_default_configuration()<newline>  File 'control_server.py', line 1385, in load_default_configuration<newline>    retrieve_schedule()<newline>  File 'control_server.py', line 1255, in retrieve_schedule<newline>    print(sched[key])<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 1252, in __getitem__<newline>    return self._parser.get(self._name, key)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 799, in get<newline>    d)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 394, in before_get<newline>    self._interpolate_some(parser, option, L, value, section, defaults, 1)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 411, in _interpolate_some<newline>    p = rest.find('%')<newline>AttributeError: 'list' object has no attribute 'find'<newline>"
+INFO, 2022-02-09 10:52:06, Server started
+ERROR, 2022-02-09 10:52:06, "Traceback (most recent call last):<newline>  File 'control_server.py', line 1250, in retrieve_schedule<newline>    parser.read(schedule_to_read)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 696, in read<newline>    self._read(fp, filename)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 1091, in _read<newline>    fpname, lineno)<newline>configparser.DuplicateOptionError: While reading from '/Users/adlab/Documents/GitHub/Constellation/control_server/schedules/2022-02-09.ini' [line  3]: option '9 am' in section 'SCHEDULE' already exists<newline><newline>During handling of the above exception, another exception occurred:<newline><newline>Traceback (most recent call last):<newline>  File 'control_server.py', line 1872, in <module><newline>    load_default_configuration()<newline>  File 'control_server.py', line 1385, in load_default_configuration<newline>    retrieve_schedule()<newline>  File 'control_server.py', line 1255, in retrieve_schedule<newline>    print(type(sched[key]))<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 1252, in __getitem__<newline>    return self._parser.get(self._name, key)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 799, in get<newline>    d)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 394, in before_get<newline>    self._interpolate_some(parser, option, L, value, section, defaults, 1)<newline>  File '/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/configparser.py', line 411, in _interpolate_some<newline>    p = rest.find('%')<newline>AttributeError: 'list' object has no attribute 'find'<newline>"
+INFO, 2022-02-09 10:55:35, Server started
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=HEAD
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=KNEES
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=TOES
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=LEFT
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=RIGHT
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=TOP
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=HEAD
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=KNEES
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=TOES
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=LEFT
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=RIGHT
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=TOP
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=HEAD
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=KNEES
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=TOES
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=LEFT
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=RIGHT
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=TOP
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=HEAD
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=KNEES
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=TOES
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=LEFT
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=RIGHT
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=TOP
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=HEAD
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=KNEES
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=TOES
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=LEFT
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=RIGHT
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=TOP
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=BOTTOM
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=HEAD
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=SHOULDER
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=KNEES
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=TOES
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=LEFT
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=RIGHT
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=TOP
+WARNING, 2022-02-09 10:55:48, there is no configuration available for component with id=BOTTOM
+ERROR, 2022-02-11 14:25:41, GET for unexpected file /favicon.ico
+ERROR, 2022-02-11 14:25:43, GET for unexpected file /js/popper.min.js.map
+WARNING, 2022-02-14 11:09:00, there is no configuration available for component with id=W1_KIOSK
