@@ -2,9 +2,9 @@
 
 ## Introduction
 
-The system helper provides an interface between the browser-based user interfaces and the underlying hardware. It is required for many Constellation components.
+ System Helper provides an interface between the browser-based user interfaces and the underlying hardware. It is required for many Constellation components.
 
-## Setting up the system helper
+## Set up
 
 ### Installation
 
@@ -12,7 +12,7 @@ This application requires Python 3.6 or later.
 
 #### First-time setup
 
-The first time you use the system helper, you will need to install a series of Python packages. After downloading the files from GitHub, run this terminal command from within the directory:
+The first time you use System Helper, you will need to install a series of Python packages. After downloading System Helper from GitHub, run this terminal command from within the directory:
 
 ```
 python3 -m pip install -r requirements.txt
@@ -22,15 +22,16 @@ python3 -m pip install -r requirements.txt
 
 The following packages are required to use the system helper. For `pip`, they are listed in `requirements.txt`.
 
-* [`pypjlink2`](https://github.com/benoitlouy/pypjlink)
+* [`sockio`](https://github.com/tiagocoutinho/sockio)
 * [`pyserial`](https://github.com/pyserial/pyserial)
-* [`pywakeonlan`](https://github.com/remcohaszing/pywakeonlan)
-* [`icmplib`](https://github.com/ValentinBELYN/icmplib)
+* [`psutil`](https://github.com/giampaolo/psutil)
+* [`dateutil`](https://github.com/dateutil/dateutil)
+* [`requests`](https://github.com/psf/requests)
 
-For certain system operations on Windows, **_Constellation_** uses [NirCmd 2.86](https://www.nirsoft.net/utils/nircmd.html), a freeware utility distributed with this repository. Please note that NirCmd is not open source.
+For certain system operations on Windows, System Helper uses [NirCmd 2.86](https://www.nirsoft.net/utils/nircmd.html), a freeware utility distributed with this repository. Please note that NirCmd is not open source.
 
 ### Configuration
-Every Constellation component on a system needs its own system helper. Place the files in the same directory as the files for that component. For example, for a `media_player` installation:
+Every Constellation component on a system needs its own System Helper. Place the files in the same directory as the files for that component. For example, for a Media Player installation:
 
 ```
 <your home directory>/
@@ -43,7 +44,7 @@ Every Constellation component on a system needs its own system helper. Place the
 
 #### defaults.ini
 
-The `defaults.ini` file configures both a given instance of the system helper and its related component software (media_player, word_cloud, etc.).
+The `defaults.ini` file configures both a given instance of  System Helper and its related component software (media_player, word_cloud, etc.).
 
 Required parameters:
 
@@ -56,7 +57,7 @@ Required parameters:
 
 Optional parameters:
 
-* `allow_sleep` (default: true): Whether the control server is allowed to tell the computer to turn off the display. The exact effect of sleep is platform dependant.
+* `allow_sleep` (default: true): Whether the control server is allowed to tell the computer to turn off the display. The exact effect of sleep is platform dependent.
 * `allow_restart` (default: true): Whether the control server is allowed to tell the computer to restart. **If one PC is displaying multiple components on separate screens, this should generally be set to false.**
 * `allow_shutdown` (default: false): Whether the control server is allowed to tell the computer to shutdown. **Unless the PC is configured for Wake on LAN, the control server will be unable to power on the machine once it is shut down,**
 * `anydesk_id`: Supply an AnyDesk id corresponding to this device and a button will appear in the web console under Maintenance allowing an easy connection. You must have AnyDesk installed and configured for unattended access.
