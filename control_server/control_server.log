@@ -3865,3 +3865,7 @@ ERROR, 2022-02-14 14:57:32, GET for unexpected file /js/popper.min.js.map
 ERROR, 2022-02-14 15:32:04, GET for unexpected file /js/popper.min.js.map
 ERROR, 2022-02-14 16:10:57, GET for unexpected file /js/popper.min.js.map
 ERROR, 2022-02-14 16:13:34, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-02-15 15:05:14, GET for unexpected file /favicon.ico
+ERROR, 2022-02-15 15:05:19, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-02-15 15:06:20, GET for unexpected file /js/popper.min.js.map
+ERROR, 2022-02-15 15:06:20, GET for unexpected file /favicon.ico

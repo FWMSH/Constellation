@@ -17,6 +17,7 @@ A responsive web console provides system administrators with an easy way to cont
 
 | Component | Description |
 | ----------- | ----------- |
+| Flexible Tracker | Build simple touch interfaces to help evaluators or other staff collect information. *Distributed as part of Control Server*. |
 | Heartbeat | Provides basic **_Constellation_** monitoring for clients not running another `component`. |
 | Media Browser | Browse and view a collection of images and videos with a touchscreen interface.|
 | Media Player | Robust digital signage solution with an optional kiosk for interaction. |
@@ -32,4 +33,4 @@ In addition to full-fledged `component`s, **_Constellation_** provides utilities
 | ------- | ----------- | -------- |
 | iPlayer 3 Control | Interface with the Color Kinetics iPlayer 3 DMX controler. | iplayer3_control/iplayer3_control.py |
 | Projector Control | Control projectors using PJLink or serial commands. | control_server/projector_control.py |
-| SOS Plot Tools | Python library for creating datasets to display on Science on a Sphere | sos_plot_tools/SoS_plot_tools.py | 
+| SOS Plot Tools | Python library for creating datasets to display on Science on a Sphere | sos_plot_tools/SoS_plot_tools.py |

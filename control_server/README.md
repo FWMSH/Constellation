@@ -270,23 +270,51 @@ The `flexible tracker` enables the collection of a wide variety of quantitative 
 ### Collection types
 The tracker can collect a variety of data types. Each type provides a widget that makes inputting the data easy and reliable.
 
-#### Counter
-The `counter` records a single integer, which can be increased or decreased in units of 1, much like a traditional "clicker" counter.
+| Type | Description | Required parameters | Optional parameters |
+| ---- | ----------- | ------------------- | ------------------- |
+| `counter` | Count by whole numbers, like a traditional "clicker" counter. | - | `label`: string |
+| `dropdown` | Select a single option from a list | `options`: comma-separated list of strings. | `label`: string |
+| `number` | Record a single number, including decimals | - | `label`: string |
+| `slider` | Record a single number, bounded in a user-defined range. The value is selected using a slider. | - | `min`: number (default: 1) <br> `max`: number (default: 100) <br> `step`: number (default: 1) <br> `label`: string |
+| `text` | A textbox for inputting any text | - | `label`: string |
+| `timer` | Records the number of seconds. Can be started and stopped by the user. "Exclusive" timers pause all other timers when started. | - | `exclusive`: true/false (default: false) <br> `label`: string |
 
-#### Dropdown
-The `dropdown` records a single value from a user-defined list.
+### Creating a template
 
-#### Number
-The `number` records a single number, including decimals.
+<img src="images/tracker_example.jpg" style="width: 50%; float: right; border: 2px solid gray; margin: 5px;"></img>
 
-#### Slider
-The `slider` records a single number, bounded in a user-defined range. The value is selected using a slider.
+A `template` defines the collection types available for a given session. It allows you to customize the Flexible Tracker for your specific needs. Each template is an INI file located within Control Server in the directory `flexible-tracker/templates/<your template>.ini`. Within the `template`, each section header is the name of the item. The parameters then define which collection type this item will be. the keyword `type = ` must appear in each section. For example, the following `example.ini` will produce the displayed Flexible Tracker session.
 
-#### Text
-The `text` allows free input of text.
+```
+[Visitor type]
+type = dropdown
+options = Adult, Child, Family, Field trip
 
-#### Timer
-The `timer` records the number of seconds it was running. It can be stopped and started by the user. `timer`s can be exclusive, meaning they stop all other `timer` widgets, or multiple can be used simultaneously.
+[Interaction time]
+type = timer
+exclusive = true
+label = Time spent touching the interactive.
+
+[Observing time]
+type = timer
+exclusive = true
+label = Time spent observing what the interaction is doing.
+
+[Questions asked]
+type = counter
+label = The number of questions they ask.
+
+[Observations]
+type = text
+```
+
+Adding or modifying a `template` does not require restarting the Control Server; however, an instance of Flexible Tracker will need to be refreshed in order to reflect any changes.
+
+### Recording data
+
+To use Flexible Tracker for data collection, navigate to `<server address>:<server port>/tracker.html`. All available `template`s will be available from the dropdown list. Once you are ready to send a session (one set of observations), press the Record button. This will transmit the data to Control Server for storage. Please note that a network connection to the server is required to send data; if such a connection is not available, a popup will appear and the Record button will be disabled.
+
+Data are stored in the Control Server under `flexible-tracker/data/<template name>.txt`. Each row is a single JSON object representing one session.
 
 ## Integrating with **_Constellation_**
 The control server communicates with `component`s using HTTP requests. Connecting a custom `component` is as simple as sending and receiving the appropriate requests.
@@ -295,7 +323,7 @@ The control server communicates with `component`s using HTTP requests. Connectin
 
 #### Pings
 
-The control server does not search for new `component`s. Rather, each `component` must send a request to the known static IP of the server. This is called a _ping_. A ping should be sent every five seconds as a POST request containing a JSON object with the following properties.
+Control Server does not search for new `component`s. Rather, each `component` must send a request to the known static IP of the server. This is called a _ping_. A ping should be sent every five seconds as a POST request containing a JSON object with the following properties.
 
 
 | Field   | Type | Value | Required | Meaning |
