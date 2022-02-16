@@ -457,7 +457,10 @@ function showExhibitComponentInfo(id) {
     setComponentInfoModalMaintenanceStatus(id);
 
     if ("AnyDeskID" in obj && obj.AnyDeskID != "") {
-      $("#AnyDeskButton").prop("href", "anydesk:"+obj.AnyDeskID);
+      $("#AnyDeskButton").prop("href", "anydesk:" + obj.AnyDeskID);
+      $("#AnyDeskLabel").prop("href", "anydesk:" + obj.AnyDeskID);
+      $("#AnyDeskLabel").html("AnyDesk ID: " + obj.AnyDeskID);
+      $("#AnyDeskButton").prop("title", String(obj.AnyDeskID));
       $("#AnyDeskButton").show();
     } else {
       $("#AnyDeskButton").hide();
