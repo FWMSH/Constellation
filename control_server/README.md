@@ -16,14 +16,14 @@ The control server coordinates communication between **_Constellation_** compone
 * `id`: A unique identifier for a given `component`. No two `component`s can have the same `id`.
 * `type`: A user-defined grouping of `component`s. For example, if you have multiple screens each displaying similar information, you might assign them all the `type` of "INFO_SCREEN". `type`s allow you to send the same command to multiple devices. Every component must have a `type`.
 
-## Setting up the control server
+## Setting up the Control Server
 
 ### Installation
 
 This application requires Python 3.6 or later. To install, follow these steps:
 
 1. Download the files from GitHub and place them somewhere permanent.
-2. From a terminal within the directory, run `python3 -m pip install -r requirements.txt` or ensure you have the below requirements satisfied.
+2. From a terminal within the directory, run `python3 -m pip install --upgrade -r requirements.txt` or ensure you have the below requirements satisfied.
 3. Edit `currentExhibitConfiguration.ini` to update the required parameters as described [here](#basic-configuration).
 4. Run `python3 control_server.py` to start the server
 5. To use the web console, open a browser and go to `http://<control_server_ip>:<control_server_port>`.

@@ -15,7 +15,7 @@ This application requires Python 3.6 or later.
 The first time you use System Helper, you will need to install a series of Python packages. After downloading System Helper from GitHub, run this terminal command from within the directory:
 
 ```
-python3 -m pip install -r requirements.txt
+python3 -m pip install --upgrade -r requirements.txt
 ```
 
 #### Required packages
