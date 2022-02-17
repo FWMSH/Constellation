@@ -2024,6 +2024,9 @@ function parseQueryString() {
 
   var searchParams = new URLSearchParams(queryString);
 
+  if (searchParams.has("hideComponents")) {
+    $("#nav-components-tab").hide();
+  }
   if (searchParams.has("hideSchedule")) {
     $("#nav-schedule-tab").hide();
   }
