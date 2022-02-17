@@ -461,9 +461,11 @@ function showExhibitComponentInfo(id) {
       $("#AnyDeskLabel").prop("href", "anydesk:" + obj.AnyDeskID);
       $("#AnyDeskLabel").html("AnyDesk ID: " + obj.AnyDeskID);
       $("#AnyDeskButton").prop("title", String(obj.AnyDeskID));
-      $("#AnyDeskButton").show();
+      $("#AnyDeskButton").addClass("d-sm-none d-none d-md-inline").show();
+      $("#AnyDeskLabel").addClass("d-sm-inline d-md-none").show();
     } else {
-      $("#AnyDeskButton").hide();
+      $("#AnyDeskButton").removeClass("d-sm-none d-none d-md-inline").hide();
+      $("#AnyDeskLabel").removeClass("d-sm-inline d-md-none").hide();
     }
 
     var showFailureMessage = function() {
