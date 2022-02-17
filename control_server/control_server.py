@@ -1217,9 +1217,9 @@ def retrieve_schedule():
         scheduleList = [] # Each entry is a dict for a day, in calendar order
 
         today = datetime.datetime.today().date()
-        this_week = [today + datetime.timedelta(days=x) for x in range(7)]
+        upcoming_days = [today + datetime.timedelta(days=x) for x in range(21)]
 
-        for day in this_week:
+        for day in upcoming_days:
             day_dict = {}
             day_dict["date"] = day.isoformat()
             day_dict["dayName"] = day.strftime("%A")
