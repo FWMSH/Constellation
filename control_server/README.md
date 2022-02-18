@@ -270,20 +270,20 @@ The `flexible tracker` enables the collection of a wide variety of quantitative 
 ### Collection types
 The tracker can collect a variety of data types. Each type provides a widget that makes inputting the data easy and reliable.
 
-| Type | Description | Required parameters | Optional parameters |
+| Type | Description | Required keywords | Optional keywords |
 | ---- | ----------- | ------------------- | ------------------- |
 | `counter` | Count by whole numbers, like a traditional "clicker" counter. | - | `label`: string |
-| `dropdown` | Select a single option from a list | `options`: comma-separated list of strings. | `label`: string |
+| `dropdown` | Select one or more options from a list | `options`: comma-separated list of strings. | `multiple`: true/false (default: false) `label`: string |
 | `number` | Record a single number, including decimals | - | `label`: string |
-| `slider` | Record a single number, bounded in a user-defined range. The value is selected using a slider. | - | `min`: number (default: 1) <br> `max`: number (default: 100) <br> `step`: number (default: 1) <br> `label`: string |
-| `text` | A textbox for inputting any text | - | `label`: string |
+| `slider` | Record a single number, bounded in a user-defined range. The value is selected using a slider. | - | `min`: number (default: 1) <br> `max`: number (default: 100) <br> `step`: number (default: 1) <br> `start`: Inital slider position (default: `min`) <br> `label`: string |
+| `text` | A textbox for inputting any text | - | `lines`: The height of the box in lines (default: 5) <br> `label`: string |
 | `timer` | Records the number of seconds. Can be started and stopped by the user. "Exclusive" timers pause all other timers when started. | - | `exclusive`: true/false (default: false) <br> `label`: string |
 
 ### Creating a template
 
 <img src="images/tracker_example.jpg" style="width: 50%; float: right; border: 2px solid gray; margin: 5px;"></img>
 
-A `template` defines the collection types available for a given session. It allows you to customize the Flexible Tracker for your specific needs. Each template is an INI file located within Control Server in the directory `flexible-tracker/templates/<your template>.ini`. Within the `template`, each section header is the name of the item. The parameters then define which collection type this item will be. the keyword `type = ` must appear in each section. For example, the following `example.ini` will produce the displayed Flexible Tracker session.
+A `template` defines the collection types available for a given session. It allows you to customize the Flexible Tracker for your specific needs. Each template is an INI file located within Control Server in the directory `flexible-tracker/templates/<your template>.ini`. Within the `template`, each section header is the name of the item. Under each header, add keywords (one per line) to specify the desired collection. Keywords and values should be separated by an equals sign (`=`). The keyword `type` must appear in each section and **each section must have a unique name**. For example, the following `example.ini` will produce the displayed Flexible Tracker session.
 
 ```
 [Visitor type]

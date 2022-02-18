@@ -105,7 +105,7 @@
       constructor(name, exclusive=false) {
 
         this.name = name;
-        this.exclusive = exclusive; // Exclusive timers will stop all others when started
+        this.exclusive = exclusive; // Exclusive timers will stop all other exclusive timers when started
         this.elapsedTime = 0;
         this.timerRunning = false;
         this.startTime = null;
@@ -147,7 +147,11 @@
         if (this.timerRunning == false)  {
 
           if (this.exclusive) {
-            timerList.forEach(timer => timer.stopTimer());
+            timerList.forEach(timer => {
+              if (timer.exclusive) {
+                timer.stopTimer()
+              }
+            });
           }
           var d = new Date();
           this.startTime = d.getTime();
@@ -266,10 +270,22 @@
 
           case "dropdown":
             if ("options" in item) {
+              let multiple = "";
+              if ("multiple" in item) {
+                if (item.multiple.toLowerCase() == "true") {
+                  multiple = "multiple"
+                }
+              }
+
               var split = item["options"].split(",");
 
-              html += `<select id="${item_id}_input" data-name="${item_id}" class="form-select">`;
-              html += `<option value=""></option>`
+              html += `<select ${multiple} id="${item_id}_input" data-name="${item_id}" class="form-select w-100">`;
+
+              // If we do not have a multiple selector, add a blank entry first
+              // so that it doesn't look like anything has been selected.
+              if (multiple != "multiple") {
+                html += `<option value=""></option>`
+              }
 
               for (var j=0; j<split.length; j++) {
                 var value = split[j].trim();
@@ -303,21 +319,31 @@
             } else {
               step = 1;
             }
+            var start;
+            if ("start" in item) {
+              start = item.start;
+            } else {
+              start = min;
+            }
 
             html += `
                       <div class="row w-100">
                         <div class="col-9">
-                          <input type="range" id="${item_id}_input" data-name="${item_id}" min="${min}" max="${max}" step="${step}" value=${min} oninput="updateValue('${item_id}_input', '${item_id}_input_label')" class="w-100">
+                          <input type="range" id="${item_id}_input" data-name="${item_id}" data-start="${start}" min="${min}" max="${max}" step="${step}" value=${start} oninput="updateValue('${item_id}_input', '${item_id}_input_label')" class="w-100">
                         </div>
                         <div class="col-3">
-                          <span id="${item_id}_input_label">${min}</span>
+                          <span id="${item_id}_input_label">${start}</span>
                         </div>
                     `;
 
             break;
 
           case "text":
-            html += `<input type="text" id="${item_id}_input" data-name="${item_id}" class="w-100">`;
+            let rows = 5;
+            if ("lines" in item) {
+              rows = Math.round(item.lines)
+            }
+            html += `<textarea id="${item_id}_input" data-name="${item_id}" class="form-control w-100" rows="${rows}"></textarea>`;
             break;
 
           case "timer":
@@ -419,8 +445,8 @@
       });
 
       sliderList.forEach(item => {
-        item.value = item.min;
-        document.getElementById($(item).data("name") + "_input_label").innerHTML = item.value
+        item.value = $(item).data('start');
+        document.getElementById($(item).data("name") + "_input_label").innerHTML = $(item).data('start');
       });
 
       textList.forEach(item => {
@@ -502,7 +528,15 @@
 
         if (this.status == 200) {
           var definition = JSON.parse(this.responseText);
-          buildLayout(definition);
+          if ("success" in definition) {
+            if (definition.success == true) {
+              buildLayout(definition.layout);
+            } else {
+              console.log("Error: could not load layout definition:", definition.reason);
+            }
+          } else {
+              console.log("Error: Did not receive valid JSON")
+          }
         }
       };
       xhr.send(requestString);
@@ -536,7 +570,7 @@
         resultDict[$(item).data("name")] = parseInt(item.innerHTML);
       });
       dropdownList.forEach(item => {
-        resultDict[$(item).data("name")] = item.value;
+        resultDict[$(item).data("name")] = $(item).val(); // To support getting multiple values
       });
 
       numberList.forEach(item => {

@@ -998,10 +998,19 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     if action == "getLayoutDefinition":
                         if "name" in data:
                             layout = configparser.ConfigParser(delimiters=("="))
-                            layout.read("flexible-tracker/templates/" + data["name"] + ".ini")
-                            layoutDefinition = {s:dict(layout.items(s)) for s in layout.sections()}
-                            json_string = json.dumps(layoutDefinition)
-                            self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                            layoutDefinition = {}
+                            success = True
+                            reason = ""
+                            try:
+                                layout.read("flexible-tracker/templates/" + data["name"] + ".ini")
+                                layoutDefinition = {s:dict(layout.items(s)) for s in layout.sections()}
+                            except configparser.DuplicateSectionError:
+                                success = False
+                                reason = "There are two sections with the same name!"
+                            response = {"success": success,
+                                        "reason": reason,
+                                        "layout": layoutDefinition}
+                            self.wfile.write(bytes(json.dumps(response), encoding="UTF-8"))
                     elif action == "submitData":
                         if "data" in data and "name" in data:
                             with trackingDataWriteLock:
