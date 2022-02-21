@@ -120,9 +120,9 @@ class Projector:
         """
 
         print(f"Queuing command {cmd} for {self.id}")
-        th = threading.Thread(target=self.send_command, args=[cmd])
-        th.daemon = True
-        th.start()
+        thread_ = threading.Thread(target=self.send_command, args=[cmd])
+        thread_.daemon = True
+        thread_.start()
 
     def send_command(self, cmd):
 
@@ -668,74 +668,78 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         else:
                             line_to_set += f", {data['targetToSet']}\n"
 
+                        root = os.path.dirname(os.path.abspath(__file__))
+                        sched_dir = os.path.join(root, "schedules")
+                        path = os.path.join(sched_dir, data["name"] + ".ini")
+                        time_to_set = dateutil.parser.parse(data['timeToSet']).time()
+
                         if data["isAddition"]:
-                            with scheduleLock:
-                                root = os.path.dirname(os.path.abspath(__file__))
-                                sched_dir = os.path.join(root, "schedules")
+                            # Check if this time already exists
+                            error = check_if_schedule_time_exists(path, time_to_set)
 
-                                # Iterate through the existing schedule to make sure that we aren't
-                                # adding a time that already exists
-                                time_to_set = dateutil.parser.parse(data['timeToSet']).time()
-                                path = os.path.join(sched_dir, data["name"] + ".ini")
-                                with open(path, 'r', encoding="UTF-8") as f:
-                                    for line in f.readlines():
-                                        split = line.split("=")
-                                        if len(split) == 2:
-                                            # We have a valid ini line
-                                            if dateutil.parser.parse(split[0]).time() == time_to_set:
-                                                error = True
-                                                error_message = "An action with this time already exists"
-                                if not error:
-                                    with open(os.path.join(sched_dir, data["name"] + ".ini"), 'a', encoding="UTF-8") as f:
-                                        f.write(line_to_set)
-                        else:
-                            if "timeToReplace" in data:
+                            if not error:
                                 with scheduleLock:
-                                    root = os.path.dirname(os.path.abspath(__file__))
-                                    sched_dir = os.path.join(root, "schedules")
-                                    output_text = ""
-                                    time_to_replace = dateutil.parser.parse(data['timeToReplace']).time()
+                                    with open(path, 'a', encoding="UTF-8") as f:
+                                        f.write(line_to_set)
+                            else:
+                                error_message = "An action with this time already exists"
+                        elif "timeToReplace" in data:
+                            output_text = ""
+                            time_to_replace = dateutil.parser.parse(data['timeToReplace']).time()
+                            print("replacing schedule", time_to_replace, time_to_set, check_if_schedule_time_exists(path, time_to_set))
 
-                                    with open(os.path.join(sched_dir, data["name"] + ".ini"), 'r', encoding='UTF-8') as f:
+                            # We need to make sure we are not editing this entry to have
+                            # the same time as another entry
+                            okay_to_edit = False
+                            if time_to_set == time_to_replace:
+                                okay_to_edit = True
+                            else:
+                                okay_to_edit = not check_if_schedule_time_exists(path, time_to_set)
+                            print(okay_to_edit)
+                            if okay_to_edit:
+                                with scheduleLock:
+                                    # Iterate the file to replace the line we are changing
+                                    with open(path, 'r', encoding='UTF-8') as f:
                                         for line in f.readlines():
                                             split = line.split("=")
                                             if len(split) == 2:
                                                 # We have a valid ini line
                                                 if dateutil.parser.parse(split[0]).time() != time_to_replace:
-                                                    # This line doesn't match, so add it for writing
+                                                    # This line doesn't match, so keep it as is
                                                     output_text += line
                                                 else:
                                                     output_text += line_to_set
                                             else:
                                                 output_text += line
 
-                                    with open(os.path.join(sched_dir, data["name"] + ".ini"), 'w', encoding='UTF-8') as f:
+                                    with open(path, 'w', encoding='UTF-8') as f:
                                         f.write(output_text)
+                            else:
+                                error = True
+                                error_message = "An action with this time already exists"
 
                     else:
                         error = True
                         error_message = "Missing one or more required keys"
 
+                    response_dict = {}
                     if not error:
                         # Reload the schedule from disk
                         retrieve_schedule()
 
                         # Send the updated schedule back
                         with scheduleLock:
-                            response_dict = {}
                             response_dict["class"] = "schedule"
                             response_dict["updateTime"] = scheduleUpdateTime
                             response_dict["schedule"] = scheduleList
                             response_dict["nextEvent"] = nextEvent
                             response_dict["success"] = True
-
-                        json_string = json.dumps(response_dict, default=str)
-                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
                     else:
-                        response_dict = {"success": False,
-                                "reason": error_message}
-                        json_string = json.dumps(response_dict, default=str)
-                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
+                        response_dict["success"] = False
+                        response_dict["reason"] = error_message
+                    json_string = json.dumps(response_dict, default=str)
+                    self.wfile.write(bytes(json_string, encoding="UTF-8"))
+
                 elif action == 'refreshSchedule':
                     # This command reloads the schedule from disk. Normal schedule
                     # changes are passed during fetchUpdate
@@ -1138,6 +1142,21 @@ def update_synchronization_list(this_id, other_ids):
                 get_exhibit_component(item).queue_command(f"beginSynchronization_{time_to_start}")
             # Remove this sync from the list in case it happens again later.
             synchronizationList.pop(match_index)
+
+def check_if_schedule_time_exists(path, time_to_set):
+
+    """Check the schedule given by `path` for an existing item with the same time as `time_to_set`.
+    """
+
+    with scheduleLock:
+        with open(path, 'r', encoding="UTF-8") as f:
+            for line in f.readlines():
+                split = line.split("=")
+                if len(split) == 2:
+                    # We have a valid ini line
+                    if dateutil.parser.parse(split[0]).time() == time_to_set:
+                        return True
+    return False
 
 def poll_event_schedule():
 
