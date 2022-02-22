@@ -264,8 +264,8 @@ class ExhibitComponent:
                     self.config[key] = file_config[key]
         except configparser.NoSectionError:
             print(f"Warning: there is no configuration available for component with id={self.id}")
-            with logLock:
-                logging.warning(f"there is no configuration available for component with id={self.id}")
+            # with logLock:
+            #     logging.warning(f"there is no configuration available for component with id={self.id}")
         self.config["current_exhibit"] = currentExhibit[0:-8]
 
     def queue_command(self, command):
@@ -506,12 +506,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         # Strip out any options from the query string
         self.path = self.path.split("?")[0]
-
+        root_path = os.path.dirname(os.path.abspath(__file__))
         if self.path.lower().endswith("html") or self.path == "/":
             if self.path == "/":
-                f = open("webpage.html","r", encoding='UTF-8')
+                f = open(os.path.join(root_path, "webpage.html"),"r", encoding='UTF-8')
             else:
-                f = open("." + self.path, "r", encoding='UTF-8')
+                f = open(os.path.join(root_path, self.path), "r", encoding='UTF-8')
 
             page = str(f.read())
 
@@ -533,12 +533,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
             # Open the file requested and send it
             mimetype = mimetypes.guess_type(self.path, strict=False)[0]
+            if self.path[0] == '/':
+                # Strip out leading /, as it screws up os.path.join
+                self.path = self.path[1:]
             try:
                 self.send_response(200)
                 self.send_header('Content-type', mimetype)
                 self.end_headers()
 
-                with open('.' + self.path, 'rb') as f:
+                with open(os.path.join(root_path, self.path), 'rb') as f:
                     self.wfile.write(f.read())
                 # print("END GET")
                 # print("+++++++++++++++")
@@ -546,7 +549,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
             except IOError:
                 self.send_error(404, f"File Not Found: {self.path}")
                 with logLock:
-                    logging.error(f"GET for unexpected file {self.path}")
+                    logging.error("GET for unexpected file %s", self.path)
 
         # print("END GET")
         # print("+++++++++++++++")
@@ -686,7 +689,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         elif "timeToReplace" in data:
                             output_text = ""
                             time_to_replace = dateutil.parser.parse(data['timeToReplace']).time()
-                            print("replacing schedule", time_to_replace, time_to_set, check_if_schedule_time_exists(path, time_to_set))
+                            print("replacing schedule",
+                                  time_to_replace, time_to_set,
+                                  check_if_schedule_time_exists(path, time_to_set))
 
                             # We need to make sure we are not editing this entry to have
                             # the same time as another entry
@@ -804,7 +809,8 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             output_text = ""
                             time_to_delete = dateutil.parser.parse(data['time']).time()
 
-                            with open(os.path.join(sched_dir, data["from"] + ".ini"), 'r', encoding="UTF-8") as f:
+                            schedule_path = os.path.join(sched_dir, data["from"] + ".ini")
+                            with open(schedule_path, 'r', encoding="UTF-8") as f:
                                 for line in f.readlines():
                                     split = line.split("=")
                                     if len(split) == 2:
@@ -855,7 +861,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         set_component_content(data['id'], data['content'])
                 elif action == "getHelpText":
                     try:
-                        with open("README.md", 'r', encoding='UTF-8') as f:
+                        readme_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                   "README.md")
+                        with open(readme_path, 'r', encoding='UTF-8') as f:
                             text = f.read()
                             self.wfile.write(bytes(text, encoding="UTF-8"))
                     except FileNotFoundError:
@@ -878,8 +886,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         save_issueList()
                         response_dict = {"success": True}
                     else:
-                        response_dict = {"success": False,
-                                         "reason": "Must include field 'details' with property 'id'"}
+                        response_dict = {
+                            "success": False,
+                            "reason": "Must include field 'details' with property 'id'"
+                        }
                     self.wfile.write(bytes(json.dumps(response_dict), encoding="UTF-8"))
                 elif action == "deleteIssue":
                     if "id" in data:
@@ -891,10 +901,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                          "reason": "Must include field 'id'"}
                     self.wfile.write(bytes(json.dumps(response_dict), encoding="UTF-8"))
                 elif action == "getIssueList":
-                    self.wfile.write(bytes(json.dumps([x.details for x in issueList]), encoding="UTF-8"))
+                    result_str = json.dumps([x.details for x in issueList])
+                    self.wfile.write(bytes(result_str, encoding="UTF-8"))
                 elif action == 'updateMaintenanceStatus':
                     if "id" in data and "status" in data and "notes" in data:
-                        file_path = os.path.join("maintenance-logs", data["id"]+".txt")
+                        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                 "maintenance-logs", data["id"]+".txt")
                         record = {"id": data["id"],
                                   "date": datetime.datetime.now().isoformat(),
                                   "status": data['status'],
@@ -904,12 +916,15 @@ class RequestHandler(SimpleHTTPRequestHandler):
                                 f.write(json.dumps(record) + "\n")
                         response_dict = {"success": True}
                     else:
-                        response_dict = {"success": False,
-                                         "reason": "Must include fields 'id', 'status', and 'notes'"}
+                        response_dict = {
+                            "success": False,
+                            "reason": "Must include fields 'id', 'status', and 'notes'"
+                        }
                     self.wfile.write(bytes(json.dumps(response_dict), encoding="UTF-8"))
                 elif action == 'getMaintenanceStatus':
                     if "id" in data:
-                        file_path = os.path.join("maintenance-logs", data["id"]+".txt")
+                        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                 "maintenance-logs", data["id"]+".txt")
                         try:
                             with maintenanceLock:
                                 with open(file_path, 'rb') as f:
@@ -936,10 +951,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     self.wfile.write(bytes(json.dumps(response_dict), encoding="UTF-8"))
                 elif action == "getAllMaintenanceStatuses":
                     record_list = []
-                    for file in os.listdir("maintenance-logs"):
+                    maintenance_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                    "maintenance-logs")
+                    for file in os.listdir(maintenance_path):
                         if file.endswith(".txt"):
                             with maintenanceLock:
-                                file_path = os.path.join("maintenance-logs", file)
+                                file_path = os.path.join(maintenance_path, file)
                                 with open(file_path, 'rb') as f:
                                     # Seek to the end of the file and return the most recent entry
                                     try:  # catch OSError in case of a one line file
@@ -1006,7 +1023,11 @@ class RequestHandler(SimpleHTTPRequestHandler):
                             success = True
                             reason = ""
                             try:
-                                layout.read("flexible-tracker/templates/" + data["name"] + ".ini")
+                                template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                             "flexible-tracker",
+                                                             "templates",
+                                                             data["name"] + ".ini")
+                                layout.read(template_path)
                                 layoutDefinition = {s:dict(layout.items(s)) for s in layout.sections()}
                             except configparser.DuplicateSectionError:
                                 success = False
@@ -1018,7 +1039,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     elif action == "submitData":
                         if "data" in data and "name" in data:
                             with trackingDataWriteLock:
-                                file_path = os.path.join("flexible-tracker", "data", data["name"]+".txt")
+                                file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                         "flexible-tracker",
+                                                         "data", data["name"]+".txt")
                                 with open(file_path, "a", encoding='UTF-8') as f:
                                     try:
                                         json_str = json.dumps(data["data"])
@@ -1031,7 +1054,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     elif action == "submitRawText":
                         if "text" in data and "name" in data:
                             with trackingDataWriteLock:
-                                path_to_write = os.path.join("flexible-tracker", "data", data["name"]+".txt")
+                                path_to_write = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                             "flexible-tracker",
+                                                             "data",
+                                                             data["name"]+".txt")
                                 with open(path_to_write, "a", encoding="UTF-8") as f:
                                     try:
                                         f.write(data["text"] + "\n")
@@ -1043,7 +1069,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         if "name" in data:
                             with trackingDataWriteLock:
                                 try:
-                                    with open(os.path.join("flexible-tracker", "data", data["name"]+".txt"), "r", encoding='UTF-8') as f:
+                                    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                           "flexible-tracker", "data", data["name"]+".txt"),
+                                              "r", encoding='UTF-8') as f:
                                         result = f.read()
                                         self.wfile.write(bytes(json.dumps({"success": True, "text": result}), encoding="UTF-8"))
                                 except FileNotFoundError:
@@ -1055,7 +1083,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     elif action == "submitAnalytics":
                         if "data" in data and "name" in data:
                             with trackingDataWriteLock:
-                                with open(os.path.join("analytics", data["name"]+".txt"), "a") as f:
+                                with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                       "analytics", data["name"]+".txt"),
+                                         "a") as f:
                                     try:
                                         json_str = json.dumps(data["data"])
                                         f.write(json_str + "\n")
@@ -1066,7 +1096,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                     elif action == "getAvailableDefinitions":
                         definitionList = []
 
-                        for file in os.listdir(os.path.join("flexible-tracker", "templates")):
+                        template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                     "flexible-tracker", "templates")
+                        for file in os.listdir(template_path):
                             if file.endswith(".ini"):
                                 definitionList.append(file)
 
@@ -1081,29 +1113,27 @@ class RequestHandler(SimpleHTTPRequestHandler):
         # print("END POST")
         # print("===============")
 
-def set_component_content(id, contentList):
+def set_component_content(id_, content_list):
 
     """Loop the content list and build a string to write to the config file"""
 
-    content = ""
-    for i in range(len(contentList)):
-        if i != 0:
-            content += ', '
-        content += contentList[i]
+    content = ", ".join(content_list)
 
     with currentExhibitConfigurationLock:
         try:
-            currentExhibitConfiguration.set(id, "content", content)
+            currentExhibitConfiguration.set(id_, "content", content)
         except configparser.NoSectionError: # This exhibit does not have content for this component
-            currentExhibitConfiguration.add_section(id)
-            currentExhibitConfiguration.set(id, "content", content)
+            currentExhibitConfiguration.add_section(id_)
+            currentExhibitConfiguration.set(id_, "content", content)
 
     # Update the component
-    get_exhibit_component(id).update_configuration()
+    get_exhibit_component(id_).update_configuration()
 
     # Write new configuration to file
     with currentExhibitConfigurationLock:
-        with open(os.path.join("exhibits", currentExhibit), 'w', encoding="UTF-8") as f:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "exhibits", currentExhibit),
+                 'w', encoding="UTF-8") as f:
             currentExhibitConfiguration.write(f)
 
 def update_synchronization_list(this_id, other_ids):
@@ -1160,6 +1190,10 @@ def check_if_schedule_time_exists(path, time_to_set):
 
 def poll_event_schedule():
 
+
+    """Periodically check the event schedule in an independant thread.
+    """
+
     global pollingThreadDict
 
     check_event_schedule()
@@ -1168,22 +1202,28 @@ def poll_event_schedule():
 
 def poll_projectors():
 
+    """Ask each projector to send a status update at an interval.
+    """
+
     for projector in projectorList:
-        th = threading.Thread(target=projector.update)
-        th.daemon = True # So it dies if we exit
-        th.start()
+        new_thread = threading.Thread(target=projector.update)
+        new_thread.daemon = True # So it dies if we exit
+        new_thread.start()
 
     pollingThreadDict["poll_projectors"] = threading.Timer(30, poll_projectors)
     pollingThreadDict["poll_projectors"].start()
 
 def poll_wake_on_LAN_devices():
 
+    """Ask every Wake on LAN device to report its status at an interval.
+    """
+
     global pollingThreadDict
 
     for device in wakeOnLANList:
-        th = threading.Thread(target=device.update)
-        th.daemon = True # So it dies if we exit
-        th.start()
+        new_thread = threading.Thread(target=device.update)
+        new_thread.daemon = True # So it dies if we exit
+        new_thread.start()
 
     pollingThreadDict["poll_wake_on_LAN_devices"] = threading.Timer(30, poll_wake_on_LAN_devices)
     pollingThreadDict["poll_wake_on_LAN_devices"].start()
@@ -1210,7 +1250,7 @@ def check_event_schedule():
                 else:
                     print(f"Error: unrecofnized event format: {action}")
                     with logLock:
-                        logging.error(f"Unrecofnized event format: {action}")
+                        logging.error("Unrecofnized event format: %s", action)
                     queue_next_on_off_event()
                     return
             if action == 'reload_schedule':
@@ -1253,7 +1293,10 @@ def retrieve_schedule():
             day_dict["dayName"] = day.strftime("%A")
             day_dict["source"] = "none"
             reload_datetime = datetime.datetime.combine(day, datetime.time(0,1))
-            day_schedule = [[reload_datetime, reload_datetime.strftime("%-I:%M %p"), ["reload_schedule"]]]
+            # We want to make sure to reload the schedule at least once per day
+            day_schedule = [[reload_datetime,
+                            reload_datetime.strftime("%-I:%M %p"),
+                            ["reload_schedule"]]]
 
             date_specific_filename = day.isoformat() + ".ini" # e.g., 2021-04-14.ini
             day_specific_filename = day.strftime("%A").lower() + ".ini" # e.g., monday.ini
@@ -1283,8 +1326,8 @@ def retrieve_schedule():
                 if "SCHEDULE" in parser:
                     sched = parser["SCHEDULE"]
                     for key in sched:
-                        time = dateutil.parser.parse(key).time()
-                        event_time = datetime.datetime.combine(day, time)
+                        time_ = dateutil.parser.parse(key).time()
+                        event_time = datetime.datetime.combine(day, time_)
                         action = [s.strip() for s in sched[key].split(",")]
                         day_schedule.append([event_time, event_time.strftime("%-I:%M %p"), action])
                 else:
@@ -1325,9 +1368,11 @@ def check_available_exhibits():
 
     global EXHIBIT_LIST
 
+    EXHIBIT_LIST = []
+    exhibits_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "exhibits")
+
     with exhibitsLock:
-        EXHIBIT_LIST = []
-        for file in os.listdir("exhibits"):
+        for file in os.listdir(exhibits_path):
             if file.lower().endswith(".exhibit"):
                 EXHIBIT_LIST.append(file)
 
@@ -1399,8 +1444,10 @@ def load_default_configuration():
     # First, retrieve the config filename that defines the desired exhibit
     config = configparser.ConfigParser(delimiters=("="))
     config.optionxform = str # Override default, which is case in-sensitive
+    cEC_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            "currentExhibitConfiguration.ini")
     with currentExhibitConfigurationLock:
-        config.read('currentExhibitConfiguration.ini')
+        config.read(cEC_path)
     current = config["CURRENT"]
     server_port = current.getint("server_port", 8080)
     ip_address = current.get("server_ip_address", "localhost")
@@ -1582,20 +1629,23 @@ def read_exhibit_configuration(name, updateDefault=False):
         # Something bad has happened. Display an error and bail out
         print(f"Error: exhibit definition with name {name} does not appear to be properly formatted. This file should be located in the exhibits directory.")
         with logLock:
-            logging.error(f'Bad exhibit definition fileanme: {name}')
+            logging.error('Bad exhibit definition fileanme: %s', name)
         return
 
     currentExhibit = name
     currentExhibitConfiguration = configparser.ConfigParser()
-    currentExhibitConfiguration.read(os.path.join("exhibits", name))
+    exhibit_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "exhibits")
+    currentExhibitConfiguration.read(exhibit_path)
 
     if updateDefault:
         config = configparser.ConfigParser(delimiters=("="))
         config.optionxform = str # Override default, which is case in-sensitive
+        cEC_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                'currentExhibitConfiguration.ini')
         with currentExhibitConfigurationLock:
-            config.read('currentExhibitConfiguration.ini')
+            config.read(cEC_path)
             config.set("CURRENT", "current_exhibit", name)
-            with open('currentExhibitConfiguration.ini', "w", encoding="UTF-8") as f:
+            with open(cEC_path, "w", encoding="UTF-8") as f:
                 config.write(f)
 
 def get_exhibit_component(this_id):
@@ -1627,9 +1677,12 @@ def edit_issue(details):
         with issueLock:
             issue.details["priority"] = details.get("priority", issue.details["priority"])
             issue.details["issueName"] = details.get("issueName", issue.details["issueName"])
-            issue.details["issueDescription"] = details.get("issueDescription", issue.details["issueDescription"])
-            issue.details["relatedComponentIDs"] = details.get("relatedComponentIDs", issue.details["relatedComponentIDs"])
-            issue.details["assignedTo"] = details.get("assignedTo", issue.details["assignedTo"])
+            issue.details["issueDescription"] = details.get("issueDescription",
+                                                            issue.details["issueDescription"])
+            issue.details["relatedComponentIDs"] = details.get("relatedComponentIDs",
+                                                               issue.details["relatedComponentIDs"])
+            issue.details["assignedTo"] = details.get("assignedTo",
+                                                      issue.details["assignedTo"])
             issue.details["lastUpdateDate"] = datetime.datetime.now().isoformat()
 
 def save_issueList():
@@ -1669,7 +1722,7 @@ def command_all_exhibit_components(cmd):
 
     print("Sending command to all components:", cmd)
     with logLock:
-        logging.info(f"command_all_exhibit_components: {cmd}")
+        logging.info("command_all_exhibit_components: %s", cmd)
 
     for component in componentList:
         component.queue_command(cmd)
@@ -1792,7 +1845,9 @@ def quit_handler(*args):
 
     # Save the current component lists to a pickle file so that
     # we can resume from the current state
-    with open("current_state.dat", 'wb') as f:
+    state_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                              "current_state.dat")
+    with open(state_path, 'wb') as f:
         pickle.dump(componentList, f)
         # a = pickle.dumps(componentList)
 
@@ -1812,7 +1867,7 @@ def quit_handler(*args):
 
 def error_handler(*exc_info):
 
-    # Catch errors and log them to file
+    """Catch errors and log them to file"""
 
     text = "".join(traceback.format_exception(*exc_info)).replace('"', "'").replace("\n", "<newline>")
     with logLock:
@@ -1839,8 +1894,8 @@ def check_for_software_update():
     else:
         print("the server is up to date.")
 
-server_port = 8080 # Default; should be set in exhibit INI file
-ip_address = "localhost" # Default; should be set in exhibit INI file
+server_port = 8080 # Default; should be set in currentExhibitConfiguration.ini
+ip_address = "localhost" # Default; should be set in currentExhibitConfiguration.ini
 ADDR = "" # Accept connections from all interfaces
 gallery_name = ""
 SOFTWARE_VERSION = 1.0
@@ -1875,8 +1930,9 @@ exhibitsLock = threading.Lock()
 maintenanceLock = threading.Lock()
 
 # Set up log file
+log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "control_server.log")
 logging.basicConfig(datefmt='%Y-%m-%d %H:%M:%S',
-                    filename='control_server.log',
+                    filename=log_path,
                     format='%(levelname)s, %(asctime)s, %(message)s',
                     level=logging.DEBUG)
 signal.signal(signal.SIGINT, quit_handler)
@@ -1890,8 +1946,9 @@ with logLock:
 
 # Try to reload the previous state from the pickle file current_state.dat
 try:
-    with open("current_state.dat", "rb") as f:
-        componentList = pickle.load(f)
+    state_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "current_state.dat")
+    with open(state_path, "rb") as previous_state:
+        componentList = pickle.load(previous_state)
         print("Previous server state loaded")
 except (FileNotFoundError, EOFError):
     print("Could not load previous server state")
