@@ -366,6 +366,7 @@ function changeMedia(source, delayPlay, playOnly) {
       videoContainer.style.opacity = 0;
       image.src = source;
       imageContainer.style.opacity = 1;
+      clearTimeout(sourceAdvanceTimer);
       sourceAdvanceTimer = setTimeout(gotoNextSource, image_duration);
     }
   } else {
@@ -390,7 +391,7 @@ function askForRestart() {
 
 function askForShutdown() {
 
-  // Send a message to the local helper and ask for it to restart the PC
+  // Send a message to the local helper and ask for it to shutdown the PC
 
   var requestString = JSON.stringify({"action": "shutdown"});
 
