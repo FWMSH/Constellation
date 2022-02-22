@@ -1175,6 +1175,9 @@ function populateSchedule(schedule) {
             case "refresh_page":
               description = "Refresh components";
               break;
+            case "restart":
+              description = "Restart components";
+              break;
             default:
               break;
           }
@@ -1220,6 +1223,8 @@ function populateSchedule(schedule) {
       html = `Power off at ${nextEvent.time}`;
     } else if (action == "refresh_page") {
       html = `Refresh components at ${nextEvent.time}`;
+    } else if (action == "restart") {
+      html = `Restart components at ${nextEvent.time}`;
     }
   } else if (nextEvent.action.length == 2) {
     action = nextEvent.action[0];
@@ -1600,7 +1605,7 @@ function submitIssueFromModal() {
       action = "createIssue";
     } else {
       issueDict.id = $("#issueEditModal").data("target");
-      action = "editIssue"
+      action = "editIssue";
     }
     $("#issueEditModal").modal("hide");
     requestDict = {"class": "webpage",
@@ -1844,7 +1849,6 @@ function refreshMaintenanceRecords() {
     if (this.status == 200) {
       if (this.responseText != "") {
         let result = JSON.parse(this.responseText);
-        console.log(result.records);
 
         $("#MaintenanceOverviewOnFloorWorkingPane").empty();
         $("#MaintenanceOverviewOnFloorNotWorkingPane").empty();
@@ -2016,6 +2020,21 @@ function populateHelpTab() {
     }
   };
   xhr.send(requestString);
+}
+
+function populateTrackerTemplateSelect(definitionList) {
+
+  // Get a list of the available tracker layout templates and populate the
+  // selector
+
+  let templateSelect = $("#trackerTemplateSelect");
+  templateSelect.empty();
+
+  definitionList.forEach(item => {
+    var name = item.split(".").slice(0, -1).join(".");
+    var html = `<option value="${name}">${name}</option>`;
+    templateSelect.append(html);
+  });
 }
 
 function parseQueryString() {

@@ -323,6 +323,7 @@
                             <option value="power_on">Power on</option>
                             <option value="power_off">Power off</option>
                             <option value="refresh_page">Refresh components</option>
+                            <option value="restart">Restart components</option>
                             <option value="set_exhibit">Set exhibit</option>
                           </select>
                         </div>
@@ -494,7 +495,7 @@
             </div>
           </div>
 
-          <H3 class='mt-2'>Exhibits</H3>
+          <H3 class='mt-4'>Exhibits</H3>
           <div class="row mt-3">
             <div class="col-6 col-md-3 col-lg-2">
               <button type="button" class="btn btn-primary" id="reloadConfigurationButton" onclick="reloadConfiguration()">Reload Config</button>
@@ -541,6 +542,29 @@
           <H3 class='mt-2'>Flexible Tracker</H3>
           <i>Coming soon! For now, you may edit tracker templates directly on the server.</i>
           <div class="row mt-3">
+            <div class='col-12 col-md-5 col-lg-4 col-xl-3'>
+              <input type="text" id='createExhibitNameInput' class='form-control' placeholder="Enter template name"></input>
+            </div>
+            <div class="col-12 col-md-3 col-lg-3 col-xl-2">
+              <button class='btn btn-primary w-100'>Create template</button>
+            </div>
+          </div>
+          <div class="row mt-3">
+            <div class="col-12 col-md-3 col-lg-3 col-xl-2">
+              <button class='btn btn-primary w-100' onclick="getAvailableDefinitions(populateTrackerTemplateSelect)">Refresh templates</button>
+            </div>
+            <div class="col-6 col-md-3">
+              <select id="trackerTemplateSelect" class="form-control"></select>
+            </div>
+            <div class="col-6 col-md-3 col-lg-3 col-xl-2">
+              <button class='btn btn-primary w-100'>Download data</button>
+            </div>
+            <div class="col-6 col-md-3 col-lg-3 col-xl-2">
+              <button class='btn btn-info w-100'>Edit template</button>
+            </div>
+            <div class="col-6 col-md-3 col-lg-3 col-xl-2">
+              <button class='btn btn-danger w-100'>Delete template</button>
+            </div>
           </div>
         </div>
 
@@ -557,7 +581,9 @@
     <script type="text/javascript" src="js/popper.min.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
     <script type="text/javascript" src="js/showdown.min.js"></script>
+
     <script type="text/javascript" src="webpage.js"></script>
+    <script type="text/javascript" src="tracker_tools.js"></script>
 
     <script>
       var serverIP = INSERT_SERVERIP_HERE // This will be automatically inserted by the server before being sent to the client
