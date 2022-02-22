@@ -48,6 +48,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         '''Like shutil.copyfileobj, but only copy a range of the streams.
         Both start and stop are inclusive.
         '''
+
         if start is not None:
             infile.seek(start)
         while 1:
@@ -57,23 +58,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 break
             self.wfile.write(buf)
 
-    def parse_byte_range(self, byte_range):
-        '''Returns the two numbers in 'bytes=123-456' or throws ValueError.
-        The last number or both numbers may be None.
-        '''
-        BYTE_RANGE_RE = re.compile(r'bytes=(\d+)-(\d+)?$')
-        if byte_range.strip() == '':
-            return None, None
-
-        m = BYTE_RANGE_RE.match(byte_range)
-        if not m:
-            raise ValueError(f'Invalid byte range {byte_range}')
-
-        first, last = [x and int(x) for x in m.groups()]
-        if last and last < first:
-            raise ValueError(f'Invalid byte range {byte_range}')
-        return first, last
-
     def handle_range_request(self, f):
 
         """Handle a GET request using a byte range.
@@ -82,7 +66,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         """
 
         try:
-            self.range = self.parse_byte_range(self.headers['Range'])
+            self.range = parse_byte_range(self.headers['Range'])
         except ValueError:
             self.send_error(400, 'Invalid byte range')
             return
@@ -118,6 +102,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         """Receive a GET request and respond with a console webpage"""
         #print("do_GET: ENTER")
         self.path = self.path.replace("%20", " ")
+        root_path = os.path.dirname(os.path.abspath(__file__))
         #print("  ", self.path)
 
         print(f" Active threads: {threading.active_count()}       ", end="\r", flush=True)
@@ -125,9 +110,11 @@ class RequestHandler(SimpleHTTPRequestHandler):
             pass
         elif self.path.lower().endswith(".html"):
             #print("  Handling HTML file", self.path)
+            if self.path[0] == '/':
+                self.path = self.path[1:]
             config.HELPING_REMOTE_CLIENT = True
             try:
-                with open(self.path[1:], "r", encoding='UTF-8') as f:
+                with open(os.path.join(root_path, self.path), "r", encoding='UTF-8') as f:
 
                     page = str(f.read())
                     # Build the address that the webpage should contact to reach this helper
@@ -159,9 +146,11 @@ class RequestHandler(SimpleHTTPRequestHandler):
             # Open the file requested and send it
             mimetype = mimetypes.guess_type(self.path, strict=False)[0]
             #print(f"  Handling {mimetype}")
+            if self.path[0] == '/':
+                self.path = self.path[1:]
             try:
                 #print(f"  Opening file {self.path}")
-                with open(self.path[1:], 'rb') as f:
+                with open(os.path.join(root_path, self.path), 'rb') as f:
                     #print(f"    File opened")
                     if "Range" in self.headers:
                         self.handle_range_request(f)
@@ -345,18 +334,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
                         self.wfile.write(bytes(json_string, encoding="UTF-8"))
                     except BrokenPipeError:
                         pass
-                elif data["action"] == 'copyFile':
-                    if ("file" in data) and ("fromExhibit" in data) and ("toExhibit" in data):
-                        copy_file(data["file"], data["fromExhibit"], data["toExhibit"])
-                        response = {"success": True}
-                    else:
-                        response = {"success": False,
-                                    "reason": "Request missing necessary field"}
-                    json_string = json.dumps(response)
-                    try:
-                        self.wfile.write(bytes(json_string, encoding="UTF-8"))
-                    except BrokenPipeError:
-                        pass
                 elif data["action"] == "updateClipList":
                     if "clipList" in data:
                         config.clipList["clipList"] = data["clipList"]
@@ -461,6 +438,25 @@ def check_for_software_update():
         print("update available!")
     else:
         print("up to date.")
+
+def parse_byte_range(byte_range):
+
+    '''Returns the two numbers in 'bytes=123-456' or throws ValueError.
+    The last number or both numbers may be None.
+    '''
+
+    BYTE_RANGE_RE = re.compile(r'bytes=(\d+)-(\d+)?$')
+    if byte_range.strip() == '':
+        return None, None
+
+    m = BYTE_RANGE_RE.match(byte_range)
+    if not m:
+        raise ValueError(f'Invalid byte range {byte_range}')
+
+    first, last = [x and int(x) for x in m.groups()]
+    if last and last < first:
+        raise ValueError(f'Invalid byte range {byte_range}')
+    return first, last
 
 def reboot():
 
@@ -570,17 +566,6 @@ def delete_file(file, absolute=False):
     with config.content_file_lock:
         os.remove(file_path)
 
-def copy_file(filename, fromExhibit, toExhibit):
-
-    """Copy a file from one exhibit to another"""
-
-    root = os.path.dirname(os.path.abspath(__file__))
-    file_path_from = os.path.join(root, "content", fromExhibit, filename)
-    file_path_to = os.path.join(root, "content", toExhibit, filename)
-    print("Copying file", file_path_from, "to", file_path_to)
-    with config.content_file_lock:
-        shutil.copyfile(file_path_from, file_path_to)
-
 def getAllDirectoryContents():
 
     """Recursively search for files in the content directory and its subdirectories"""
@@ -637,7 +622,7 @@ def get_local_address():
     finally:
         s.close()
 
-    return "http://" + IP  + ":" + config.defaults_dict["helper_port"]
+    return "http://" + IP  + ":" + str(config.defaults_dict["helper_port"])
 
 def strToBool(val):
 
@@ -819,8 +804,10 @@ def read_default_configuration(checkDirectories=True):
     """Load configuration parameters from defaults.ini"""
 
     # Read defaults.ini
+    root = os.path.dirname(os.path.abspath(__file__))
+    defaults_path = os.path.join(root, "defaults.ini")
     config.defaults_object = configparser.ConfigParser(delimiters=("="))
-    config.defaults_object.read('defaults.ini')
+    config.defaults_object.read(defaults_path)
     default = config.defaults_object["CURRENT"]
     config.defaults_dict = dict(default.items())
 
@@ -865,7 +852,9 @@ def update_defaults(data):
     # Update file
     if update_made:
         with config.defaults_file_lock:
-            with open('defaults.ini', 'w', encoding='UTF-8') as f:
+            defaults_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                         'defaults.ini')
+            with open(defaults_path, 'w', encoding='UTF-8') as f:
                 config.defaults_object.write(f)
 
 def quit_handler(sig, frame):
@@ -880,10 +869,13 @@ def load_dictionary():
 
     """Look for a file called dictionary.ini and load it if it exists"""
 
-    if "dictionary.ini" in os.listdir():
+    root_path = os.path.dirname(os.path.abspath(__file__))
+    dictionary_path = os.path.join(root_path, "dictionary.ini")
+
+    if "dictionary.ini" in os.listdir(root_path):
         config.dictionary_object = configparser.ConfigParser(delimiters=("="))
         config.dictionary_object.optionxform = str # Override the default, which is case-insensitive
-        config.dictionary_object.read("dictionary.ini")
+        config.dictionary_object.read(dictionary_path)
 
 if __name__ == "__main__":
 
