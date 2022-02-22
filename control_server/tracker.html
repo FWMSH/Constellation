@@ -1,3 +1,5 @@
+/*jshint esversion: 6 */
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -80,7 +82,7 @@
             <div class="col-8 col-sm-5 col-md-4 col-lg-3">
               <div class="input-group">
                 Select Defintion:
-                <select id="definitionListDropdown" class="form-select" onchange="loadLayoutDefinition()">
+                <select id="definitionListDropdown" class="form-select" onchange="loadLayout()">
                   <option value=""></option>
                 </select>
               </div>
@@ -95,6 +97,8 @@
   <script type="text/javascript" src="js/popper.min.js"></script>
   <script type="text/javascript" src="js/bootstrap.min.js"></script>
   <script type="text/javascript" src="js/showdown.min.js"></script>
+
+  <script type="text/javascript" src="tracker_tools.js"></script>
 
   <script>
 
@@ -458,37 +462,6 @@
       });
     }
 
-    function getAvailableDefinitions() {
-
-      // Ask the control server to send a list of availble definition files
-
-      var requestDict = {"class": "tracker",
-                         "action": "getAvailableDefinitions"};
-
-      var requestString = JSON.stringify(requestDict);
-
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", serverIP, true);
-      xhr.timeout = 3000;
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
-      xhr.onreadystatechange = function () {
-        if (this.readyState != 4) return;
-
-        if (this.status == 200) {
-          var definitionList = JSON.parse(this.responseText);
-          definitionList.forEach(item => {
-            var name = item.split(".").slice(0, -1).join(".");
-            var html = `<option value="${name}">${name}</option>`;
-            $("#definitionListDropdown").append(html);
-          });
-
-
-        }
-      };
-      xhr.send(requestString);
-    }
-
     function incrementCounter(id, value_to_add) {
 
       // Function to add the given number to the counter with the specified id
@@ -497,50 +470,7 @@
       $('#'+id+"_counter").html(cur_value + value_to_add);
     }
 
-    function loadLayoutDefinition(name="") {
 
-      // Ask the control server to send a JSON dict with the layout definition
-      // from the file with `name`
-
-      if (name == "") {
-        var dropdownName = document.getElementById("definitionListDropdown").value;
-        if (dropdownName == "") {
-          return;
-        } else {
-          name = dropdownName;
-          configurationName = name;
-        }
-      }
-
-      var requestDict = {"class": "tracker",
-                         "action": "getLayoutDefinition",
-                         "name": name};
-
-      var requestString = JSON.stringify(requestDict);
-
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", serverIP, true);
-      xhr.timeout = 1000;
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
-      xhr.onreadystatechange = function () {
-        if (this.readyState != 4) return;
-
-        if (this.status == 200) {
-          var definition = JSON.parse(this.responseText);
-          if ("success" in definition) {
-            if (definition.success == true) {
-              buildLayout(definition.layout);
-            } else {
-              console.log("Error: could not load layout definition:", definition.reason);
-            }
-          } else {
-              console.log("Error: Did not receive valid JSON")
-          }
-        }
-      };
-      xhr.send(requestString);
-    }
 
     function getTimer(name) {
 
@@ -611,7 +541,6 @@
         }
       };
       xhr.send(requestString);
-
     }
 
     function updateValue(fromID, toID) {
@@ -622,6 +551,31 @@
       var obj = document.getElementById(fromID);
 
       document.getElementById(toID).innerHTML = obj.value;
+    }
+
+    function populateLayoutDropdown(definitionList) {
+
+      // Take a list of layouts and fill up the dropdown list
+
+      definitionList.forEach(item => {
+        var name = item.split(".").slice(0, -1).join(".");
+        var html = `<option value="${name}">${name}</option>`;
+        $("#definitionListDropdown").append(html);
+      });
+    }
+
+    function loadLayout(name="") {
+
+      if (name == "") {
+        var dropdownName = document.getElementById("definitionListDropdown").value;
+        if (dropdownName == "") {
+          return;
+        } else {
+          name = dropdownName;
+          configurationName = name;
+        }
+      }
+      loadLayoutDefinition(name, buildLayout);
     }
 
     var serverIP;
@@ -640,7 +594,7 @@
     var textList = [];
     var timerList = [];
 
-    getAvailableDefinitions();
+    getAvailableDefinitions(populateLayoutDropdown);
     setInterval(checkConnection, 500);
 
   </script>
