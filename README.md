@@ -1,3 +1,9 @@
+## This project has moved.
+To find the latest project updates on GitHub, [click here](https://github.com/Cosmic-Chatter/Constellation) or visit our project website [here](https://cosmicchatter.org/constellation/constellation.html).
+
+
+
+
 # Constellation
 Open-source control software for museum exhibits
 
